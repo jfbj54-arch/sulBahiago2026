@@ -1915,10 +1915,30 @@
       box.innerHTML=arr.map(h=>`<div class="admin-property-item"><div style="display:flex;gap:10px;align-items:center"><img src="${adminEsc((h.fotos||[])[0]||'')}" alt=""><div style="flex:1;min-width:0"><strong>${adminEsc(h.nome)}</strong><div class="mini-note">${adminEsc(h.local)} · ${brl(h.preco)}/noite</div><div class="mini-note">Proprietário: ${adminEsc(h.proprietario_nome||'')}</div></div></div><div class="action-row"><button class="btn-secondary" onclick="trocarAdminAba('anuncios');editarHospedagemAdmin('${h.id}')"><i class="fa-solid fa-pen"></i> Editar</button><button class="btn-danger-lite" onclick="alterarStatusHospedagem('${h.id}','pausado')"><i class="fa-solid fa-pause"></i> Pausar anúncio</button></div></div>`).join('');
     }
 
+    function normalizarListaSupabase(valor){
+      if(Array.isArray(valor)) return valor.filter(Boolean);
+      if(valor == null) return [];
+      if(typeof valor === 'string'){
+        const t=valor.trim();
+        if(!t) return [];
+        // JSON array
+        if(t.startsWith('[')){
+          try{ const a=JSON.parse(t); if(Array.isArray(a)) return a.filter(Boolean); }catch(e){}
+        }
+        // Postgres array: {item1,item2}
+        if(t.startsWith('{') && t.endsWith('}')){
+          return t.slice(1,-1).split(',').map(x=>x.trim().replace(/^"|"$/g,'')).filter(Boolean);
+        }
+        return t.split(',').map(x=>x.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
     async function preencherSelectHospedagens(){
       const sel=document.getElementById('adminImovel'); if(!sel)return;
-      const {data:arr}=await sb.from('hospedagens').select('nome').eq('ativo',true).eq('status','aprovado').order('nome');
-      const nomes=(arr||[]).map(x=>x.nome);
+      const {data:arr,error}=await sb.from('hospedagens').select('nome').eq('ativo',true).eq('status','aprovado').order('nome');
+      if(error){ console.warn('Lista de hospedagens para reserva:',error.message); return; }
+      const nomes=(arr||[]).map(x=>x.nome).filter(Boolean);
       const fallback=['KitnetPrado Exclusiva','Pousada Vilarejo Costeiro','Hotel Prado Mar'];
       sel.innerHTML=[...new Set([...fallback,...nomes])].map(n=>`<option>${adminEsc(n)}</option>`).join('');
     }
@@ -1928,17 +1948,44 @@
       grid.querySelectorAll('.dynamic-property-card').forEach(x=>x.remove());
       const {data:arr,error}=await sb.from('hospedagens').select('*').eq('ativo',true).eq('status','aprovado').order('created_at',{ascending:false});
       if(error){console.warn('Hospedagens dinâmicas:',error.message);return;}
-      (arr||[]).forEach(h=>{
-        const imgs=h.fotos||[];
-        catalogoSulbahiago[h.nome]={local:h.local,preco:Number(h.preco)||0,alta:Number(h.preco)||0,avaliacao:'★ Novo anúncio',comodidades:h.comodidades||[],imagens:[imgs[0]||'',imgs[1]||imgs[0]||'',imgs[2]||imgs[0]||''],descricao:h.descricao||''};
-        const c=document.createElement('div'); c.className='card dynamic-property-card'; c.dataset.anos='2026 2027'; c.dataset.baseprice=h.preco; c.dataset.altaprice=h.preco; c.dataset.tipo=h.tipo||'Casa Temporada'; c.dataset.comodidades=(h.comodidades||[]).join(',');
-        c.innerHTML=`<div class="card-img"><span class="badge">${adminEsc(h.tipo||'Hospedagem')}</span><img src="${adminEsc(imgs[0]||'')}" class="ativo" alt="${adminEsc(h.nome)}"></div><div class="card-info"><div class="card-header"><h3>${adminEsc(h.nome)}</h3><span class="rating"><i class="fa-solid fa-star"></i> Novo</span></div><p class="location">${adminEsc(h.local)}</p><div class="property-details-tag"><span><i class="fa-solid fa-user-group"></i> Até ${h.max_hospedes||1} hóspedes</span>${(h.comodidades||[]).slice(0,2).map(a=>`<span><i class="fa-solid fa-check"></i> ${adminEsc(a)}</span>`).join('')}</div><div class="card-actions-bottom"><div class="card-price-row"><span class="price card-price-display">${brl(h.preco)} <small>/ noite</small></span><button class="btn-book" onclick="abrirDetalhesImovel(${JSON.stringify(h.nome)})">Reservar</button></div></div></div>`;
-        grid.appendChild(c);
-      });
+
+      for(const h of (arr||[])){
+        try{
+          const imgs=normalizarListaSupabase(h.fotos);
+          const comodidades=normalizarListaSupabase(h.comodidades);
+          const local=h.local || h.localizacao || '';
+          const preco=Number(h.preco ?? h.diaria ?? 0) || 0;
+          const nome=h.nome || 'Hospedagem';
+
+          catalogoSulbahiago[nome]={
+            local,
+            preco,
+            alta:preco,
+            avaliacao:'★ Novo anúncio',
+            comodidades,
+            imagens: imgs.length ? imgs : [''],
+            descricao:h.descricao||''
+          };
+
+          const c=document.createElement('div');
+          c.className='card dynamic-property-card';
+          c.dataset.anos='2026 2027';
+          c.dataset.baseprice=preco;
+          c.dataset.altaprice=preco;
+          c.dataset.tipo=h.tipo||'Casa Temporada';
+          c.dataset.comodidades=comodidades.join(',');
+
+          const capa=imgs[0]||'';
+          c.innerHTML=`<div class="card-img"><span class="badge">${adminEsc(h.tipo||'Hospedagem')}</span>${capa?`<img src="${adminEsc(capa)}" class="ativo" alt="${adminEsc(nome)}" style="display:block">`:'<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#eef2f3;color:#667085">Sem foto</div>'}</div><div class="card-info"><div class="card-header"><h3>${adminEsc(nome)}</h3><span class="rating"><i class="fa-solid fa-star"></i> Novo</span></div><p class="location">${adminEsc(local)}</p><div class="property-details-tag"><span><i class="fa-solid fa-user-group"></i> Até ${h.max_hospedes||1} hóspedes</span>${comodidades.slice(0,2).map(a=>`<span><i class="fa-solid fa-check"></i> ${adminEsc(a)}</span>`).join('')}</div><div class="card-actions-bottom"><div class="card-price-row"><span class="price card-price-display">${brl(preco)} <small>/ noite</small></span><button class="btn-book" onclick="abrirDetalhesImovel(${JSON.stringify(nome)})">Reservar</button></div></div></div>`;
+          grid.appendChild(c);
+        }catch(e){
+          console.error('Erro ao montar hospedagem publicada:',h?.nome,e);
+        }
+      }
     }
 
-    // carrega os imóveis salvos no Supabase ao abrir o site
-    carregarHospedagensPublicas();
+    // carrega anúncios publicados e atualiza o seletor de reserva ao abrir o site
+    Promise.all([carregarHospedagensPublicas(), preencherSelectHospedagens()]);
 
   </script>
 

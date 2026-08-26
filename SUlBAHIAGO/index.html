@@ -1180,12 +1180,18 @@
         <h2 style="color:var(--primary-dark);font-size:20px;">Acesso administrativo</h2>
         <p class="mini-note">Área restrita do SULBAHIAGO.</p>
       </div>
+      <div id="adminPrimeiroNomeWrap" style="display:none;">
+        <label class="form-label">NOME</label>
+        <input id="adminPrimeiroNome" class="form-control" placeholder="Nome do proprietário">
+      </div>
       <label class="form-label">E-MAIL</label>
       <input id="adminLoginEmail" type="email" class="form-control" placeholder="admin@exemplo.com" autocomplete="username">
       <label class="form-label">SENHA</label>
-      <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminEntrar()">
+      <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminModoPrimeiroAcesso ? adminCriarPrimeiroAcesso() : adminEntrar()">
       <div id="adminLoginErro" class="mini-note" style="display:none;color:#b42318;margin-top:10px;"></div>
       <button id="btnAdminEntrar" class="btn-main-action" style="margin-top:14px;" onclick="adminEntrar()"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+      <button id="btnPrimeiroAcesso" class="btn-secondary" style="width:100%;margin-top:9px;" onclick="alternarPrimeiroAcesso()"><i class="fa-solid fa-user-plus"></i> Primeiro acesso</button>
+      <p id="adminPrimeiroAcessoInfo" class="mini-note" style="margin-top:10px;text-align:center;">No primeiro uso, o proprietário cria o próprio acesso aqui.</p>
     </div>
   </div>
 
@@ -1529,11 +1535,60 @@
       el.style.display=msg?'block':'none';
     }
 
-    async function usuarioEhAdmin(userId){
-      if(!userId) return false;
-      const { data, error } = await sb.from('admin_users').select('user_id').eq('user_id', userId).maybeSingle();
+    let adminModoPrimeiroAcesso = false;
+
+    function alternarPrimeiroAcesso(){
+      adminModoPrimeiroAcesso = !adminModoPrimeiroAcesso;
+      document.getElementById('adminPrimeiroNomeWrap').style.display = adminModoPrimeiroAcesso ? 'block' : 'none';
+      const principal=document.getElementById('btnAdminEntrar');
+      const alternar=document.getElementById('btnPrimeiroAcesso');
+      principal.onclick = adminModoPrimeiroAcesso ? adminCriarPrimeiroAcesso : adminEntrar;
+      principal.innerHTML = adminModoPrimeiroAcesso ? '<i class="fa-solid fa-user-plus"></i> Criar acesso administrativo' : '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+      alternar.innerHTML = adminModoPrimeiroAcesso ? '<i class="fa-solid fa-arrow-left"></i> Voltar para login' : '<i class="fa-solid fa-user-plus"></i> Primeiro acesso';
+      adminMostrarErro('');
+    }
+
+    async function usuarioEhAdmin(){
+      const { data, error } = await sb.rpc('is_current_user_admin');
       if(error){ console.error('Erro ao verificar admin:', error); return false; }
-      return !!data;
+      return data === true;
+    }
+
+    async function tentarBootstrapPrimeiroAdmin(){
+      const { error } = await sb.rpc('bootstrap_first_admin');
+      if(error) throw error;
+      return true;
+    }
+
+    async function adminCriarPrimeiroAcesso(){
+      const nome=document.getElementById('adminPrimeiroNome').value.trim();
+      const email=document.getElementById('adminLoginEmail').value.trim();
+      const senha=document.getElementById('adminLoginSenha').value;
+      const btn=document.getElementById('btnAdminEntrar');
+      adminMostrarErro('');
+      if(!nome||!email||!senha){ adminMostrarErro('Preencha nome, e-mail e senha.'); return; }
+      if(senha.length<6){ adminMostrarErro('A senha precisa ter pelo menos 6 caracteres.'); return; }
+      btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Criando...';
+      try{
+        const { data, error } = await sb.auth.signUp({email,password:senha,options:{data:{nome}}});
+        if(error) throw error;
+        if(data.session){
+          await tentarBootstrapPrimeiroAdmin();
+          adminModoPrimeiroAcesso=false;
+          fecharModal('adminLoginModal');
+          await abrirPainelAdmin();
+        }else{
+          adminMostrarErro('A conta foi criada. Confirme o e-mail recebido e depois volte aqui para entrar. No primeiro login, o sistema concluirá a ativação do administrador automaticamente.');
+          adminModoPrimeiroAcesso=false;
+          document.getElementById('adminPrimeiroNomeWrap').style.display='none';
+        }
+      }catch(e){
+        adminMostrarErro(e.message || 'Não foi possível criar o acesso.');
+      }finally{
+        btn.disabled=false;
+        btn.onclick=adminModoPrimeiroAcesso?adminCriarPrimeiroAcesso:adminEntrar;
+        btn.innerHTML=adminModoPrimeiroAcesso?'<i class="fa-solid fa-user-plus"></i> Criar acesso administrativo':'<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+      }
     }
 
     async function abrirAdmin(){
@@ -1543,7 +1598,7 @@
         document.getElementById('adminLoginModal').style.display='flex';
         return;
       }
-      const autorizado=await usuarioEhAdmin(session.user.id);
+      const autorizado=await usuarioEhAdmin();
       if(!autorizado){
         await sb.auth.signOut();
         document.getElementById('adminLoginModal').style.display='flex';
@@ -1563,7 +1618,15 @@
       try{
         const { data, error }=await sb.auth.signInWithPassword({email,password:senha});
         if(error) throw error;
-        const autorizado=await usuarioEhAdmin(data.user?.id);
+        let autorizado=await usuarioEhAdmin();
+        if(!autorizado){
+          try{
+            await tentarBootstrapPrimeiroAdmin();
+            autorizado=await usuarioEhAdmin();
+          }catch(bootstrapError){
+            console.warn('Bootstrap não permitido:', bootstrapError.message);
+          }
+        }
         if(!autorizado){
           await sb.auth.signOut();
           throw new Error('Este usuário não possui permissão de administrador.');

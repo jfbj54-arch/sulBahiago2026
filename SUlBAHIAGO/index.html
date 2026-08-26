@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SULBAHIAGO - Hospedagens e Experiências Exclusivas</title>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SULBAHIAGO">
+  <meta name="theme-color" content="#1A5F20">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-dark: #1A5F20;       
+      --primary-hover: #144d19;      
+      --accent-cta: #E65100;         
+      --bg-highlights: #F7F5F0;      
+      --color-icons-prices: #006064; 
+      --text-main: #2D3748;          
+      --text-secondary: #006064;     
+      --bg-main: #FFFFFF;            
+      --card-bg: #FFFFFF;
+      --border-color: #E2E8F0;
+      --radius-card: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Circular, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background: var(--primary-dark);
+      border-bottom: 1px solid var(--primary-hover);
+      padding: 0 16px;
+      height: 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 20px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      text-decoration: none;
+      letter-spacing: 1.5px;
+    }
+
+    .logo i {
+      font-size: 22px;
+      color: var(--accent-cta);
+    }
+
+    .nav-menu {
+      display: none;
+    }
+
+    @media(min-width: 768px) {
+      .nav-menu {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+        font-size: 13.5px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      header {
+        padding: 0 48px;
+        height: 75px;
+      }
+      .logo {
+        font-size: 22px;
+      }
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: #E8F5E9;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: #FFFFFF;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-reservar-topo, .btn-login-topo {
+      background: var(--accent-cta);
+      color: #FFFFFF;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-reservar-topo:hover, .btn-login-topo:hover {
+      background: #c44300;
+    }
+
+    .hero-banner-section {
+      width: 100%;
+      position: relative;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.65) 100%), 
+                  url('WhatsApp Image 2026-08-12 at 11.28.12.jpeg') center/cover no-repeat;
+      padding: 60px 20px 50px 20px;
+      color: #FFFFFF;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media(min-width: 768px) {
+      .hero-banner-section {
+        padding: 90px 24px 65px 24px;
+      }
+    }
+
+    .hero-text-section {
+      max-width: 900px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .hero-title-col h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.2;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    @media(min-width: 768px) {
+      .hero-title-col h1 {
+        font-size: 46px;
+      }
+    }
+
+    .hero-desc-col p {
+      font-size: 16px;
+      color: #F0F9FF;
+      line-height: 1.5;
+      font-weight: 500;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      max-width: 700px;
+    }
+
+    .search-container-wrapper {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .search-box-container {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(8px);
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    @media(min-width: 950px) {
+      .search-box-container {
+        grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr auto;
+        border-radius: 40px;
+        padding: 8px 10px 8px 24px;
+      }
+    }
+
+    .search-field {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      border-radius: 12px;
+    }
+
+    .search-field:last-of-type {
+      border-bottom: none;
+    }
+
+    @media(min-width: 950px) {
+      .search-field {
+        border-bottom: none;
+        padding: 8px 12px;
+      }
+    }
+
+    .search-field label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .search-field input, .search-field select {
+      border: none;
+      outline: none;
+      font-size: 13.5px;
+      color: #2D3748;
+      background: transparent;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .btn-search-airbnb {
+      background: var(--accent-cta);
+      color: white;
+      border: none;
+      width: 100%;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    @media(min-width: 950px) {
+      .btn-search-airbnb {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-top: 0;
+        margin-left: auto;
+      }
+      .btn-search-airbnb span {
+        display: none;
+      }
+    }
+
+    /* Barra Avançada de Filtros idêntica ao print */
+    .advanced-filters-bar {
+      max-width: 1200px;
+      margin: 25px auto 10px auto;
+      padding: 0 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .filter-group-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-pill-btn {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      padding: 9px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .filter-pill-btn i {
+      color: var(--color-icons-prices);
+    }
+
+    .filter-pill-btn:hover, .filter-pill-btn.active {
+      border-color: var(--primary-dark);
+      background: #E8F5E9;
+      color: var(--primary-dark);
+    }
+
+    .filter-dropdown-inline {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-select-custom {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      padding: 9px 14px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      outline: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto 40px auto;
+      padding: 0 24px;
+    }
+
+    .secao-sobre, .secao-galeria, .secao-hospedagens-destaque {
+      background-color: var(--bg-highlights);
+      padding: 40px 20px;
+      border-radius: 24px;
+      margin-top: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+
+    @media(min-width: 768px) {
+      .secao-galeria, .secao-hospedagens-destaque {
+        padding: 50px 40px;
+      }
+    }
+
+    /* Banner Cadastre seu Imóvel */
+    .banner-anunciar {
+      background: var(--primary-dark);
+      color: #FFFFFF;
+      padding: 35px 24px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 35px;
+      box-shadow: 0 8px 25px rgba(26, 95, 32, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .banner-anunciar h2 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .banner-anunciar p {
+      font-size: 14px;
+      color: #E8F5E9;
+      max-width: 600px;
+      line-height: 1.5;
+    }
+
+    .btn-anunciar-cta {
+      background: var(--accent-cta);
+      color: #FFFFFF;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 6px;
+      box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3);
+    }
+
+    .btn-anunciar-cta:hover {
+      background: #c44300;
+      transform: translateY(-2px);
+    }
+
+    .secao-sobre-conteudo {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .secao-sobre h2 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 20px;
+    }
+
+    .secao-sobre p {
+      font-size: 16px;
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    .galeria-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .galeria-item {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .galeria-img-wrap {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #eee;
+    }
+
+    .galeria-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .galeria-info {
+      padding: 16px;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--border-color);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card-img {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      background: #eee;
+    }
+
+    .card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .card-img img.ativo {
+      display: block;
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #FFF3C4; 
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      z-index: 2;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.85);
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #333;
+      z-index: 5;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .carousel-btn.prev { left: 8px; }
+    .carousel-btn.next { right: 8px; }
+
+    .card-info {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .card-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .rating {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--color-icons-prices);
+    }
+
+    .location {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .property-details-tag {
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: #F7FAFC;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 10px;
+      font-weight: 500;
+    }
+
+    .card-actions-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .card-price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--color-icons-prices);
+    }
+
+    .price small {
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+
+    .btn-book {
+      background: var(--accent-cta);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12.5px;
+      cursor: pointer;
+    }
+
+    .btn-book:hover {
+      background: #c44300;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 580px;
+      border-radius: 20px;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: #EDF2F7; border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-main);
+    }
+
+    .form-floating-group {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+    .form-floating-input {
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .btn-main-action {
+      background: var(--accent-cta);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    footer {
+      background: #F7FAFC;
+      padding: 30px 16px;
+      text-align: center;
+      border-top: 1px solid var(--border-color);
+      margin-top: 40px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+
+    /* ===== FLUXO COMPLETO DE RESERVAS ===== */
+    .flow-section { max-width: 1200px; margin: 24px auto 50px; padding: 0 24px; }
+    .flow-hero { background: linear-gradient(135deg, #123f18, var(--primary-dark)); color:#fff; border-radius:24px; padding:28px; box-shadow:0 12px 30px rgba(26,95,32,.18); }
+    .flow-hero h2 { font-size:26px; margin-bottom:8px; }
+    .flow-hero p { color:#e8f5e9; line-height:1.55; }
+    .flow-steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:18px; }
+    .flow-step { background:rgba(255,255,255,.11); border:1px solid rgba(255,255,255,.2); border-radius:14px; padding:12px; font-size:12px; font-weight:700; }
+    .flow-step b { display:block; color:#ffd2b8; margin-bottom:3px; }
+    .dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:18px; margin-top:22px; }
+    .dash-card { background:#fff; border:1px solid var(--border-color); border-radius:18px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,.05); }
+    .dash-card h3 { color:var(--primary-dark); margin-bottom:10px; font-size:18px; }
+    .status-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:11px; font-weight:800; background:#edf7ee; color:var(--primary-dark); }
+    .status-badge.orange { background:#fff1e8; color:#b94000; }
+    .status-badge.blue { background:#e6f7f8; color:var(--color-icons-prices); }
+    .reservation-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0; font-size:13px; color:var(--text-main); }
+    .reservation-meta span { background:var(--bg-highlights); padding:9px; border-radius:10px; }
+    .action-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .btn-secondary { border:1px solid var(--primary-dark); color:var(--primary-dark); background:#fff; padding:9px 13px; border-radius:10px; font-weight:700; cursor:pointer; }
+    .btn-danger-lite { border:1px solid #d8dfe5; color:#5b6570; background:#fff; padding:9px 13px; border-radius:10px; font-weight:700; cursor:pointer; }
+    .empty-state { text-align:center; padding:42px 18px; border:1px dashed #cbd5e0; border-radius:18px; background:#fff; color:#667085; }
+    .empty-state i { font-size:36px; color:var(--color-icons-prices); margin-bottom:12px; }
+    .detail-gallery { display:grid; grid-template-columns:1.7fr 1fr; gap:10px; margin:12px 0 18px; }
+    .detail-gallery img { width:100%; height:210px; object-fit:cover; border-radius:14px; background:#eee; }
+    .detail-gallery .side { display:grid; gap:10px; }
+    .detail-gallery .side img { height:100px; }
+    .amenity-list { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
+    .amenity-chip { background:#eef7f7; color:var(--color-icons-prices); padding:7px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+    .rules-box { background:var(--bg-highlights); border-radius:12px; padding:13px; margin:12px 0; font-size:13px; line-height:1.5; }
+    .price-summary { border-top:1px solid var(--border-color); margin-top:14px; padding-top:14px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .price-summary strong { color:var(--color-icons-prices); font-size:18px; }
+    .chat-box { height:220px; overflow-y:auto; background:#f8fafc; border:1px solid var(--border-color); border-radius:12px; padding:12px; margin-bottom:10px; }
+    .chat-msg { max-width:82%; margin:7px 0; padding:9px 11px; border-radius:12px; font-size:13px; line-height:1.4; }
+    .chat-msg.me { margin-left:auto; background:#e8f5e9; }
+    .chat-msg.host { background:#fff; border:1px solid var(--border-color); }
+    .chat-compose { display:flex; gap:8px; }
+    .chat-compose input { flex:1; border:1px solid var(--border-color); border-radius:10px; padding:10px; outline:none; }
+    .review-stars button { background:none; border:none; font-size:27px; cursor:pointer; color:#cbd5e0; padding:2px; }
+    .review-stars button.active { color:#f59e0b; }
+    .owner-stat { display:flex; justify-content:space-between; align-items:center; background:var(--bg-highlights); padding:12px; border-radius:12px; margin-bottom:9px; }
+    .mini-note { font-size:12px; color:#667085; line-height:1.45; }
+    .login-tabs { display:flex; gap:8px; margin:8px 0 16px; }
+    .login-tabs button { flex:1; border:1px solid var(--border-color); background:#fff; padding:9px; border-radius:10px; font-weight:700; cursor:pointer; }
+    .login-tabs button.active { background:#e8f5e9; border-color:var(--primary-dark); color:var(--primary-dark); }
+    .form-label { display:block; font-size:11px; font-weight:800; color:var(--primary-dark); margin:10px 0 5px; }
+    .form-control { width:100%; border:1px solid var(--border-color); border-radius:10px; padding:11px 12px; outline:none; font-size:14px; }
+    .form-control:focus { border-color:var(--primary-dark); box-shadow:0 0 0 3px rgba(26,95,32,.08); }
+    @media(max-width:700px){
+      .detail-gallery { grid-template-columns:1fr; }
+      .detail-gallery img { height:190px; }
+      .detail-gallery .side { grid-template-columns:1fr 1fr; }
+      .reservation-meta { grid-template-columns:1fr; }
+      .flow-section { padding:0 14px; }
+      .header-actions .btn-reservar-topo { display:none; }
+    }
+
+
+    /* ===== ÁREA ADMINISTRATIVA SUTIL ===== */
+    .admin-entry{margin-top:10px;background:transparent;border:0;color:#7a8b94;font-size:11px;cursor:pointer;opacity:.45;transition:.2s}
+    .admin-entry:hover{opacity:1;color:var(--primary-dark)}
+    .admin-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .admin-card{background:#fff;border:1px solid var(--border-color);border-radius:14px;padding:14px}
+    .admin-list{max-height:280px;overflow:auto;margin-top:12px}
+    .admin-res-item{border:1px solid var(--border-color);border-radius:12px;padding:10px;margin-bottom:8px;background:#fafafa;font-size:12px}
+    @media(max-width:700px){.admin-panel-grid{grid-template-columns:1fr}}
+
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Cabeçalho -->
+  <header>
+    <a href="#" class="logo" onclick="mostrarSecao('home'); return false;">
+      <i class="fa-solid fa-paper-plane" style="color: #FFFFFF;"></i> SULBAHIAGO
+    </a>
+    
+    <ul class="nav-menu">
+      <li><a href="#" onclick="mostrarSecao('home'); return false;">Serviços</a></li>
+      <li><a href="#hospedagens" onclick="mostrarSecao('home')">Reserva</a></li>
+      <li><a href="#" onclick="mostrarSecao('galeria'); return false;">Galeria</a></li>
+      <li><a href="#" onclick="mostrarSecao('sobre'); return false;">Sobre</a></li>
+      <li><a href="#" onclick="mostrarSecao('contato'); return false;">Contato</a></li>
+    </ul>
+
+    <div class="header-actions">
+      <button class="btn-login-topo" onclick="abrirAuthModal('login')">
+        <i class="fa-solid fa-user"></i> <span id="userNavText">Entrar / Cadastrar</span>
+      </button>
+      <a href="#hospedagens" class="btn-reservar-topo" onclick="mostrarSecao('home')">Reservar Agora</a>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <div id="secaoHome">
+    <section class="hero-banner-section">
+      <div class="hero-text-section">
+        <div class="hero-title-col">
+          <h1>Explore as joias escondidas do sul da Bahia</h1>
+        </div>
+        <div class="hero-desc-col">
+          <p>Conectamos você às melhores opções de hospedagem com total segurança, conforto e exclusividade em Prado.</p>
+        </div>
+      </div>
+
+      <!-- Barra de Pesquisa Principal -->
+      <div class="search-container-wrapper">
+        <div class="search-box-container">
+          <div class="search-field">
+            <label>Destino / Praia</label>
+            <input type="text" id="searchInput" placeholder="Prado, Kitnet..." onkeyup="filterDestinations()">
+          </div>
+          <div class="search-field">
+            <label>Nº de Hóspedes</label>
+            <select id="guestFilter" onchange="filterDestinations()">
+              <option value="1">1 Hóspede (Base)</option>
+              <option value="2">2 Hóspedes</option>
+              <option value="3">3 Hóspedes</option>
+              <option value="4">4+ Hóspedes</option>
+            </select>
+          </div>
+          <div class="search-field">
+            <label>Check-in</label>
+            <input type="date" id="checkinInput" onchange="filterDestinations()">
+          </div>
+          <div class="search-field">
+            <label>Check-out</label>
+            <input type="date" id="checkoutInput">
+          </div>
+          <div class="search-field">
+            <label>Temporada</label>
+            <select id="seasonFilter" onchange="filterDestinations()">
+              <option value="">Todas</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+          <button class="btn-search-airbnb" onclick="filterDestinations()">
+            <i class="fa-solid fa-magnifying-glass"></i> <span>Pesquisar</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BARRA DE FILTROS AVANÇADOS (EXATAMENTE COMO NA SUA FOTO) -->
+    <div class="advanced-filters-bar">
+      <div class="filter-group-inline">
+        <button class="filter-pill-btn active" onclick="setTipoCasa('todos', this)"><i class="fa-solid fa-border-all"></i> Todos</button>
+        <button class="filter-pill-btn" onclick="setTipoCasa('Casa Temporada', this)"><i class="fa-solid fa-house-chimney"></i> Casa Temporada</button>
+        <button class="filter-pill-btn" onclick="setTipoCasa('Hoteis', this)"><i class="fa-solid fa-hotel"></i> Hoteis</button>
+        <button class="filter-pill-btn" onclick="setTipoCasa('Pousadas', this)"><i class="fa-solid fa-bed"></i> Pousadas</button>
+      </div>
+
+      <div class="filter-dropdown-inline">
+        <select class="filter-select-custom" id="maxPriceFilter" onchange="filterDestinations()">
+          <option value="">Preço Máx: Qualquer Valor</option>
+          <option value="200">Até R$ 200</option>
+          <option value="300">Até R$ 300</option>
+          <option value="500">Até R$ 500</option>
+        </select>
+
+        <select class="filter-select-custom" id="amenityFilter" onchange="filterDestinations()">
+          <option value="">Todas Comodidades</option>
+          <option value="Wi-Fi">Wi-Fi</option>
+          <option value="Ar-condicionado">Ar-condicionado</option>
+        </select>
+      </div>
+    </div>
+
+    <main class="container" id="hospedagens">
+      
+      <!-- BANNER CADASTRE SEU IMÓVEL -->
+      <div class="banner-anunciar">
+        <h2>Cadastre seu Imóvel na Nossa Galeria</h2>
+        <p>Faça parte do nosso portfólio exclusivo. Envie os dados do seu imóvel de forma simples e rápida.</p>
+        <button class="btn-anunciar-cta" onclick="alert('Funcionalidade de cadastro de imóvel em breve!')">Começar a Anunciar</button>
+      </div>
+
+      <div class="secao-hospedagens-destaque" style="margin-top: 0;">
+        <div class="section-header" style="margin-bottom: 20px;">
+          <h2 class="section-title">Hospedagens em Destaque em Prado e Região</h2>
+        </div>
+
+        <div class="cards-grid" id="cardsGridContainer">
+          
+          <!-- KITNET PRADO (CASA TEMPORADA) -->
+          <div class="card" data-anos="2026 2027" data-baseprice="150" data-altaprice="300" data-tipo="Casa Temporada" data-comodidades="Wi-Fi,Ar-condicionado">
+            <div class="card-img" id="carousel-kitnet">
+              <span class="badge">Kitnet / Temporada</span>
+              <button class="carousel-btn prev" onclick="mudarFotoKitnet(-1); event.stopPropagation();"><i class="fa-solid fa-chevron-left"></i></button>
+              <button class="carousel-btn next" onclick="mudarFotoKitnet(1); event.stopPropagation();"><i class="fa-solid fa-chevron-right"></i></button>
+              
+              <img src="WhatsApp Image 2026-08-20 at 18.22.57 (1).jpeg" alt="KitnetPrado 1" class="ativo">
+              <img src="WhatsApp Image 2026-08-20 at 18.22.57 (2).jpeg" alt="KitnetPrado 2">
+              <img src="WhatsApp Image 2026-08-20 at 18.22.57 (3).jpeg" alt="KitnetPrado 3">
+              <img src="WhatsApp Image 2026-08-20 at 18.22.57.jpeg" alt="KitnetPrado 4">
+              <img src="WhatsApp Image 2026-08-20 at 18.22.58 (1).jpeg" alt="KitnetPrado 5">
+              <img src="WhatsApp Image 2026-08-20 at 18.22.58.jpeg" alt="KitnetPrado 6">
+            </div>
+            <div class="card-info">
+              <div class="card-header">
+                <h3>KitnetPrado Exclusiva</h3>
+                <span class="rating"><i class="fa-solid fa-star"></i> 5.0</span>
+              </div>
+              <p class="location">Prado - BA</p>
+              <div class="property-details-tag">
+                <span><i class="fa-solid fa-house"></i> 1 Quarto / Kitnet</span>
+                <span><i class="fa-solid fa-wifi"></i> Wi-Fi Incluso</span>
+              </div>
+              <div class="card-actions-bottom">
+                <div class="card-price-row">
+                  <span class="price card-price-display">R$ 150 <small>/ noite (1 hóspede)</small></span>
+                  <button class="btn-book" onclick="abrirDetalhesImovel('KitnetPrado Exclusiva')">Reservar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- POUSADA VILAREJO COSTEIRO -->
+          <div class="card" data-anos="2026 2027" data-baseprice="180" data-altaprice="350" data-tipo="Pousadas" data-comodidades="Wi-Fi">
+            <div class="card-img">
+              <span class="badge">Pousadas</span>
+              <img src="WhatsApp Image.jpeg" alt="Pousada Vilarejo Costeiro" class="ativo" style="display:block;">
+            </div>
+            <div class="card-info">
+              <div class="card-header">
+                <h3>Pousada Vilarejo Costeiro</h3>
+                <span class="rating"><i class="fa-solid fa-star"></i> 4.8</span>
+              </div>
+              <p class="location">Orla de Prado - BA</p>
+              <div class="property-details-tag">
+                <span><i class="fa-solid fa-bed"></i> Suítes</span>
+                <span><i class="fa-solid fa-wifi"></i> Wi-Fi</span>
+              </div>
+              <div class="card-actions-bottom">
+                <div class="card-price-row">
+                  <span class="price card-price-display">R$ 180 <small>/ noite (1 hóspede)</small></span>
+                  <button class="btn-book" onclick="abrirDetalhesImovel('Pousada Vilarejo Costeiro')">Reservar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HOTEL PRADO MAR -->
+          <div class="card" data-anos="2026 2027" data-baseprice="250" data-altaprice="480" data-tipo="Hoteis" data-comodidades="Wi-Fi,Ar-condicionado">
+            <div class="card-img">
+              <span class="badge">Hotéis</span>
+              <img src="WhatsApp Image 2026-08-20 at 18.22.58.jpeg" alt="Hotel Prado Mar" class="ativo" style="display:block;">
+            </div>
+            <div class="card-info">
+              <div class="card-header">
+                <h3>Hotel Prado Mar</h3>
+                <span class="rating"><i class="fa-solid fa-star"></i> 4.9</span>
+              </div>
+              <p class="location">Centro - Prado - BA</p>
+              <div class="property-details-tag">
+                <span><i class="fa-solid fa-hotel"></i> Quarto Luxo</span>
+                <span><i class="fa-solid fa-snowflake"></i> Ar-condicionado</span>
+              </div>
+              <div class="card-actions-bottom">
+                <div class="card-price-row">
+                  <span class="price card-price-display">R$ 250 <small>/ noite (1 hóspede)</small></span>
+                  <button class="btn-book" onclick="abrirDetalhesImovel('Hotel Prado Mar')">Reservar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ABA SOBRE -->
+  <div id="secaoSobre" class="container" style="display: none;">
+    <div class="secao-sobre">
+      <div class="secao-sobre-conteudo">
+        <h2>Nossa Missão: Conectar Você ao Melhor do Sul da Bahia</h2>
+        <p>No SULBAHIAGO, valorizamos a confiança, conforto e segurança, oferecendo opções de hospedagem selecionadas em Prado.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA GALERIA -->
+  <div id="secaoGaleria" class="container" style="display: none;">
+    <div class="secao-galeria">
+      <div class="section-header" style="text-align: center; margin-bottom: 30px;">
+        <h2 class="section-title">Galeria de Fotos - KitnetPrado</h2>
+      </div>
+      <div class="galeria-grid">
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (1).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 1</div></div>
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (2).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 2</div></div>
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (3).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 3</div></div>
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57.jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 4</div></div>
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.58 (1).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 5</div></div>
+        <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.58.jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 6</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA CONTATO -->
+  <div id="secaoContato" class="container" style="display: none;">
+    <div class="secao-sobre">
+      <div class="secao-sobre-conteudo">
+        <h2>Fale Conosco</h2>
+        <p>Entre em contato conosco para tirar dúvidas sobre reservas e parcerias em Prado e região.</p>
+        <p style="margin-top: 15px; font-weight: 700; color: var(--color-icons-prices);">E-mail / WhatsApp: suporte@sulbahiago.com.br</p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- MODAL DE AUTENTICAÇÃO -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box" style="max-width:430px;">
+      <button class="modal-close" onclick="fecharAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color:var(--primary-dark); margin-bottom:4px;">Sua conta SULBAHIAGO</h2>
+      <p class="mini-note">Entre para reservar e acompanhar toda a viagem.</p>
+      <div class="login-tabs">
+        <button id="tabLogin" class="active" onclick="trocarAuthTab('login')">Entrar</button>
+        <button id="tabCadastro" onclick="trocarAuthTab('cadastro')">Criar conta</button>
+      </div>
+      <div id="cadastroNomeWrap" style="display:none;">
+        <label class="form-label">NOME COMPLETO</label>
+        <input id="authNome" class="form-control" placeholder="Seu nome completo">
+      </div>
+      <label class="form-label">E-MAIL</label>
+      <input id="authEmail" type="email" class="form-control" placeholder="voce@email.com">
+      <label class="form-label">SENHA</label>
+      <input id="authSenha" type="password" class="form-control" placeholder="••••••••">
+      <button class="btn-main-action" style="margin-top:16px;" onclick="concluirAuth()" id="btnAuthPrincipal">Entrar</button>
+      <p class="mini-note" style="margin-top:10px;">Protótipo local: os dados ficam apenas neste navegador.</p>
+    </div>
+  </div>
+
+  <!-- MODAL DETALHES DO IMÓVEL -->
+  <div class="modal-overlay" id="detalhesModal">
+    <div class="modal-box" style="max-width:760px;">
+      <button class="modal-close" onclick="fecharModal('detalhesModal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 id="detalheTitulo" style="color:var(--primary-dark);">Hospedagem</h2>
+      <p id="detalheLocal" class="location" style="margin-top:4px;"></p>
+      <div class="detail-gallery" id="detalheGaleria"></div>
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">
+        <strong id="detalheAvaliacao" style="color:var(--color-icons-prices);"></strong>
+        <span class="status-badge blue"><i class="fa-solid fa-shield-halved"></i> Anúncio verificado</span>
+      </div>
+      <div class="amenity-list" id="detalheComodidades"></div>
+      <div class="rules-box"><strong>Regras da hospedagem</strong><br>Documento de identificação no check-in. Respeite horários e regras específicas informadas pelo anfitrião. Cancelamentos seguem as condições apresentadas antes do pagamento.</div>
+      <div class="price-summary">
+        <div><small>A partir de</small><br><strong id="detalhePreco"></strong></div>
+        <button class="btn-main-action" style="width:auto;padding:12px 18px;" onclick="continuarParaReserva()">Continuar para reserva</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PAGAMENTO -->
+  <div class="modal-overlay" id="pagamentoModal">
+    <div class="modal-box" style="max-width:500px;">
+      <button class="modal-close" onclick="fecharModal('pagamentoModal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color:var(--primary-dark); margin-bottom:6px;">Pagamento da reserva</h2>
+      <p id="pagamentoResumo" class="mini-note"></p>
+      <label class="form-label">FORMA DE PAGAMENTO</label>
+      <select id="formaPagamento" class="form-control">
+        <option>PIX</option><option>Cartão de crédito</option><option>Cartão de débito</option>
+      </select>
+      <div class="rules-box"><i class="fa-solid fa-lock"></i> Nesta versão demonstrativa, o pagamento é simulado. A integração real com gateway será feita no backend.</div>
+      <button class="btn-main-action" onclick="confirmarPagamentoSimulado()">Confirmar pagamento</button>
+    </div>
+  </div>
+
+  <!-- MODAL CHAT -->
+  <div class="modal-overlay" id="chatModal">
+    <div class="modal-box" style="max-width:540px;">
+      <button class="modal-close" onclick="fecharModal('chatModal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color:var(--primary-dark);margin-bottom:10px;">Conversa com o anfitrião</h2>
+      <div id="chatMensagens" class="chat-box"></div>
+      <div class="chat-compose"><input id="chatInput" placeholder="Digite sua mensagem..."><button class="btn-main-action" style="width:auto;" onclick="enviarMensagemChat()"><i class="fa-solid fa-paper-plane"></i></button></div>
+    </div>
+  </div>
+
+  <!-- MODAL AVALIAÇÃO -->
+  <div class="modal-overlay" id="avaliacaoModal">
+    <div class="modal-box" style="max-width:460px;text-align:center;">
+      <button class="modal-close" onclick="fecharModal('avaliacaoModal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color:var(--primary-dark);">Como foi sua estadia?</h2>
+      <p class="mini-note" style="margin:6px 0 14px;">Sua avaliação ajuda outros viajantes.</p>
+      <div class="review-stars" id="reviewStars">
+        <button onclick="selecionarNota(1)">★</button><button onclick="selecionarNota(2)">★</button><button onclick="selecionarNota(3)">★</button><button onclick="selecionarNota(4)">★</button><button onclick="selecionarNota(5)">★</button>
+      </div>
+      <textarea id="reviewTexto" class="form-control" rows="4" placeholder="Conte como foi sua experiência..."></textarea>
+      <button class="btn-main-action" style="margin-top:12px;" onclick="salvarAvaliacao()">Enviar avaliação</button>
+    </div>
+  </div>
+
+
+  <!-- Modal de Reserva -->
+  <div class="modal-overlay" id="reservaModal">
+    <div class="modal-box" style="max-width: 540px;">
+      <button class="modal-close" onclick="fecharReservaModal()"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div id="etapaReservaForm">
+        <div class="host-title" id="reservaTituloModal" style="font-size: 18px; font-weight: 700; margin-bottom: 12px;">Reservar</div>
+        
+        <div class="form-floating-group">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border-color);">
+            <div style="padding: 10px; border-right: 1px solid var(--border-color);">
+              <label style="font-size: 10px; font-weight: 800; color: var(--primary-dark); display: block;">CHECK-IN</label>
+              <input type="date" id="modalCheckin" class="form-floating-input" style="border: none; padding: 2px 0;" onchange="atualizarCalculoModal()">
+            </div>
+            <div style="padding: 10px;">
+              <label style="font-size: 10px; font-weight: 800; color: var(--primary-dark); display: block;">CHECK-OUT</label>
+              <input type="date" id="modalCheckout" class="form-floating-input" style="border: none; padding: 2px 0;">
+            </div>
+          </div>
+          <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+            <label style="font-size: 10px; font-weight: 800; color: var(--primary-dark); display: block;">HÓSPEDES</label>
+            <select id="modalHospedes" class="form-floating-input" style="border: none; padding: 2px 0; background: transparent;" onchange="atualizarCalculoModal()">
+              <option value="1">1 Hóspede</option>
+              <option value="2">2 Hóspedes</option>
+              <option value="3">3 Hóspedes</option>
+              <option value="4">4+ Hóspedes</option>
+            </select>
+          </div>
+          <div style="padding: 12px; background: #F7FAFC; font-size: 13.5px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span>Diária:</span> <strong id="reservaValorDiaria" style="color: var(--color-icons-prices);">R$ 150 / noite</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; font-size: 15px; color: var(--color-icons-prices);">
+              <span>Total Estimado:</span> <strong id="reservaValorTotal">R$ 150,00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-floating-group">
+          <input type="text" id="clienteNome" class="form-floating-input" placeholder="Seu Nome Completo">
+          <input type="text" id="clienteContato" class="form-floating-input" placeholder="Seu WhatsApp ou E-mail">
+        </div>
+
+        <button class="btn-main-action" onclick="enviarPedidoReserva()">Confirmar Solicitação de Reserva</button>
+      </div>
+
+      <div id="etapaReservaSucesso" style="display: none; text-align: center; padding: 10px 0;">
+        <div style="font-size: 42px; color: var(--primary-dark); margin-bottom: 10px;"><i class="fa-solid fa-circle-check"></i></div>
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Solicitação Realizada com Sucesso!</div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Sua reserva foi enviada ao anfitrião. Aguarde o retorno.</p>
+        <button class="btn-main-action" onclick="fecharReservaModal()">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div style="font-weight: 700; color: #FFFFFF; background: var(--primary-dark); display: inline-block; padding: 4px 12px; border-radius: 4px; margin-bottom: 4px;">SULBAHIAGO ©️ 2026</div>
+    <p>Sua plataforma de reservas e turismo em Prado e no sul da Bahia.</p>
+    <button class="admin-entry" onclick="abrirAdmin()" title="Área administrativa"><i class="fa-solid fa-gear"></i> administração</button>
+  </footer>
+
+  <!-- LOGIN ADMINISTRATIVO SUTIL -->
+  <div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-box" style="max-width:410px;">
+      <button class="modal-close" onclick="fecharModal('adminLoginModal')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center;margin-bottom:16px;">
+        <div style="width:48px;height:48px;border-radius:50%;background:#E8F5E9;color:var(--primary-dark);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:20px;"><i class="fa-solid fa-lock"></i></div>
+        <h2 style="color:var(--primary-dark);font-size:20px;">Acesso administrativo</h2>
+        <p class="mini-note">Área restrita do SULBAHIAGO.</p>
+      </div>
+      <label class="form-label">E-MAIL</label>
+      <input id="adminLoginEmail" type="email" class="form-control" placeholder="admin@exemplo.com" autocomplete="username">
+      <label class="form-label">SENHA</label>
+      <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminEntrar()">
+      <div id="adminLoginErro" class="mini-note" style="display:none;color:#b42318;margin-top:10px;"></div>
+      <button id="btnAdminEntrar" class="btn-main-action" style="margin-top:14px;" onclick="adminEntrar()"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+    </div>
+  </div>
+
+  <!-- ÁREA ADMINISTRATIVA SUTIL -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-box" style="max-width:760px;">
+      <button class="modal-close" onclick="fecharModal('adminModal')"><i class="fa-solid fa-xmark"></i></button>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:34px;">
+        <div>
+          <h2 style="color:var(--primary-dark);margin-bottom:4px;"><i class="fa-solid fa-shield-halved"></i> Administração</h2>
+          <p class="mini-note" style="margin-bottom:16px;">Reservas salvas online no Supabase.</p>
+        </div>
+        <button class="btn-danger-lite" onclick="adminSair()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
+      </div>
+      <div class="admin-panel-grid">
+        <div class="admin-card">
+          <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:10px;">Nova reserva</h3>
+          <label class="form-label">HOSPEDAGEM</label>
+          <select id="adminImovel" class="form-control">
+            <option>KitnetPrado Exclusiva</option>
+            <option>Pousada Vilarejo Costeiro</option>
+            <option>Hotel Prado Mar</option>
+          </select>
+          <label class="form-label">NOME DO HÓSPEDE</label>
+          <input id="adminCliente" class="form-control" placeholder="Nome completo">
+          <label class="form-label">CONTATO</label>
+          <input id="adminContato" class="form-control" placeholder="WhatsApp ou e-mail">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><label class="form-label">CHECK-IN</label><input id="adminCheckin" type="date" class="form-control"></div>
+            <div><label class="form-label">CHECK-OUT</label><input id="adminCheckout" type="date" class="form-control"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><label class="form-label">HÓSPEDES</label><input id="adminHospedes" type="number" min="1" value="1" class="form-control"></div>
+            <div><label class="form-label">VALOR TOTAL</label><input id="adminTotal" type="number" min="0" step="0.01" class="form-control" placeholder="0,00"></div>
+          </div>
+          <label class="form-label">STATUS</label>
+          <select id="adminStatus" class="form-control">
+            <option value="solicitada">Solicitada</option>
+            <option value="aprovada">Aprovada</option>
+            <option value="confirmada">Confirmada / paga</option>
+          </select>
+          <button class="btn-main-action" style="margin-top:14px;" onclick="adminAdicionarReserva()"><i class="fa-solid fa-plus"></i> Adicionar reserva</button>
+        </div>
+        <div class="admin-card">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+            <h3 style="color:var(--primary-dark);font-size:16px;">Reservas cadastradas</h3>
+            <strong id="adminQtdReservas" style="color:var(--color-icons-prices);">0</strong>
+          </div>
+          <div id="adminListaReservas" class="admin-list"></div>
+        </div>
+      </div>
+      <p class="mini-note" style="margin-top:12px;"><i class="fa-solid fa-cloud"></i> Os dados desta área são carregados do Supabase e sincronizados entre dispositivos.</p>
+    </div>
+  </div>
+
+  <script>
+    let indiceFotoKitnet = 0;
+    function mudarFotoKitnet(direcao) {
+      const container = document.getElementById('carousel-kitnet');
+      const imagens = container.querySelectorAll('img');
+      imagens[indiceFotoKitnet].classList.remove('ativo');
+      
+      indiceFotoKitnet += direcao;
+      if (indiceFotoKitnet >= imagens.length) indiceFotoKitnet = 0;
+      if (indiceFotoKitnet < 0) indiceFotoKitnet = imagens.length - 1;
+      
+      imagens[indiceFotoKitnet].classList.add('ativo');
+    }
+
+    let nomeImovelGlobal = "";
+    let precoBaseGlobal = 150;
+    let precoAltaGlobal = 300;
+    let tipoCasaSelecionado = 'todos';
+
+    function mostrarSecao(secao) {
+      document.getElementById('secaoHome').style.display = (secao === 'home') ? 'block' : 'none';
+      document.getElementById('secaoSobre').style.display = (secao === 'sobre') ? 'block' : 'none';
+      document.getElementById('secaoGaleria').style.display = (secao === 'galeria') ? 'block' : 'none';
+      document.getElementById('secaoContato').style.display = (secao === 'contato') ? 'block' : 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function verificarSeEhAltaTemporada(dataString) {
+      if (!dataString) return false;
+      const mes = new Date(dataString + 'T00:00:00').getMonth() + 1;
+      return (mes === 12 || mes === 1);
+    }
+
+    function abrirReservaModal(nomeImovel, precoNoiteBase) {
+      nomeImovelGlobal = nomeImovel;
+      let cardAlvo = null;
+      document.querySelectorAll('.cards-grid .card').forEach(c => {
+        if (c.querySelector('h3').innerText === nomeImovel) cardAlvo = c;
+      });
+
+      precoBaseGlobal = cardAlvo ? Number(cardAlvo.getAttribute('data-baseprice')) : Number(precoNoiteBase);
+      precoAltaGlobal = cardAlvo ? Number(cardAlvo.getAttribute('data-altaprice')) : (precoBaseGlobal * 2);
+
+      document.getElementById('reservaTituloModal').innerText = 'Reservar: ' + nomeImovel;
+      document.getElementById('modalHospedes').value = document.getElementById('guestFilter').value;
+      document.getElementById('modalCheckin').value = document.getElementById('checkinInput').value;
+      document.getElementById('modalCheckout').value = document.getElementById('checkoutInput').value;
+      
+      atualizarCalculoModal();
+
+      document.getElementById('etapaReservaForm').style.display = 'block';
+      document.getElementById('etapaReservaSucesso').style.display = 'none';
+      document.getElementById('reservaModal').style.display = 'flex';
+    }
+
+    function atualizarCalculoModal() {
+      const qtd = Number(document.getElementById('modalHospedes').value) || 1;
+      const ehAlta = verificarSeEhAltaTemporada(document.getElementById('modalCheckin').value);
+      const diaria = ehAlta ? precoAltaGlobal : precoBaseGlobal;
+      const total = diaria * qtd;
+
+      document.getElementById('reservaValorDiaria').innerText = `R$ ${total} / noite (${qtd} hóspede${qtd > 1 ? 's' : ''})${ehAlta ? ' 🌟 Alta' : ''}`;
+      document.getElementById('reservaValorTotal').innerText = `R$ ${total},00`;
+    }
+
+    function fecharReservaModal() {
+      document.getElementById('reservaModal').style.display = 'none';
+    }
+
+    function enviarPedidoReserva() {
+      if (!document.getElementById('clienteNome').value.trim() || !document.getElementById('clienteContato').value.trim()) {
+        alert('Por favor, preencha seu nome e contato.');
+        return;
+      }
+      document.getElementById('etapaReservaForm').style.display = 'none';
+      document.getElementById('etapaReservaSucesso').style.display = 'block';
+    }
+
+    function setTipoCasa(tipo, btn) {
+      tipoCasaSelecionado = tipo;
+      btn.parentElement.querySelectorAll('.filter-pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterDestinations();
+    }
+
+    function filterDestinations() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const season = document.getElementById('seasonFilter').value;
+      const maxPrice = Number(document.getElementById('maxPriceFilter').value) || 999999;
+      const amenity = document.getElementById('amenityFilter').value;
+      const ehAlta = verificarSeEhAltaTemporada(document.getElementById('checkinInput').value);
+      const qtd = Number(document.getElementById('guestFilter').value) || 1;
+
+      document.querySelectorAll('.cards-grid .card').forEach(card => {
+        const texto = card.innerText.toLowerCase();
+        const anos = card.getAttribute('data-anos') || '';
+        const tipo = (card.getAttribute('data-tipo') || '').toLowerCase();
+        const comodidades = card.getAttribute('data-comodidades') || '';
+        const bPrice = Number(card.getAttribute('data-baseprice')) || 100;
+        const aPrice = Number(card.getAttribute('data-altaprice')) || (bPrice * 2);
+        
+        const diaria = ehAlta ? aPrice : bPrice;
+        const total = diaria * qtd;
+
+        const priceDisplay = card.querySelector('.card-price-display');
+        if (priceDisplay) {
+          priceDisplay.innerHTML = `R$ ${total} <small>/ noite (${qtd} hóspede${qtd > 1 ? 's' : ''})${ehAlta ? ' 🌟 Alta' : ''}</small>`;
+        }
+
+        const matchText = texto.includes(q);
+        const matchSeason = (!season || anos.includes(season));
+        const matchTipo = (tipoCasaSelecionado === 'todos' || tipo.includes(tipoCasaSelecionado.toLowerCase()));
+        const matchPrice = (bPrice <= maxPrice);
+        const matchAmenity = (!amenity || comodidades.includes(amenity));
+
+        const match = matchText && matchSeason && matchTipo && matchPrice && matchAmenity;
+        card.style.display = match ? 'flex' : 'none';
+      });
+    }
+
+    window.onclick = (e) => {
+      if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
+    }
+  </script>
+
+
+  <script>
+    // ===== FLUXO COMPLETO SULBAHIAGO - PROTÓTIPO FUNCIONAL LOCAL =====
+    const catalogoSulbahiago = {
+      'KitnetPrado Exclusiva': {
+        local:'Prado - BA', preco:150, alta:300, avaliacao:'★ 5.0 · Excelente',
+        comodidades:['Wi-Fi','Ar-condicionado','Cozinha','1 quarto'],
+        imagens:['WhatsApp Image 2026-08-20 at 18.22.57 (1).jpeg','WhatsApp Image 2026-08-20 at 18.22.57 (2).jpeg','WhatsApp Image 2026-08-20 at 18.22.57 (3).jpeg']
+      },
+      'Pousada Vilarejo Costeiro': {
+        local:'Orla de Prado - BA', preco:180, alta:350, avaliacao:'★ 4.8 · Muito boa',
+        comodidades:['Wi-Fi','Suítes','Próxima à orla'], imagens:['WhatsApp Image.jpeg','WhatsApp Image.jpeg','WhatsApp Image.jpeg']
+      },
+      'Hotel Prado Mar': {
+        local:'Centro - Prado - BA', preco:250, alta:480, avaliacao:'★ 4.9 · Excelente',
+        comodidades:['Wi-Fi','Ar-condicionado','Quarto luxo'], imagens:['WhatsApp Image 2026-08-20 at 18.22.58.jpeg','WhatsApp Image 2026-08-20 at 18.22.58.jpeg','WhatsApp Image 2026-08-20 at 18.22.58.jpeg']
+      }
+    };
+
+    let authModo = 'login';
+    let imovelSelecionado = null;
+    let reservaAtivaId = null;
+    let notaSelecionada = 0;
+    let acaoPosLogin = null;
+
+    function getUser(){ try{return JSON.parse(localStorage.getItem('sulbahiago_user'))}catch(e){return null} }
+    function setUser(u){ localStorage.setItem('sulbahiago_user', JSON.stringify(u)); atualizarUsuarioHeader(); }
+    function getReservas(){ try{return JSON.parse(localStorage.getItem('sulbahiago_reservas')||'[]')}catch(e){return[]} }
+    function setReservas(r){ localStorage.setItem('sulbahiago_reservas', JSON.stringify(r)); }
+    function uid(){ return 'SBH-'+Date.now().toString(36).toUpperCase().slice(-6); }
+    function brl(v){ return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+    function dataBR(v){ if(!v)return '—'; const d=new Date(v+'T00:00:00'); return d.toLocaleDateString('pt-BR'); }
+
+    function atualizarUsuarioHeader(){
+      const u=getUser(); const el=document.getElementById('userNavText');
+      if(el) el.textContent=u ? u.nome.split(' ')[0] : 'Entrar / Cadastrar';
+    }
+
+    function abrirAuthModal(modo='login', posLogin=null){
+      authModo=modo; acaoPosLogin=posLogin; trocarAuthTab(modo);
+      document.getElementById('authModal').style.display='flex';
+    }
+    function fecharAuthModal(){ document.getElementById('authModal').style.display='none'; }
+    function trocarAuthTab(modo){
+      authModo=modo;
+      document.getElementById('tabLogin').classList.toggle('active',modo==='login');
+      document.getElementById('tabCadastro').classList.toggle('active',modo==='cadastro');
+      document.getElementById('cadastroNomeWrap').style.display=modo==='cadastro'?'block':'none';
+      document.getElementById('btnAuthPrincipal').textContent=modo==='cadastro'?'Criar conta':'Entrar';
+    }
+    function concluirAuth(){
+      const email=document.getElementById('authEmail').value.trim();
+      const senha=document.getElementById('authSenha').value.trim();
+      const nome=document.getElementById('authNome').value.trim();
+      if(!email || !senha || (authModo==='cadastro' && !nome)){ alert('Preencha os campos obrigatórios.'); return; }
+      const user={nome: authModo==='cadastro'?nome:(localStorage.getItem('sulbahiago_nome_'+email)||email.split('@')[0]), email};
+      if(authModo==='cadastro') localStorage.setItem('sulbahiago_nome_'+email,nome);
+      setUser(user); fecharAuthModal();
+      if(acaoPosLogin==='reserva'){ acaoPosLogin=null; continuarParaReserva(); }
+    }
+
+    function abrirDetalhesImovel(nome){
+      imovelSelecionado=nome;
+      const item=catalogoSulbahiago[nome]; if(!item) return;
+      document.getElementById('detalheTitulo').textContent=nome;
+      document.getElementById('detalheLocal').textContent=item.local;
+      document.getElementById('detalheAvaliacao').textContent=item.avaliacao;
+      document.getElementById('detalhePreco').textContent=brl(item.preco)+' / noite';
+      document.getElementById('detalheComodidades').innerHTML=item.comodidades.map(x=>`<span class="amenity-chip"><i class="fa-solid fa-check"></i> ${x}</span>`).join('');
+      document.getElementById('detalheGaleria').innerHTML=`<img src="${item.imagens[0]}" alt="${nome}"><div class="side"><img src="${item.imagens[1]}" alt="${nome}"><img src="${item.imagens[2]}" alt="${nome}"></div>`;
+      document.getElementById('detalhesModal').style.display='flex';
+    }
+    function fecharModal(id){ document.getElementById(id).style.display='none'; }
+    function continuarParaReserva(){
+      if(!getUser()){ fecharModal('detalhesModal'); abrirAuthModal('login','reserva'); return; }
+      fecharModal('detalhesModal');
+      const item=catalogoSulbahiago[imovelSelecionado];
+      abrirReservaModal(imovelSelecionado,item.preco);
+      const u=getUser(); if(u){ document.getElementById('clienteNome').value=u.nome; document.getElementById('clienteContato').value=u.email; }
+    }
+
+    // sobrescreve a função anterior e agora grava a solicitação de verdade no navegador
+    function enviarPedidoReserva(){
+      const nome=document.getElementById('clienteNome').value.trim();
+      const contato=document.getElementById('clienteContato').value.trim();
+      const checkin=document.getElementById('modalCheckin').value;
+      const checkout=document.getElementById('modalCheckout').value;
+      const hospedes=Number(document.getElementById('modalHospedes').value)||1;
+      if(!nome||!contato||!checkin||!checkout){ alert('Preencha nome, contato, check-in e check-out.'); return; }
+      if(new Date(checkout)<=new Date(checkin)){ alert('O check-out deve ser depois do check-in.'); return; }
+      const item=catalogoSulbahiago[nomeImovelGlobal]||{preco:precoBaseGlobal,alta:precoAltaGlobal,local:'Prado - BA'};
+      const alta=verificarSeEhAltaTemporada(checkin); const diaria=(alta?item.alta:item.preco)*hospedes;
+      const noites=Math.max(1,Math.round((new Date(checkout)-new Date(checkin))/86400000));
+      const total=diaria*noites;
+      const reserva={id:uid(),imovel:nomeImovelGlobal,local:item.local,cliente:nome,contato,checkin,checkout,hospedes,noites,diaria,total,status:'solicitada',pago:false,checkinFeito:false,avaliada:false,criadaEm:new Date().toISOString(),mensagens:[{de:'host',texto:'Recebemos sua solicitação. Vamos analisar a disponibilidade.'}]};
+      const arr=getReservas(); arr.unshift(reserva); setReservas(arr); reservaAtivaId=reserva.id;
+      document.getElementById('etapaReservaForm').style.display='none'; document.getElementById('etapaReservaSucesso').style.display='block';
+      const success=document.querySelector('#etapaReservaSucesso p'); if(success) success.textContent=`Pedido ${reserva.id} enviado com sucesso. Aguarde a confirmação da hospedagem.`;
+      renderMinhasReservas(); renderAnfitriao();
+    }
+
+    function statusLabel(r){
+      if(r.avaliada) return ['Avaliada','blue'];
+      if(r.checkinFeito) return ['Em estadia','blue'];
+      if(r.pago) return ['Confirmada','blue'];
+      if(r.status==='aprovada') return ['Aguardando pagamento','orange'];
+      if(r.status==='recusada') return ['Não aprovada','orange'];
+      return ['Aguardando anfitrião','orange'];
+    }
+    function renderMinhasReservas(){
+      const box=document.getElementById('minhasReservasLista'); if(!box)return;
+      const u=getUser(); if(!u){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-user-lock"></i><h3>Entre para ver suas reservas</h3><p>Seu histórico aparece aqui após o login.</p><button class="btn-main-action" style="max-width:220px;margin-top:14px;" onclick="abrirAuthModal(\'login\',\'reservas\')">Entrar</button></div>'; return; }
+      const arr=getReservas().filter(r=>r.contato===u.email || r.cliente===u.nome);
+      if(!arr.length){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><h3>Nenhuma reserva ainda</h3><p>Escolha uma hospedagem e faça sua primeira solicitação.</p></div>'; return; }
+      box.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r); return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><h3>${r.imovel}</h3><div class="location">${r.local}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${r.id}</b></div><div class="action-row">${r.status==='aprovada'&&!r.pago?`<button class="btn-main-action" style="width:auto" onclick="abrirPagamento('${r.id}')">Pagar agora</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}')"><i class="fa-solid fa-comments"></i> Mensagens</button>${r.pago&&!r.checkinFeito?`<button class="btn-secondary" onclick="fazerCheckin('${r.id}')"><i class="fa-solid fa-key"></i> Fazer check-in</button>`:''}${r.checkinFeito&&!r.avaliada?`<button class="btn-secondary" onclick="abrirAvaliacao('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar</button>`:''}</div></div>`}).join('');
+    }
+    function renderAnfitriao(){
+      const arr=getReservas(); const resumo=document.getElementById('painelAnfitriaoResumo'); const lista=document.getElementById('painelAnfitriaoReservas'); if(!resumo||!lista)return;
+      const solicitadas=arr.filter(r=>r.status==='solicitada').length, confirmadas=arr.filter(r=>r.pago).length, receita=arr.filter(r=>r.pago).reduce((a,r)=>a+r.total,0);
+      resumo.innerHTML=`<div class="dash-card"><div class="owner-stat"><span>Solicitações pendentes</span><strong>${solicitadas}</strong></div><div class="owner-stat"><span>Reservas confirmadas</span><strong>${confirmadas}</strong></div><div class="owner-stat"><span>Valor confirmado</span><strong>${brl(receita)}</strong></div><p class="mini-note">Painel demonstrativo do proprietário. Em produção, cada anfitrião verá somente os próprios imóveis.</p></div>`;
+      if(!arr.length){ lista.innerHTML='<div class="empty-state"><i class="fa-solid fa-inbox"></i><h3>Nenhuma solicitação recebida</h3></div>'; return; }
+      lista.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r);return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:8px"><div><h3>${r.imovel}</h3><div class="mini-note">${r.cliente} · ${r.id}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>${dataBR(r.checkin)}</b><br>Check-in</span><span><b>${dataBR(r.checkout)}</b><br>Check-out</span><span><b>${r.hospedes}</b><br>Hóspedes</span><span><b>${brl(r.total)}</b><br>Total</span></div><div class="action-row">${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}')">Conversar</button></div></div>`}).join('');
+    }
+    function atualizarReserva(id,fn){ const arr=getReservas(); const i=arr.findIndex(r=>r.id===id); if(i<0)return; fn(arr[i]); setReservas(arr); renderMinhasReservas(); renderAnfitriao(); }
+    function aprovarReserva(id){ atualizarReserva(id,r=>{r.status='aprovada';r.mensagens.push({de:'host',texto:'Sua reserva foi aprovada. Agora você já pode realizar o pagamento.'});}); alert('Reserva aprovada. O hóspede poderá pagar.'); }
+    function recusarReserva(id){ atualizarReserva(id,r=>{r.status='recusada';r.mensagens.push({de:'host',texto:'No momento não conseguimos confirmar esta solicitação.'});}); }
+    function abrirPagamento(id){ reservaAtivaId=id; const r=getReservas().find(x=>x.id===id); if(!r)return; document.getElementById('pagamentoResumo').textContent=`${r.imovel} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)} · Total ${brl(r.total)}`; document.getElementById('pagamentoModal').style.display='flex'; }
+    function confirmarPagamentoSimulado(){ if(!reservaAtivaId)return; atualizarReserva(reservaAtivaId,r=>{r.pago=true;r.status='confirmada';r.formaPagamento=document.getElementById('formaPagamento').value;r.mensagens.push({de:'host',texto:'Pagamento confirmado. Sua reserva está garantida!'});}); fecharModal('pagamentoModal'); alert('Pagamento confirmado. Reserva garantida!'); }
+    function fazerCheckin(id){ if(!confirm('Confirmar sua chegada ao local?'))return; atualizarReserva(id,r=>{r.checkinFeito=true;r.checkinEm=new Date().toISOString();r.mensagens.push({de:'host',texto:'Check-in registrado. Aproveite sua estadia!'});}); }
+    function abrirChat(id){ reservaAtivaId=id; renderChat(); document.getElementById('chatModal').style.display='flex'; }
+    function renderChat(){ const r=getReservas().find(x=>x.id===reservaAtivaId); const box=document.getElementById('chatMensagens'); if(!r||!box)return; box.innerHTML=(r.mensagens||[]).map(m=>`<div class="chat-msg ${m.de==='me'?'me':'host'}"><b>${m.de==='me'?'Você':'Anfitrião'}</b><br>${m.texto}</div>`).join(''); box.scrollTop=box.scrollHeight; }
+    function enviarMensagemChat(){ const inp=document.getElementById('chatInput'); const t=inp.value.trim(); if(!t)return; atualizarReserva(reservaAtivaId,r=>r.mensagens.push({de:'me',texto:t})); inp.value=''; renderChat(); }
+    function abrirAvaliacao(id){ reservaAtivaId=id; notaSelecionada=0; selecionarNota(0); document.getElementById('reviewTexto').value=''; document.getElementById('avaliacaoModal').style.display='flex'; }
+    function selecionarNota(n){ notaSelecionada=n; document.querySelectorAll('#reviewStars button').forEach((b,i)=>b.classList.toggle('active',i<n)); }
+    function salvarAvaliacao(){ if(!notaSelecionada){alert('Escolha de 1 a 5 estrelas.');return;} const txt=document.getElementById('reviewTexto').value.trim(); atualizarReserva(reservaAtivaId,r=>{r.avaliada=true;r.nota=notaSelecionada;r.avaliacaoTexto=txt;}); fecharModal('avaliacaoModal'); alert('Obrigado pela avaliação!'); }
+
+    // amplia a navegação existente
+    const mostrarSecaoBase = mostrarSecao;
+    mostrarSecao = function(secao){
+      ['secaoHome','secaoSobre','secaoGaleria','secaoContato'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+      const mapa={home:'secaoHome',sobre:'secaoSobre',galeria:'secaoGaleria',contato:'secaoContato'};
+      const alvo=document.getElementById(mapa[secao]||'secaoHome'); if(alvo) alvo.style.display='block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
+
+    // clique fora fecha modais
+    window.addEventListener('click',e=>{ if(e.target.classList.contains('modal-overlay')) e.target.style.display='none'; });
+    atualizarUsuarioHeader();
+
+
+    // ===== ADMINISTRAÇÃO SUTIL + SUPABASE =====
+    const SUPABASE_URL = 'https://eloxmouxuwxvkiiuhrxs.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_o9kgSlW5kiF_20bTCkLU1g_r4kUvi-S';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    let adminRealtimeChannel = null;
+
+    function adminMostrarErro(msg){
+      const el=document.getElementById('adminLoginErro');
+      if(!el) return;
+      el.textContent=msg || '';
+      el.style.display=msg?'block':'none';
+    }
+
+    async function usuarioEhAdmin(userId){
+      if(!userId) return false;
+      const { data, error } = await sb.from('admin_users').select('user_id').eq('user_id', userId).maybeSingle();
+      if(error){ console.error('Erro ao verificar admin:', error); return false; }
+      return !!data;
+    }
+
+    async function abrirAdmin(){
+      adminMostrarErro('');
+      const { data:{ session } } = await sb.auth.getSession();
+      if(!session){
+        document.getElementById('adminLoginModal').style.display='flex';
+        return;
+      }
+      const autorizado=await usuarioEhAdmin(session.user.id);
+      if(!autorizado){
+        await sb.auth.signOut();
+        document.getElementById('adminLoginModal').style.display='flex';
+        adminMostrarErro('Este usuário não possui permissão de administrador.');
+        return;
+      }
+      await abrirPainelAdmin();
+    }
+
+    async function adminEntrar(){
+      const email=document.getElementById('adminLoginEmail').value.trim();
+      const senha=document.getElementById('adminLoginSenha').value;
+      const btn=document.getElementById('btnAdminEntrar');
+      adminMostrarErro('');
+      if(!email||!senha){ adminMostrarErro('Digite o e-mail e a senha.'); return; }
+      btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
+      try{
+        const { data, error }=await sb.auth.signInWithPassword({email,password:senha});
+        if(error) throw error;
+        const autorizado=await usuarioEhAdmin(data.user?.id);
+        if(!autorizado){
+          await sb.auth.signOut();
+          throw new Error('Este usuário não possui permissão de administrador.');
+        }
+        fecharModal('adminLoginModal');
+        document.getElementById('adminLoginSenha').value='';
+        await abrirPainelAdmin();
+      }catch(e){
+        adminMostrarErro(e.message==='Invalid login credentials'?'E-mail ou senha incorretos.':e.message);
+      }finally{
+        btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-right-to-bracket"></i> Entrar';
+      }
+    }
+
+    async function abrirPainelAdmin(){
+      await renderAdminReservas();
+      document.getElementById('adminModal').style.display='flex';
+      iniciarRealtimeAdmin();
+    }
+
+    async function adminSair(){
+      if(adminRealtimeChannel){ await sb.removeChannel(adminRealtimeChannel); adminRealtimeChannel=null; }
+      await sb.auth.signOut();
+      fecharModal('adminModal');
+    }
+
+    async function adminAdicionarReserva(){
+      const imovel=document.getElementById('adminImovel').value;
+      const cliente=document.getElementById('adminCliente').value.trim();
+      const contato=document.getElementById('adminContato').value.trim();
+      const checkin=document.getElementById('adminCheckin').value;
+      const checkout=document.getElementById('adminCheckout').value;
+      const hospedes=Math.max(1,Number(document.getElementById('adminHospedes').value)||1);
+      const total=Number(document.getElementById('adminTotal').value)||0;
+      const status=document.getElementById('adminStatus').value;
+      if(!cliente||!checkin||!checkout){ alert('Preencha hóspede, check-in e check-out.'); return; }
+      if(new Date(checkout)<=new Date(checkin)){ alert('O check-out deve ser depois do check-in.'); return; }
+      const item=catalogoSulbahiago[imovel]||{local:'Prado - BA'};
+      const { error }=await sb.from('reservas').insert({
+        imovel, local:item.local, cliente, contato, checkin, checkout, hospedes,
+        total, status, pago:status==='confirmada', origem:'admin'
+      });
+      if(error){ alert('Não foi possível salvar a reserva: '+error.message); return; }
+      ['adminCliente','adminContato','adminCheckin','adminCheckout','adminTotal'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('adminHospedes').value='1';
+      await renderAdminReservas();
+      alert('Reserva salva no Supabase com sucesso.');
+    }
+
+    async function adminExcluirReserva(id){
+      if(!confirm('Excluir esta reserva?')) return;
+      const { error }=await sb.from('reservas').delete().eq('id',id);
+      if(error){ alert('Não foi possível excluir: '+error.message); return; }
+      await renderAdminReservas();
+    }
+
+    function adminEsc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+    async function renderAdminReservas(){
+      const box=document.getElementById('adminListaReservas');
+      const qtd=document.getElementById('adminQtdReservas');
+      if(!box||!qtd) return;
+      box.innerHTML='<div class="mini-note" style="padding:14px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando reservas...</div>';
+      const { data:arr, error }=await sb.from('reservas').select('*').order('created_at',{ascending:false});
+      if(error){ box.innerHTML='<div class="mini-note" style="padding:14px;color:#b42318;">Erro ao carregar: '+adminEsc(error.message)+'</div>'; qtd.textContent='—'; return; }
+      qtd.textContent=arr.length;
+      if(!arr.length){ box.innerHTML='<div class="empty-state" style="padding:24px 10px;"><i class="fa-solid fa-calendar-xmark"></i><p>Nenhuma reserva cadastrada.</p></div>'; return; }
+      box.innerHTML=arr.map(r=>`<div class="admin-res-item"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${adminEsc(r.imovel)}</strong><button class="btn-danger-lite" style="padding:4px 7px" onclick="adminExcluirReserva('${r.id}')"><i class="fa-solid fa-trash"></i></button></div><div>${adminEsc(r.cliente)} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)}</div><div style="margin-top:4px;color:var(--color-icons-prices);font-weight:700">${brl(Number(r.total)||0)} · ${adminEsc(r.status)}</div><div class="mini-note">${adminEsc(r.contato||'')}<br>${r.id}</div></div>`).join('');
+    }
+
+    function iniciarRealtimeAdmin(){
+      if(adminRealtimeChannel) return;
+      adminRealtimeChannel=sb.channel('reservas-admin-live')
+        .on('postgres_changes',{event:'*',schema:'public',table:'reservas'},()=>renderAdminReservas())
+        .subscribe();
+    }
+  </script>
+
+</body>
+</html>

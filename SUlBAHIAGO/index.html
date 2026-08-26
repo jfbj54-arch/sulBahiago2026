@@ -1197,53 +1197,86 @@
 
   <!-- ÁREA ADMINISTRATIVA SUTIL -->
   <div class="modal-overlay" id="adminModal">
-    <div class="modal-box" style="max-width:760px;">
+    <div class="modal-box" style="max-width:920px;">
       <button class="modal-close" onclick="fecharModal('adminModal')"><i class="fa-solid fa-xmark"></i></button>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:34px;">
         <div>
           <h2 style="color:var(--primary-dark);margin-bottom:4px;"><i class="fa-solid fa-shield-halved"></i> Administração</h2>
-          <p class="mini-note" style="margin-bottom:16px;">Reservas salvas online no Supabase.</p>
+          <p class="mini-note" style="margin-bottom:12px;">Gerencie reservas e anúncios de imóveis com fotos sem editar o site.</p>
         </div>
         <button class="btn-danger-lite" onclick="adminSair()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
       </div>
-      <div class="admin-panel-grid">
-        <div class="admin-card">
-          <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:10px;">Nova reserva</h3>
-          <label class="form-label">HOSPEDAGEM</label>
-          <select id="adminImovel" class="form-control">
-            <option>KitnetPrado Exclusiva</option>
-            <option>Pousada Vilarejo Costeiro</option>
-            <option>Hotel Prado Mar</option>
-          </select>
-          <label class="form-label">NOME DO HÓSPEDE</label>
-          <input id="adminCliente" class="form-control" placeholder="Nome completo">
-          <label class="form-label">CONTATO</label>
-          <input id="adminContato" class="form-control" placeholder="WhatsApp ou e-mail">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div><label class="form-label">CHECK-IN</label><input id="adminCheckin" type="date" class="form-control"></div>
-            <div><label class="form-label">CHECK-OUT</label><input id="adminCheckout" type="date" class="form-control"></div>
+
+      <div class="admin-tabs">
+        <button id="tabAdminReservas" class="admin-tab active" onclick="trocarAdminAba('reservas')"><i class="fa-solid fa-calendar-check"></i> Reservas</button>
+        <button id="tabAdminAnuncios" class="admin-tab" onclick="trocarAdminAba('anuncios')"><i class="fa-solid fa-bullhorn"></i> Anúncios de imóveis</button>
+        <button id="tabAdminHospedagens" class="admin-tab" onclick="trocarAdminAba('hospedagens')"><i class="fa-solid fa-house-circle-check"></i> Publicados</button>
+      </div>
+
+      <div id="adminSecReservas" class="admin-section active">
+        <div class="admin-panel-grid">
+          <div class="admin-card">
+            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:10px;">Nova reserva</h3>
+            <label class="form-label">HOSPEDAGEM</label>
+            <select id="adminImovel" class="form-control"></select>
+            <label class="form-label">NOME DO HÓSPEDE</label>
+            <input id="adminCliente" class="form-control" placeholder="Nome completo">
+            <label class="form-label">CONTATO</label>
+            <input id="adminContato" class="form-control" placeholder="WhatsApp ou e-mail">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div><label class="form-label">CHECK-IN</label><input id="adminCheckin" type="date" class="form-control"></div>
+              <div><label class="form-label">CHECK-OUT</label><input id="adminCheckout" type="date" class="form-control"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div><label class="form-label">HÓSPEDES</label><input id="adminHospedes" type="number" min="1" value="1" class="form-control"></div>
+              <div><label class="form-label">VALOR TOTAL</label><input id="adminTotal" type="number" min="0" step="0.01" class="form-control" placeholder="0,00"></div>
+            </div>
+            <label class="form-label">STATUS</label>
+            <select id="adminStatus" class="form-control"><option value="solicitada">Solicitada</option><option value="aprovada">Aprovada</option><option value="confirmada">Confirmada / paga</option></select>
+            <button class="btn-main-action" style="margin-top:14px;" onclick="adminAdicionarReserva()"><i class="fa-solid fa-plus"></i> Adicionar reserva</button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div><label class="form-label">HÓSPEDES</label><input id="adminHospedes" type="number" min="1" value="1" class="form-control"></div>
-            <div><label class="form-label">VALOR TOTAL</label><input id="adminTotal" type="number" min="0" step="0.01" class="form-control" placeholder="0,00"></div>
+          <div class="admin-card">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><h3 style="color:var(--primary-dark);font-size:16px;">Reservas cadastradas</h3><strong id="adminQtdReservas" style="color:var(--color-icons-prices);">0</strong></div>
+            <div id="adminListaReservas" class="admin-list"></div>
           </div>
-          <label class="form-label">STATUS</label>
-          <select id="adminStatus" class="form-control">
-            <option value="solicitada">Solicitada</option>
-            <option value="aprovada">Aprovada</option>
-            <option value="confirmada">Confirmada / paga</option>
-          </select>
-          <button class="btn-main-action" style="margin-top:14px;" onclick="adminAdicionarReserva()"><i class="fa-solid fa-plus"></i> Adicionar reserva</button>
-        </div>
-        <div class="admin-card">
-          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
-            <h3 style="color:var(--primary-dark);font-size:16px;">Reservas cadastradas</h3>
-            <strong id="adminQtdReservas" style="color:var(--color-icons-prices);">0</strong>
-          </div>
-          <div id="adminListaReservas" class="admin-list"></div>
         </div>
       </div>
-      <p class="mini-note" style="margin-top:12px;"><i class="fa-solid fa-cloud"></i> Os dados desta área são carregados do Supabase e sincronizados entre dispositivos.</p>
+
+      <div id="adminSecAnuncios" class="admin-section">
+        <div class="admin-panel-grid">
+          <div class="admin-card">
+            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:4px;">Cadastrar anúncio de imóvel</h3>
+            <p class="mini-note" style="margin-bottom:10px;">Cadastre o imóvel do proprietário, envie as fotos e escolha quando ele ficará visível no site.</p>
+            <input type="hidden" id="adminHospedagemId">
+            <label class="form-label">NOME DO PROPRIETÁRIO</label><input id="adminPropNome" class="form-control" placeholder="Nome do dono do imóvel">
+            <label class="form-label">WHATSAPP / CONTATO DO PROPRIETÁRIO</label><input id="adminPropContato" class="form-control" placeholder="(00) 00000-0000 ou e-mail">
+            <label class="form-label">NOME DO IMÓVEL / HOSPEDAGEM</label><input id="adminHospNome" class="form-control" placeholder="Ex.: Casa Pé na Areia">
+            <label class="form-label">LOCALIZAÇÃO</label><input id="adminHospLocal" class="form-control" placeholder="Ex.: Prado - BA">
+            <label class="form-label">TIPO</label><select id="adminHospTipo" class="form-control"><option>Casa Temporada</option><option>Pousadas</option><option>Hoteis</option><option>Apartamento</option><option>Chalé</option></select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><label class="form-label">DIÁRIA</label><input id="adminHospPreco" type="number" min="0" step="0.01" class="form-control" placeholder="150,00"></div><div><label class="form-label">MÁX. HÓSPEDES</label><input id="adminHospMax" type="number" min="1" value="2" class="form-control"></div></div>
+            <label class="form-label">COMODIDADES</label><input id="adminHospComodidades" class="form-control" placeholder="Wi-Fi, Ar-condicionado, Piscina">
+            <label class="form-label">DESCRIÇÃO</label><textarea id="adminHospDescricao" class="form-control" rows="3" placeholder="Descreva a hospedagem..."></textarea>
+            <label class="form-label">STATUS DO ANÚNCIO</label>
+            <select id="adminHospStatus" class="form-control"><option value="pendente">Pendente - ainda não aparece no site</option><option value="aprovado">Aprovado - publicar no site</option><option value="pausado">Pausado - ocultar temporariamente</option><option value="recusado">Recusado</option></select>
+            <label class="form-label">FOTOS DO LOCAL</label>
+            <div class="photo-picker"><input id="adminHospFotos" type="file" accept="image/*" multiple onchange="previewFotosHospedagem()"><div class="mini-note" style="margin-top:7px;">Escolha várias fotos do celular ou computador. A primeira será a capa do anúncio.</div><div id="adminHospFotosPreview" class="photo-preview"></div></div>
+            <button id="btnSalvarHospedagem" class="btn-main-action" style="margin-top:14px;" onclick="adminSalvarHospedagem()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar anúncio</button>
+            <button id="btnCancelarEdicaoHosp" class="btn-danger-lite" style="display:none;width:100%;margin-top:8px;" onclick="limparFormHospedagem()">Cancelar edição</button>
+          </div>
+          <div class="admin-card">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><h3 style="color:var(--primary-dark);font-size:16px;">Anúncios cadastrados</h3><strong id="adminQtdHospedagens" style="color:var(--color-icons-prices);">0</strong></div>
+            <div id="adminListaHospedagens" class="admin-list" style="max-height:520px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminSecHospedagens" class="admin-section">
+        <div class="admin-card">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><div><h3 style="color:var(--primary-dark);font-size:16px;">Hospedagens publicadas</h3><p class="mini-note">Somente anúncios aprovados aparecem aqui e no site.</p></div><strong id="adminQtdPublicadas" style="color:var(--color-icons-prices);">0</strong></div>
+          <div id="adminListaPublicadas" class="admin-list" style="max-height:520px;"></div>
+        </div>
+      </div>
+      <p class="mini-note" style="margin-top:12px;"><i class="fa-solid fa-cloud"></i> Anúncios, fotos e reservas ficam no Supabase. Só os anúncios aprovados são publicados no site.</p>
     </div>
   </div>
 
@@ -1642,7 +1675,7 @@
     }
 
     async function abrirPainelAdmin(){
-      await renderAdminReservas();
+      await Promise.all([renderAdminReservas(), renderAdminHospedagens(), renderAdminPublicadas(), preencherSelectHospedagens()]);
       document.getElementById('adminModal').style.display='flex';
       iniciarRealtimeAdmin();
     }
@@ -1703,6 +1736,143 @@
         .on('postgres_changes',{event:'*',schema:'public',table:'reservas'},()=>renderAdminReservas())
         .subscribe();
     }
+
+    // ===== HOSPEDAGENS DINÂMICAS + SUPABASE STORAGE =====
+    function trocarAdminAba(aba){
+      const reservas=aba==='reservas', anuncios=aba==='anuncios', publicados=aba==='hospedagens';
+      document.getElementById('adminSecReservas').classList.toggle('active',reservas);
+      document.getElementById('adminSecAnuncios').classList.toggle('active',anuncios);
+      document.getElementById('adminSecHospedagens').classList.toggle('active',publicados);
+      document.getElementById('tabAdminReservas').classList.toggle('active',reservas);
+      document.getElementById('tabAdminAnuncios').classList.toggle('active',anuncios);
+      document.getElementById('tabAdminHospedagens').classList.toggle('active',publicados);
+      if(anuncios) renderAdminHospedagens();
+      if(publicados) renderAdminPublicadas();
+      if(reservas) preencherSelectHospedagens();
+    }
+
+    function previewFotosHospedagem(){
+      const files=[...document.getElementById('adminHospFotos').files];
+      const box=document.getElementById('adminHospFotosPreview');
+      box.innerHTML='';
+      files.slice(0,10).forEach(f=>{ const img=document.createElement('img'); img.src=URL.createObjectURL(f); box.appendChild(img); });
+    }
+
+    async function uploadFotosHospedagem(files, hospedagemId){
+      const urls=[];
+      for(const file of files){
+        const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+        const path=`${hospedagemId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+        const {error}=await sb.storage.from('hospedagens').upload(path,file,{cacheControl:'3600',upsert:false});
+        if(error) throw error;
+        const {data}=sb.storage.from('hospedagens').getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
+      return urls;
+    }
+
+    async function adminSalvarHospedagem(){
+      const id=document.getElementById('adminHospedagemId').value;
+      const proprietario_nome=document.getElementById('adminPropNome').value.trim();
+      const proprietario_contato=document.getElementById('adminPropContato').value.trim();
+      const nome=document.getElementById('adminHospNome').value.trim();
+      const local=document.getElementById('adminHospLocal').value.trim();
+      const tipo=document.getElementById('adminHospTipo').value;
+      const preco=Number(document.getElementById('adminHospPreco').value)||0;
+      const max_hospedes=Math.max(1,Number(document.getElementById('adminHospMax').value)||1);
+      const comodidades=document.getElementById('adminHospComodidades').value.split(',').map(x=>x.trim()).filter(Boolean);
+      const descricao=document.getElementById('adminHospDescricao').value.trim();
+      const status=document.getElementById('adminHospStatus').value;
+      const files=[...document.getElementById('adminHospFotos').files];
+      const btn=document.getElementById('btnSalvarHospedagem');
+      if(!proprietario_nome||!proprietario_contato||!nome||!local||preco<=0){ alert('Preencha proprietário, contato, nome do imóvel, localização e valor da diária.'); return; }
+      if(!id && files.length===0){ alert('Escolha pelo menos uma foto da hospedagem.'); return; }
+      btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+      try{
+        let registroId=id; let fotosAtuais=[];
+        if(id){ const {data,error}=await sb.from('hospedagens').select('fotos').eq('id',id).single(); if(error) throw error; fotosAtuais=data?.fotos||[]; }
+        else { registroId=crypto.randomUUID(); }
+        const novasFotos=files.length ? await uploadFotosHospedagem(files,registroId) : [];
+        const payload={id:registroId,proprietario_nome,proprietario_contato,nome,local,tipo,preco,max_hospedes,comodidades,descricao,fotos:[...fotosAtuais,...novasFotos],status,ativo:(status==='aprovado')};
+        const {error}=await sb.from('hospedagens').upsert(payload,{onConflict:'id'}); if(error) throw error;
+        limparFormHospedagem();
+        await Promise.all([renderAdminHospedagens(),preencherSelectHospedagens(),carregarHospedagensPublicas()]);
+        alert(status==='aprovado' ? 'Anúncio salvo e publicado no site.' : 'Anúncio salvo. Ele ainda não está visível no site.');
+      }catch(e){ alert('Não foi possível salvar a hospedagem: '+(e.message||e)); }
+      finally{ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-cloud-arrow-up"></i> Salvar anúncio'; }
+    }
+
+    function limparFormHospedagem(){
+      ['adminHospedagemId','adminPropNome','adminPropContato','adminHospNome','adminHospLocal','adminHospPreco','adminHospComodidades','adminHospDescricao'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('adminHospMax').value='2'; document.getElementById('adminHospStatus').value='pendente'; document.getElementById('adminHospFotos').value=''; document.getElementById('adminHospFotosPreview').innerHTML='';
+      document.getElementById('btnCancelarEdicaoHosp').style.display='none';
+    }
+
+    async function editarHospedagemAdmin(id){
+      const {data:h,error}=await sb.from('hospedagens').select('*').eq('id',id).single(); if(error){alert(error.message);return;}
+      document.getElementById('adminHospedagemId').value=h.id; document.getElementById('adminPropNome').value=h.proprietario_nome||''; document.getElementById('adminPropContato').value=h.proprietario_contato||''; document.getElementById('adminHospNome').value=h.nome||''; document.getElementById('adminHospLocal').value=h.local||''; document.getElementById('adminHospTipo').value=h.tipo||'Casa Temporada'; document.getElementById('adminHospPreco').value=h.preco||0; document.getElementById('adminHospMax').value=h.max_hospedes||2; document.getElementById('adminHospComodidades').value=(h.comodidades||[]).join(', '); document.getElementById('adminHospDescricao').value=h.descricao||''; document.getElementById('adminHospStatus').value=h.status||'pendente';
+      document.getElementById('adminHospFotosPreview').innerHTML=(h.fotos||[]).map(u=>`<img src="${adminEsc(u)}">`).join('');
+      document.getElementById('btnCancelarEdicaoHosp').style.display='block';
+    }
+
+    async function excluirHospedagemAdmin(id){
+      if(!confirm('Excluir esta hospedagem do site?')) return;
+      const {error}=await sb.from('hospedagens').delete().eq('id',id); if(error){alert('Não foi possível excluir: '+error.message);return;}
+      await Promise.all([renderAdminHospedagens(),preencherSelectHospedagens(),carregarHospedagensPublicas()]);
+    }
+
+    async function renderAdminHospedagens(){
+      const box=document.getElementById('adminListaHospedagens'), qtd=document.getElementById('adminQtdHospedagens'); if(!box||!qtd)return;
+      box.innerHTML='<div class="mini-note" style="padding:14px"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</div>';
+      const {data:arr,error}=await sb.from('hospedagens').select('*').order('created_at',{ascending:false});
+      if(error){box.innerHTML='<div class="mini-note" style="color:#b42318">'+adminEsc(error.message)+'</div>';return;}
+      qtd.textContent=arr.length;
+      if(!arr.length){box.innerHTML='<div class="empty-state" style="padding:24px 10px"><i class="fa-solid fa-house-circle-xmark"></i><p>Nenhuma hospedagem cadastrada.</p></div>';return;}
+      box.innerHTML=arr.map(h=>{ const status=h.status||'pendente'; const label={pendente:'Pendente',aprovado:'Publicado',pausado:'Pausado',recusado:'Recusado'}[status]||status; return `<div class="admin-property-item"><div style="display:flex;gap:10px;align-items:center"><img src="${adminEsc((h.fotos||[])[0]||'')}" alt=""><div style="flex:1;min-width:0"><strong>${adminEsc(h.nome)}</strong><div class="mini-note">${adminEsc(h.local)} · ${brl(h.preco)}/noite</div><div class="mini-note"><i class="fa-solid fa-user"></i> ${adminEsc(h.proprietario_nome||'')} · ${adminEsc(h.proprietario_contato||'')}</div><span class="status-badge ${status==='aprovado'?'':status==='pendente'?'orange':'blue'}">${label}</span></div></div><div class="action-row"><button class="btn-secondary" onclick="editarHospedagemAdmin('${h.id}')"><i class="fa-solid fa-pen"></i> Editar</button>${status!=='aprovado'?`<button class="btn-main-action" style="width:auto;padding:9px 13px" onclick="alterarStatusHospedagem('${h.id}','aprovado')"><i class="fa-solid fa-eye"></i> Publicar</button>`:`<button class="btn-danger-lite" onclick="alterarStatusHospedagem('${h.id}','pausado')"><i class="fa-solid fa-pause"></i> Pausar</button>`}<button class="btn-danger-lite" onclick="excluirHospedagemAdmin('${h.id}')"><i class="fa-solid fa-trash"></i> Excluir</button></div></div>`; }).join('');
+    }
+
+    async function alterarStatusHospedagem(id,status){
+      const ativo=status==='aprovado';
+      const {error}=await sb.from('hospedagens').update({status,ativo,updated_at:new Date().toISOString()}).eq('id',id);
+      if(error){alert('Não foi possível alterar o status: '+error.message);return;}
+      await Promise.all([renderAdminHospedagens(),renderAdminPublicadas(),preencherSelectHospedagens(),carregarHospedagensPublicas()]);
+    }
+
+    async function renderAdminPublicadas(){
+      const box=document.getElementById('adminListaPublicadas'), qtd=document.getElementById('adminQtdPublicadas'); if(!box||!qtd)return;
+      box.innerHTML='<div class="mini-note" style="padding:14px"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</div>';
+      const {data:arr,error}=await sb.from('hospedagens').select('*').eq('ativo',true).eq('status','aprovado').order('created_at',{ascending:false});
+      if(error){box.innerHTML='<div class="mini-note" style="color:#b42318">'+adminEsc(error.message)+'</div>';return;}
+      qtd.textContent=(arr||[]).length;
+      if(!arr?.length){box.innerHTML='<div class="empty-state" style="padding:24px 10px"><i class="fa-solid fa-house-circle-xmark"></i><p>Nenhuma hospedagem publicada.</p></div>';return;}
+      box.innerHTML=arr.map(h=>`<div class="admin-property-item"><div style="display:flex;gap:10px;align-items:center"><img src="${adminEsc((h.fotos||[])[0]||'')}" alt=""><div style="flex:1;min-width:0"><strong>${adminEsc(h.nome)}</strong><div class="mini-note">${adminEsc(h.local)} · ${brl(h.preco)}/noite</div><div class="mini-note">Proprietário: ${adminEsc(h.proprietario_nome||'')}</div></div></div><div class="action-row"><button class="btn-secondary" onclick="trocarAdminAba('anuncios');editarHospedagemAdmin('${h.id}')"><i class="fa-solid fa-pen"></i> Editar</button><button class="btn-danger-lite" onclick="alterarStatusHospedagem('${h.id}','pausado')"><i class="fa-solid fa-pause"></i> Pausar anúncio</button></div></div>`).join('');
+    }
+
+    async function preencherSelectHospedagens(){
+      const sel=document.getElementById('adminImovel'); if(!sel)return;
+      const {data:arr}=await sb.from('hospedagens').select('nome').eq('ativo',true).eq('status','aprovado').order('nome');
+      const nomes=(arr||[]).map(x=>x.nome);
+      const fallback=['KitnetPrado Exclusiva','Pousada Vilarejo Costeiro','Hotel Prado Mar'];
+      sel.innerHTML=[...new Set([...fallback,...nomes])].map(n=>`<option>${adminEsc(n)}</option>`).join('');
+    }
+
+    async function carregarHospedagensPublicas(){
+      const grid=document.getElementById('cardsGridContainer'); if(!grid)return;
+      grid.querySelectorAll('.dynamic-property-card').forEach(x=>x.remove());
+      const {data:arr,error}=await sb.from('hospedagens').select('*').eq('ativo',true).eq('status','aprovado').order('created_at',{ascending:false});
+      if(error){console.warn('Hospedagens dinâmicas:',error.message);return;}
+      (arr||[]).forEach(h=>{
+        const imgs=h.fotos||[];
+        catalogoSulbahiago[h.nome]={local:h.local,preco:Number(h.preco)||0,alta:Number(h.preco)||0,avaliacao:'★ Novo anúncio',comodidades:h.comodidades||[],imagens:[imgs[0]||'',imgs[1]||imgs[0]||'',imgs[2]||imgs[0]||''],descricao:h.descricao||''};
+        const c=document.createElement('div'); c.className='card dynamic-property-card'; c.dataset.anos='2026 2027'; c.dataset.baseprice=h.preco; c.dataset.altaprice=h.preco; c.dataset.tipo=h.tipo||'Casa Temporada'; c.dataset.comodidades=(h.comodidades||[]).join(',');
+        c.innerHTML=`<div class="card-img"><span class="badge">${adminEsc(h.tipo||'Hospedagem')}</span><img src="${adminEsc(imgs[0]||'')}" class="ativo" alt="${adminEsc(h.nome)}"></div><div class="card-info"><div class="card-header"><h3>${adminEsc(h.nome)}</h3><span class="rating"><i class="fa-solid fa-star"></i> Novo</span></div><p class="location">${adminEsc(h.local)}</p><div class="property-details-tag"><span><i class="fa-solid fa-user-group"></i> Até ${h.max_hospedes||1} hóspedes</span>${(h.comodidades||[]).slice(0,2).map(a=>`<span><i class="fa-solid fa-check"></i> ${adminEsc(a)}</span>`).join('')}</div><div class="card-actions-bottom"><div class="card-price-row"><span class="price card-price-display">${brl(h.preco)} <small>/ noite</small></span><button class="btn-book" onclick="abrirDetalhesImovel(${JSON.stringify(h.nome)})">Reservar</button></div></div></div>`;
+        grid.appendChild(c);
+      });
+    }
+
+    // carrega os imóveis salvos no Supabase ao abrir o site
+    carregarHospedagensPublicas();
+
   </script>
 
 </body>

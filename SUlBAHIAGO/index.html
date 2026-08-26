@@ -780,6 +780,18 @@
     .admin-res-item{border:1px solid var(--border-color);border-radius:12px;padding:10px;margin-bottom:8px;background:#fafafa;font-size:12px}
     @media(max-width:700px){.admin-panel-grid{grid-template-columns:1fr}}
 
+    /* ===== GALERIA ADMIN: ATÉ 20 FOTOS + ESCOLHA DE CAPA ===== */
+    .photo-picker{border:1px dashed var(--border-color);border-radius:14px;padding:12px;background:#fafafa}
+    .photo-picker input[type=file]{width:100%}
+    .photo-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin-top:12px}
+    .photo-thumb{position:relative;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);aspect-ratio:1/1}
+    .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-thumb.capa{border-color:var(--primary-dark);box-shadow:0 0 0 2px rgba(26,95,32,.12)}
+    .photo-thumb .capa-badge{position:absolute;left:6px;bottom:6px;background:rgba(26,95,32,.92);color:#fff;border-radius:999px;padding:4px 7px;font-size:10px;font-weight:800;display:none}
+    .photo-thumb.capa .capa-badge{display:block}
+    .photo-thumb .ordem-badge{position:absolute;right:6px;top:6px;background:rgba(0,0,0,.62);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+    .photo-counter{font-size:11px;font-weight:700;color:var(--color-icons-prices);margin-top:7px}
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1259,7 +1271,7 @@
             <label class="form-label">STATUS DO ANÚNCIO</label>
             <select id="adminHospStatus" class="form-control"><option value="pendente">Pendente - ainda não aparece no site</option><option value="aprovado">Aprovado - publicar no site</option><option value="pausado">Pausado - ocultar temporariamente</option><option value="recusado">Recusado</option></select>
             <label class="form-label">FOTOS DO LOCAL</label>
-            <div class="photo-picker"><input id="adminHospFotos" type="file" accept="image/*" multiple onchange="previewFotosHospedagem()"><div class="mini-note" style="margin-top:7px;">Escolha várias fotos do celular ou computador. A primeira será a capa do anúncio.</div><div id="adminHospFotosPreview" class="photo-preview"></div></div>
+            <div class="photo-picker"><input id="adminHospFotos" type="file" accept="image/*" multiple onchange="previewFotosHospedagem()"><div class="mini-note" style="margin-top:7px;">Você pode enviar <strong>até 20 fotos</strong>. Depois toque/clique em qualquer foto para escolher a <strong>capa do anúncio</strong>.</div><div id="adminHospFotosCounter" class="photo-counter">0 de 20 fotos</div><div id="adminHospFotosPreview" class="photo-preview"></div></div>
             <button id="btnSalvarHospedagem" class="btn-main-action" style="margin-top:14px;" onclick="adminSalvarHospedagem()"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar anúncio</button>
             <button id="btnCancelarEdicaoHosp" class="btn-danger-lite" style="display:none;width:100%;margin-top:8px;" onclick="limparFormHospedagem()">Cancelar edição</button>
           </div>
@@ -1751,11 +1763,53 @@
       if(reservas) preencherSelectHospedagens();
     }
 
-    function previewFotosHospedagem(){
-      const files=[...document.getElementById('adminHospFotos').files];
+    let adminFotosExistentes = [];
+    let adminCapaSelecionada = null; // {tipo:'existente', valor:url} ou {tipo:'nova', valor:index}
+
+    function renderPreviewFotosHospedagem(){
+      const input=document.getElementById('adminHospFotos');
+      const novas=[...(input?.files||[])];
+      const total=adminFotosExistentes.length+novas.length;
       const box=document.getElementById('adminHospFotosPreview');
+      const counter=document.getElementById('adminHospFotosCounter');
+      if(counter) counter.textContent=`${total} de 20 fotos`;
+      if(!box) return;
       box.innerHTML='';
-      files.slice(0,10).forEach(f=>{ const img=document.createElement('img'); img.src=URL.createObjectURL(f); box.appendChild(img); });
+
+      const itens=[];
+      adminFotosExistentes.forEach((url,i)=>itens.push({tipo:'existente',valor:url,src:url,ordem:i+1}));
+      novas.forEach((f,i)=>itens.push({tipo:'nova',valor:i,src:URL.createObjectURL(f),ordem:adminFotosExistentes.length+i+1}));
+
+      if(!adminCapaSelecionada && itens.length){
+        adminCapaSelecionada={tipo:itens[0].tipo,valor:itens[0].valor};
+      }
+
+      itens.forEach(item=>{
+        const wrap=document.createElement('div');
+        const selecionada=adminCapaSelecionada && adminCapaSelecionada.tipo===item.tipo && String(adminCapaSelecionada.valor)===String(item.valor);
+        wrap.className='photo-thumb'+(selecionada?' capa':'');
+        wrap.title='Clique para usar como foto de capa';
+        wrap.innerHTML=`<img src="${adminEsc(item.src)}" alt="Foto ${item.ordem}"><span class="ordem-badge">${item.ordem}</span><span class="capa-badge"><i class="fa-solid fa-star"></i> CAPA</span>`;
+        wrap.onclick=()=>{
+          adminCapaSelecionada={tipo:item.tipo,valor:item.valor};
+          renderPreviewFotosHospedagem();
+        };
+        box.appendChild(wrap);
+      });
+    }
+
+    function previewFotosHospedagem(){
+      const input=document.getElementById('adminHospFotos');
+      const files=[...(input.files||[])];
+      if(adminFotosExistentes.length+files.length>20){
+        alert(`O limite é de 20 fotos por imóvel. Este anúncio já tem ${adminFotosExistentes.length} foto(s), então você pode adicionar no máximo ${20-adminFotosExistentes.length}.`);
+        input.value='';
+        renderPreviewFotosHospedagem();
+        return;
+      }
+      // Ao escolher novas fotos pela primeira vez em um novo anúncio, a primeira fica como capa.
+      if(!adminFotosExistentes.length && files.length){ adminCapaSelecionada={tipo:'nova',valor:0}; }
+      renderPreviewFotosHospedagem();
     }
 
     async function uploadFotosHospedagem(files, hospedagemId){
@@ -1787,13 +1841,22 @@
       const btn=document.getElementById('btnSalvarHospedagem');
       if(!proprietario_nome||!proprietario_contato||!nome||!local||preco<=0){ alert('Preencha proprietário, contato, nome do imóvel, localização e valor da diária.'); return; }
       if(!id && files.length===0){ alert('Escolha pelo menos uma foto da hospedagem.'); return; }
+      if(adminFotosExistentes.length+files.length>20){ alert('O limite é de 20 fotos por imóvel.'); return; }
       btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
       try{
-        let registroId=id; let fotosAtuais=[];
-        if(id){ const {data,error}=await sb.from('hospedagens').select('fotos').eq('id',id).single(); if(error) throw error; fotosAtuais=data?.fotos||[]; }
-        else { registroId=crypto.randomUUID(); }
+        let registroId=id || crypto.randomUUID();
+        const fotosAtuais=[...adminFotosExistentes];
+        if(fotosAtuais.length+files.length>20) throw new Error('O limite é de 20 fotos por imóvel.');
         const novasFotos=files.length ? await uploadFotosHospedagem(files,registroId) : [];
-        const payload={id:registroId,proprietario_nome,proprietario_contato,nome,local,tipo,preco,max_hospedes,comodidades,descricao,fotos:[...fotosAtuais,...novasFotos],status,ativo:(status==='aprovado')};
+        let fotosCombinadas=[...fotosAtuais,...novasFotos];
+
+        // A foto escolhida como capa sempre ocupa a primeira posição do array.
+        let capaUrl=null;
+        if(adminCapaSelecionada?.tipo==='existente') capaUrl=adminCapaSelecionada.valor;
+        if(adminCapaSelecionada?.tipo==='nova') capaUrl=novasFotos[Number(adminCapaSelecionada.valor)] || null;
+        if(capaUrl && fotosCombinadas.includes(capaUrl)) fotosCombinadas=[capaUrl,...fotosCombinadas.filter(u=>u!==capaUrl)];
+
+        const payload={id:registroId,proprietario_nome,proprietario_contato,nome,local,tipo,preco,max_hospedes,comodidades,descricao,fotos:fotosCombinadas,status,ativo:(status==='aprovado')};
         const {error}=await sb.from('hospedagens').upsert(payload,{onConflict:'id'}); if(error) throw error;
         limparFormHospedagem();
         await Promise.all([renderAdminHospedagens(),preencherSelectHospedagens(),carregarHospedagensPublicas()]);
@@ -1804,14 +1867,18 @@
 
     function limparFormHospedagem(){
       ['adminHospedagemId','adminPropNome','adminPropContato','adminHospNome','adminHospLocal','adminHospPreco','adminHospComodidades','adminHospDescricao'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('adminHospMax').value='2'; document.getElementById('adminHospStatus').value='pendente'; document.getElementById('adminHospFotos').value=''; document.getElementById('adminHospFotosPreview').innerHTML='';
+      document.getElementById('adminHospMax').value='2'; document.getElementById('adminHospStatus').value='pendente'; document.getElementById('adminHospFotos').value='';
+      adminFotosExistentes=[]; adminCapaSelecionada=null; renderPreviewFotosHospedagem();
       document.getElementById('btnCancelarEdicaoHosp').style.display='none';
     }
 
     async function editarHospedagemAdmin(id){
       const {data:h,error}=await sb.from('hospedagens').select('*').eq('id',id).single(); if(error){alert(error.message);return;}
       document.getElementById('adminHospedagemId').value=h.id; document.getElementById('adminPropNome').value=h.proprietario_nome||''; document.getElementById('adminPropContato').value=h.proprietario_contato||''; document.getElementById('adminHospNome').value=h.nome||''; document.getElementById('adminHospLocal').value=h.local||''; document.getElementById('adminHospTipo').value=h.tipo||'Casa Temporada'; document.getElementById('adminHospPreco').value=h.preco||0; document.getElementById('adminHospMax').value=h.max_hospedes||2; document.getElementById('adminHospComodidades').value=(h.comodidades||[]).join(', '); document.getElementById('adminHospDescricao').value=h.descricao||''; document.getElementById('adminHospStatus').value=h.status||'pendente';
-      document.getElementById('adminHospFotosPreview').innerHTML=(h.fotos||[]).map(u=>`<img src="${adminEsc(u)}">`).join('');
+      adminFotosExistentes=[...(h.fotos||[])];
+      adminCapaSelecionada=adminFotosExistentes.length?{tipo:'existente',valor:adminFotosExistentes[0]}:null;
+      document.getElementById('adminHospFotos').value='';
+      renderPreviewFotosHospedagem();
       document.getElementById('btnCancelarEdicaoHosp').style.display='block';
     }
 

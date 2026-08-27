@@ -1021,6 +1021,36 @@
       .page-photo-banner p{font-size:14px}
     }
 
+
+/* ===== AVALIAÇÕES REAIS DOS HÓSPEDES ===== */
+.avaliacoes-publicas{margin-top:18px;border-top:1px solid var(--border-color);padding-top:16px}
+.avaliacoes-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.avaliacoes-media{display:flex;align-items:center;gap:7px;color:#b54708;font-weight:900}
+.avaliacoes-lista{display:grid;gap:10px;margin-top:12px}
+.avaliacao-item{border:1px solid var(--border-color);border-radius:13px;padding:12px;background:#fff}
+.avaliacao-item-topo{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:6px}
+.avaliacao-estrelas{color:#f59e0b;letter-spacing:1px}
+.avaliacao-comentario{font-size:13px;line-height:1.55;color:var(--text-main)}
+.avaliacao-data{font-size:10px;color:#667085}
+
+
+/* ===== CADASTRO PÚBLICO DE HOSPEDAGEM PARA APROVAÇÃO ===== */
+.anuncio-publico-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.anuncio-publico-grid .full{grid-column:1/-1}
+.anuncio-fotos-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:10px}
+.anuncio-fotos-preview img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid var(--border-color)}
+.anuncio-aviso{background:#f0f7f1;border:1px solid #cfe7d2;color:var(--primary-dark);padding:11px 12px;border-radius:12px;font-size:12px;line-height:1.5;margin-bottom:12px}
+@media(max-width:700px){.anuncio-publico-grid{grid-template-columns:1fr}.anuncio-publico-grid .full{grid-column:auto}}
+
+
+.anuncio-foto-item{position:relative}
+.anuncio-foto-item img{display:block}
+.anuncio-foto-remover{
+  position:absolute;top:5px;right:5px;width:26px;height:26px;border:0;border-radius:50%;
+  background:rgba(0,0,0,.72);color:#fff;cursor:pointer;font-weight:900
+}
+.anuncio-contador-fotos{font-size:11px;font-weight:800;color:var(--color-icons-prices);margin-top:7px}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1130,7 +1160,7 @@
       <div class="banner-anunciar">
         <h2>Cadastre seu Imóvel na Nossa Galeria</h2>
         <p>Faça parte do nosso portfólio exclusivo. Envie os dados do seu imóvel de forma simples e rápida.</p>
-        <button class="btn-anunciar-cta" onclick="alert('Funcionalidade de cadastro de imóvel em breve!')">Começar a Anunciar</button>
+        <button class="btn-anunciar-cta" onclick="abrirCadastroAnuncioPublico()">Começar a Anunciar</button>
       </div>
 
       <div class="secao-hospedagens-destaque" style="margin-top: 0;">
@@ -1256,6 +1286,15 @@
         <span class="status-badge blue"><i class="fa-solid fa-shield-halved"></i> Anúncio verificado</span>
       </div>
       <div class="amenity-list" id="detalheComodidades"></div>
+      <section class="avaliacoes-publicas" id="avaliacoesPublicas">
+        <div class="avaliacoes-topo">
+          <h3 style="color:var(--primary-dark);margin:0;"><i class="fa-solid fa-star"></i> Avaliações dos hóspedes</h3>
+          <div id="avaliacoesMedia" class="avaliacoes-media"></div>
+        </div>
+        <div id="avaliacoesLista" class="avaliacoes-lista">
+          <div class="mini-note">Carregando avaliações...</div>
+        </div>
+      </section>
         <div class="detail-availability" id="detalheDisponibilidade">
           <div class="detail-availability-head">
             <h3><i class="fa-regular fa-calendar"></i> Disponibilidade</h3>
@@ -2918,7 +2957,7 @@
         const codigo=r.codigo||String(r.id).slice(0,8).toUpperCase();
         const acoes=anfitriao
           ? `${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>`
-          : `${(r.status==='aprovada'||r.status==='aguardando_pagamento')&&!r.pagamento_confirmado?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>`;
+          : `${(r.status==='aprovada'||r.status==='aguardando_pagamento')&&!r.pagamento_confirmado?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>${['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase()) && r.checkout && new Date(r.checkout+'T23:59:59') < new Date() ? `<button class="btn-secondary" onclick="abrirAvaliacaoReal('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar hospedagem</button>`:''}`;
         return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start"><div><h3>${adminEsc(r.imovel)}</h3><div class="location">${adminEsc(r.local||'')}</div>${anfitriao?`<div class="mini-note">Hóspede: ${adminEsc(r.cliente_nome)}</div>`:''}</div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${adminEsc(codigo)}</b></div><div class="action-row">${acoes}</div></div>`;
       }).join('');
     };
@@ -3278,6 +3317,339 @@
       setTimeout(()=>carregarDisponibilidadeDetalhe(),30);
     };
 
+</script>
+
+
+<script>
+/* ===== AVALIAÇÕES REAIS - SUPABASE =====
+   Usa tabela sulbahiago_avaliacoes. Se a tabela ainda não existir,
+   o site continua funcionando normalmente e mostra aviso discreto.
+*/
+let avaliacaoReservaRealId=null;
+
+async function abrirAvaliacaoReal(reservaId){
+  const u=getUser();
+  if(!u?.id){ abrirAuthModal('login','reservas'); return; }
+  const {data:r,error}=await sb.from('sulbahiago_reservas').select('*').eq('id',reservaId).single();
+  if(error||!r){ alert('Não foi possível localizar esta reserva.'); return; }
+  if(r.hospede_id!==u.id){ alert('Somente o hóspede desta reserva pode avaliar.'); return; }
+  const fim=new Date(String(r.checkout)+'T23:59:59');
+  if(!r.checkout || fim>=new Date()){ alert('A avaliação fica disponível depois da hospedagem.'); return; }
+  if(!['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase())){
+    alert('Apenas hospedagens confirmadas e concluídas podem ser avaliadas.'); return;
+  }
+  avaliacaoReservaRealId=reservaId;
+  reservaAtivaId=reservaId;
+  notaSelecionada=0; selecionarNota(0);
+  document.getElementById('reviewTexto').value='';
+  document.getElementById('avaliacaoModal').style.display='flex';
+}
+
+salvarAvaliacao = async function(){
+  if(!avaliacaoReservaRealId){ alert('Abra a avaliação pela sua reserva concluída.'); return; }
+  if(!notaSelecionada){ alert('Escolha de 1 a 5 estrelas.'); return; }
+  const u=getUser(); if(!u?.id)return;
+  const txt=document.getElementById('reviewTexto').value.trim();
+
+  const {data:r,error:er}=await sb.from('sulbahiago_reservas').select('*').eq('id',avaliacaoReservaRealId).single();
+  if(er||!r||r.hospede_id!==u.id){ alert('Reserva inválida para avaliação.'); return; }
+
+  const registro={
+    reserva_id:r.id,
+    hospedagem_id:r.hospedagem_id,
+    hospede_id:u.id,
+    hospede_nome:r.cliente_nome || u.nome || 'Hóspede',
+    nota:Number(notaSelecionada),
+    comentario:txt,
+    created_at:new Date().toISOString()
+  };
+
+  const {error}=await sb.from('sulbahiago_avaliacoes').upsert(registro,{onConflict:'reserva_id'});
+  if(error){
+    alert('A área de avaliações ainda precisa da tabela sulbahiago_avaliacoes no Supabase. O restante do site continua normal.');
+    console.warn('Avaliações:',error.message);
+    return;
+  }
+  fecharModal('avaliacaoModal');
+  avaliacaoReservaRealId=null;
+  alert('Avaliação publicada. Obrigado!');
+  await renderMinhasReservas();
+  if(typeof imovelSelecionadoId!=='undefined' && imovelSelecionadoId) await carregarAvaliacoesHospedagem(imovelSelecionadoId);
+};
+
+function estrelasAvaliacao(n){
+  n=Math.max(0,Math.min(5,Number(n)||0));
+  return '★'.repeat(Math.round(n))+'☆'.repeat(5-Math.round(n));
+}
+async function carregarAvaliacoesHospedagem(hospedagemId){
+  const lista=document.getElementById('avaliacoesLista');
+  const media=document.getElementById('avaliacoesMedia');
+  if(!lista||!media)return;
+  if(!hospedagemId){lista.innerHTML='<div class="mini-note">Ainda não há avaliações.</div>';media.textContent='';return;}
+
+  const {data,error}=await sb.from('sulbahiago_avaliacoes')
+    .select('nota,comentario,hospede_nome,created_at')
+    .eq('hospedagem_id',hospedagemId)
+    .order('created_at',{ascending:false})
+    .limit(20);
+
+  if(error){
+    lista.innerHTML='<div class="mini-note">As avaliações dos hóspedes aparecerão aqui após as estadias concluídas.</div>';
+    media.textContent='';
+    return;
+  }
+  const arr=data||[];
+  if(!arr.length){
+    lista.innerHTML='<div class="mini-note">Esta hospedagem ainda não recebeu avaliações.</div>';
+    media.textContent='Novo anúncio';
+    return;
+  }
+  const m=arr.reduce((s,a)=>s+Number(a.nota||0),0)/arr.length;
+  media.innerHTML=`<i class="fa-solid fa-star"></i> ${m.toFixed(1)} · ${arr.length} avaliação${arr.length===1?'':'ões'}`;
+  lista.innerHTML=arr.map(a=>`
+    <article class="avaliacao-item">
+      <div class="avaliacao-item-topo">
+        <strong>${adminEsc(a.hospede_nome||'Hóspede')}</strong>
+        <span class="avaliacao-estrelas">${estrelasAvaliacao(a.nota)}</span>
+      </div>
+      ${a.comentario?`<div class="avaliacao-comentario">${adminEsc(a.comentario)}</div>`:'<div class="mini-note">Avaliou sem comentário.</div>'}
+      <div class="avaliacao-data">${a.created_at?new Date(a.created_at).toLocaleDateString('pt-BR'):''}</div>
+    </article>`).join('');
+}
+
+/* Ao abrir uma hospedagem, carrega as avaliações dela. */
+if(typeof abrirDetalhesImovel==='function'){
+  const abrirDetalhesOriginalAvaliacoes=abrirDetalhesImovel;
+  abrirDetalhesImovel=function(nome){
+    const r=abrirDetalhesOriginalAvaliacoes(nome);
+    setTimeout(()=>carregarAvaliacoesHospedagem(imovelSelecionadoId || catalogoSulbahiago?.[nome]?.id),80);
+    return r;
+  };
+}
+</script>
+
+
+<!-- CADASTRO DE IMÓVEL PELO PROPRIETÁRIO -->
+<div class="modal-overlay" id="cadastroAnuncioModal">
+  <div class="modal-box" style="max-width:760px;">
+    <button class="modal-close" onclick="fecharModal('cadastroAnuncioModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 style="color:var(--primary-dark);margin-bottom:5px;">Anuncie sua hospedagem</h2>
+    <p class="mini-note" style="margin-bottom:14px;">Envie os dados do imóvel. O anúncio ficará <b>pendente</b> e só aparecerá no site depois da aprovação da administração do SULBAHIAGO.</p>
+
+    <div class="anuncio-aviso"><i class="fa-solid fa-shield-halved"></i> Para segurança, ninguém publica diretamente. A equipe SULBAHIAGO confere os dados antes de liberar o anúncio.</div>
+
+    <div class="anuncio-publico-grid">
+      <div>
+        <label class="form-label">SEU NOME</label>
+        <input id="pubPropNome" class="form-control" placeholder="Nome do proprietário">
+      </div>
+      <div>
+        <label class="form-label">WHATSAPP / CONTATO</label>
+        <input id="pubPropContato" class="form-control" placeholder="(00) 00000-0000">
+      </div>
+      <div>
+        <label class="form-label">E-MAIL</label>
+        <input id="pubPropEmail" type="email" class="form-control" placeholder="seu@email.com" readonly>
+      </div>
+      <div>
+        <label class="form-label">TIPO</label>
+        <select id="pubHospTipo" class="form-control">
+          <option>Casa Temporada</option>
+          <option>Pousadas</option>
+          <option>Hoteis</option>
+          <option>Kitnet</option>
+          <option>Apartamento</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">NOME DA HOSPEDAGEM</label>
+        <input id="pubHospNome" class="form-control" placeholder="Ex.: Casa Prado Mar">
+      </div>
+      <div>
+        <label class="form-label">LOCALIZAÇÃO</label>
+        <input id="pubHospLocal" class="form-control" placeholder="Prado - BA">
+      </div>
+      <div>
+        <label class="form-label">VALOR DA DIÁRIA</label>
+        <input id="pubHospPreco" type="number" min="1" step="0.01" class="form-control" placeholder="150">
+      </div>
+      <div>
+        <label class="form-label">MÁXIMO DE HÓSPEDES</label>
+        <input id="pubHospMax" type="number" min="1" max="50" value="2" class="form-control">
+      </div>
+      <div class="full">
+        <label class="form-label">COMODIDADES</label>
+        <input id="pubHospComodidades" class="form-control" placeholder="Wi-Fi, Ar-condicionado, Estacionamento, Piscina...">
+      </div>
+      <div class="full">
+        <label class="form-label">DESCRIÇÃO</label>
+        <textarea id="pubHospDescricao" rows="4" class="form-control" placeholder="Conte um pouco sobre a hospedagem, quartos, localização, regras e diferenciais."></textarea>
+      </div>
+      <div class="full">
+        <label class="form-label">FOTOS DO IMÓVEL (ATÉ 10)</label>
+        <input id="pubHospFotos" type="file" accept="image/*" multiple class="form-control" onchange="adicionarFotosAnuncioPublico(this)">
+        <div id="pubHospFotosPreview" class="anuncio-fotos-preview"></div><div id="pubHospFotosContador" class="anuncio-contador-fotos">0/10 fotos selecionadas</div>
+      </div>
+    </div>
+
+    <button id="btnEnviarAnuncioPublico" class="btn-main-action" style="margin-top:16px;" onclick="enviarAnuncioPublico()">
+      <i class="fa-solid fa-paper-plane"></i> Enviar para aprovação
+    </button>
+  </div>
+</div>
+
+
+<script>
+/* ===== ENVIO DE ANÚNCIO PELO PROPRIETÁRIO ===== */
+async function abrirCadastroAnuncioPublico(){
+  const u=getUser();
+  if(!u?.id){
+    alert('Entre ou crie sua conta antes de enviar um imóvel para aprovação.');
+    abrirAuthModal('login');
+    return;
+  }
+  document.getElementById('pubPropNome').value =
+    perfilSupabaseAtual?.nome || u.user_metadata?.nome || u.nome || '';
+  document.getElementById('pubPropEmail').value = (u.email || '').toLowerCase();
+  document.getElementById('cadastroAnuncioModal').style.display='flex';
+}
+
+let pubFotosSelecionadas=[];
+
+function adicionarFotosAnuncioPublico(input){
+  const novas=[...(input.files||[])];
+  for(const file of novas){
+    if(!String(file.type||'').startsWith('image/')) continue;
+    if(file.size > 8*1024*1024){
+      alert('A foto "'+file.name+'" ultrapassa 8 MB e não foi adicionada.');
+      continue;
+    }
+    const duplicada=pubFotosSelecionadas.some(f=>f.name===file.name && f.size===file.size && f.lastModified===file.lastModified);
+    if(duplicada) continue;
+    if(pubFotosSelecionadas.length>=10){
+      alert('O limite é de 10 fotos por solicitação.');
+      break;
+    }
+    pubFotosSelecionadas.push(file);
+  }
+  input.value='';
+  renderFotosAnuncioPublico();
+}
+
+function removerFotoAnuncioPublico(indice){
+  pubFotosSelecionadas.splice(indice,1);
+  renderFotosAnuncioPublico();
+}
+
+function renderFotosAnuncioPublico(){
+  const box=document.getElementById('pubHospFotosPreview');
+  const contador=document.getElementById('pubHospFotosContador');
+  if(!box)return;
+  box.innerHTML='';
+  pubFotosSelecionadas.forEach((file,i)=>{
+    const wrap=document.createElement('div');
+    wrap.className='anuncio-foto-item';
+    const img=document.createElement('img');
+    const url=URL.createObjectURL(file);
+    img.src=url;
+    img.onload=()=>URL.revokeObjectURL(url);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='anuncio-foto-remover';
+    btn.innerHTML='×';
+    btn.title='Remover foto';
+    btn.onclick=()=>removerFotoAnuncioPublico(i);
+    wrap.appendChild(img);
+    wrap.appendChild(btn);
+    box.appendChild(wrap);
+  });
+  if(contador) contador.textContent=pubFotosSelecionadas.length+'/10 fotos selecionadas';
+}
+
+async function uploadFotosAnuncioPublico(files, userId, hospedagemId){
+  const urls=[];
+  for(const file of files){
+    if(!String(file.type||'').startsWith('image/')) continue;
+    if(file.size > 8*1024*1024) throw new Error('Cada foto deve ter no máximo 8 MB.');
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    const path=`solicitacoes/${userId}/${hospedagemId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+    const {error}=await sb.storage.from('hospedagens').upload(path,file,{cacheControl:'3600',upsert:false});
+    if(error) throw error;
+    const {data}=sb.storage.from('hospedagens').getPublicUrl(path);
+    urls.push(data.publicUrl);
+  }
+  return urls;
+}
+
+async function enviarAnuncioPublico(){
+  const u=getUser();
+  if(!u?.id){ alert('Sua sessão expirou. Entre novamente.'); return; }
+
+  const proprietario_nome=document.getElementById('pubPropNome').value.trim();
+  const proprietario_email=document.getElementById('pubPropEmail').value.trim().toLowerCase();
+  const proprietario_contato=document.getElementById('pubPropContato').value.trim();
+  const nome=document.getElementById('pubHospNome').value.trim();
+  const local=document.getElementById('pubHospLocal').value.trim();
+  const tipo=document.getElementById('pubHospTipo').value;
+  const preco=Number(document.getElementById('pubHospPreco').value)||0;
+  const max_hospedes=Math.max(1,Number(document.getElementById('pubHospMax').value)||1);
+  const comodidades=document.getElementById('pubHospComodidades').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const descricao=document.getElementById('pubHospDescricao').value.trim();
+  const files=[...pubFotosSelecionadas];
+
+  if(!proprietario_nome||!proprietario_email||!proprietario_contato||!nome||!local||preco<=0){
+    alert('Preencha nome, WhatsApp, nome da hospedagem, localização e valor da diária.');
+    return;
+  }
+  if(files.length<1){ alert('Envie pelo menos uma foto do imóvel.'); return; }
+  if(files.length>10){ alert('O limite é de 10 fotos neste formulário.'); return; }
+
+  const btn=document.getElementById('btnEnviarAnuncioPublico');
+  btn.disabled=true;
+  btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+  const registroId=crypto.randomUUID();
+  try{
+    const fotos=await uploadFotosAnuncioPublico(files,u.id,registroId);
+
+    const payload={
+      id:registroId,
+      anfitriao_id:u.id,
+      proprietario_nome,
+      proprietario_email,
+      proprietario_contato,
+      nome,
+      local,
+      tipo,
+      preco,
+      max_hospedes,
+      comodidades,
+      descricao,
+      fotos,
+      status:'pendente',
+      ativo:false
+    };
+
+    const {error}=await sb.from('hospedagens').insert(payload);
+    if(error) throw error;
+
+    fecharModal('cadastroAnuncioModal');
+    ['pubPropContato','pubHospNome','pubHospLocal','pubHospPreco','pubHospComodidades','pubHospDescricao'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('pubHospFotos').value='';
+    pubFotosSelecionadas=[];
+    renderFotosAnuncioPublico();
+
+    alert('Imóvel enviado com sucesso! Ele está aguardando aprovação da administração e ainda não aparece publicamente no site.');
+  }catch(e){
+    console.error('Envio de anúncio:',e);
+    alert('Não foi possível enviar o imóvel. '+(e.message||e)+' Se aparecer erro de permissão, execute o SQL de liberação do cadastro de anfitrião no Supabase.');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<i class="fa-solid fa-paper-plane"></i> Enviar para aprovação';
+  }
+}
 </script>
 
 </body>

@@ -4490,5 +4490,84 @@ renderChat=async function(){
 document.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>{ if(typeof carregarGaleriaPublica==='function') carregarGaleriaPublica(); },300); });
 </script>
 <!-- SULBAHIAGO V31 - segurança administrativa: principal + até 3 admins; cadastro visível corrigido -->
+
+
+<!-- ===== SULBAHIAGO V32: LINHA DO TEMPO + CHECK-IN/OUT + FINANCEIRO + NOTIFICAÇÕES ===== -->
+<style id="v32Styles">
+.v32-timeline{display:flex;gap:0;align-items:flex-start;margin:14px 0 8px;overflow-x:auto;padding:4px 2px 8px}.v32-step{min-width:112px;flex:1;position:relative;text-align:center;color:#98a2b3;font-size:10px;font-weight:800}.v32-step:before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:3px;background:#e4e7ec}.v32-step:first-child:before{display:none}.v32-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:#e4e7ec;color:#667085;position:relative;z-index:2}.v32-step.ok{color:#1A5F20}.v32-step.ok .v32-dot{background:#1A5F20;color:#fff}.v32-step.ok:before{background:#1A5F20}.v32-step.current{color:#E65100}.v32-step.current .v32-dot{background:#fff3e8;color:#E65100;border:2px solid #E65100}.v32-time{display:block;font-size:9px;font-weight:500;margin-top:3px;color:#667085}.v32-fin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.v32-fin-card{border:1px solid #e4e7ec;border-radius:15px;padding:15px;background:#fff}.v32-fin-card span{font-size:11px;color:#667085;font-weight:700}.v32-fin-card strong{display:block;font-size:22px;color:#1A5F20;margin-top:5px}.v32-toast{position:fixed;right:18px;bottom:18px;z-index:20000;max-width:360px;background:#173f1b;color:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 12px 35px rgba(0,0,0,.22);display:none}.v32-toast.show{display:block;animation:v32in .22s ease-out}.v32-toast small{display:block;opacity:.82;margin-top:4px}.v32-check-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.v32-kpi-sub{font-size:10px;color:#667085;margin-top:4px}.v32-fin-list{display:grid;gap:8px;margin-top:12px}.v32-fin-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:8px 0;font-size:12px}@keyframes v32in{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}@media(max-width:760px){.v32-fin-grid{grid-template-columns:1fr 1fr}.v32-step{min-width:95px}}
+</style>
+<div id="v32Toast" class="v32-toast"></div>
+<script id="v32Script">
+function v32FmtDataHora(v){try{return v?new Date(v).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):''}catch(e){return ''}}
+function v32LinhaTempo(r){
+  const st=String(r?.status||'solicitada').toLowerCase(), cs=String(r?.cancelamento_status||'').toLowerCase();
+  const cancelado=['cancelada','recusada'].includes(st)||['solicitado','aguardando_reembolso','reembolsado','concluido'].includes(cs);
+  const aprovado=['aprovada','aguardando_pagamento','confirmada','concluida','finalizada'].includes(st)||!!r?.aprovada_em;
+  const pago=!!r?.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(st);
+  const cin=!!r?.checkin_em, cout=!!r?.checkout_em||['concluida','finalizada'].includes(st);
+  const steps=[
+    ['Solicitada','fa-paper-plane',true,r?.created_at],
+    ['Aprovada','fa-circle-check',aprovado,r?.aprovada_em],
+    ['Pagamento','fa-pix',pago,r?.pagamento_confirmado_em],
+    ['Check-in','fa-key',cin,r?.checkin_em],
+    ['Check-out','fa-door-open',cout,r?.checkout_em]
+  ];
+  let last=-1; steps.forEach((x,i)=>{if(x[2])last=i});
+  return `<div class="v32-timeline" title="Linha do tempo da reserva">${steps.map((x,i)=>`<div class="v32-step ${x[2]?'ok':(!cancelado&&i===last+1?'current':'')}"><div class="v32-dot"><i class="fa-solid ${x[1]}"></i></div>${x[0]}${x[3]?`<span class="v32-time">${v32FmtDataHora(x[3])}</span>`:''}</div>`).join('')}</div>${cancelado?`<div class="mini-note" style="color:#b42318"><i class="fa-solid fa-ban"></i> Fluxo interrompido por cancelamento/recusa.</div>`:''}`;
+}
+function v32Toast(titulo,detalhe=''){
+ const el=document.getElementById('v32Toast'); if(!el)return; el.innerHTML=`<strong>${adminEsc(titulo)}</strong>${detalhe?`<small>${adminEsc(detalhe)}</small>`:''}`; el.classList.add('show'); clearTimeout(window.v32ToastTimer); window.v32ToastTimer=setTimeout(()=>el.classList.remove('show'),5000);
+}
+async function v32RegistrarMovimento(id,tipo){
+  const nome=tipo==='checkin'?'check-in':'check-out';
+  if(!confirm(`Confirmar ${nome} desta reserva? Esta ação ficará registrada com data e hora.`))return;
+  try{
+    const fn=tipo==='checkin'?'sulbahiago_registrar_checkin':'sulbahiago_registrar_checkout';
+    const {data,error}=await sb.rpc(fn,{p_reserva_id:id}); if(error)throw error;
+    v32Toast(`${nome==='check-in'?'Check-in':'Check-out'} registrado`,`Reserva atualizada com sucesso.`);
+    if(typeof renderMinhasReservas==='function') await renderMinhasReservas();
+    if(typeof renderAdminReservas==='function') await renderAdminReservas();
+    if(typeof renderCalendarioAdmin==='function') await renderCalendarioAdmin();
+    if(reservaAtivaId===id){reservaChatAtual=await carregarReservaChat(id);await renderChat();}
+  }catch(e){alert(`Não foi possível registrar o ${nome}: `+(e?.message||e));}
+}
+async function v32EnriquecerMinhasReservas(){
+  try{
+    const u=getUser(); if(!u?.id)return; const anfitriao=u.papel==='anfitriao';
+    let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}); q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
+    const {data}=await q; const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
+    (data||[]).forEach((r,i)=>{const c=cards[i];if(!c||c.querySelector('.v32-timeline'))return; const actions=c.querySelector('.action-row'); const wrap=document.createElement('div');wrap.innerHTML=v32LinhaTempo(r);c.insertBefore(wrap,actions||null);
+      if(anfitriao&&actions){const st=String(r.status||'').toLowerCase(); if((r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(st))&&!r.checkin_em){actions.insertAdjacentHTML('beforeend',`<button class="btn-main-action" style="width:auto" onclick="v32RegistrarMovimento('${r.id}','checkin')"><i class="fa-solid fa-key"></i> Registrar check-in</button>`)} if(r.checkin_em&&!r.checkout_em){actions.insertAdjacentHTML('beforeend',`<button class="btn-secondary" onclick="v32RegistrarMovimento('${r.id}','checkout')"><i class="fa-solid fa-door-open"></i> Registrar check-out</button>`)}}
+    });
+  }catch(e){console.warn('V32 reservas:',e)}
+}
+const v32RenderMinhasBase=renderMinhasReservas; renderMinhasReservas=async function(){await v32RenderMinhasBase();await v32EnriquecerMinhasReservas();};
+const v32RenderAdminBase=renderAdminReservas; renderAdminReservas=async function(){await v32RenderAdminBase();try{const {data}=await sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});const cards=[...document.querySelectorAll('#adminListaReservas .admin-res-item')];(data||[]).forEach((r,i)=>{const c=cards[i];if(!c||c.querySelector('.v32-timeline'))return;const ar=c.querySelector('.action-row');const w=document.createElement('div');w.innerHTML=v32LinhaTempo(r);c.insertBefore(w,ar||null);if(ar){const st=String(r.status||'').toLowerCase();if((r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(st))&&!r.checkin_em)ar.insertAdjacentHTML('beforeend',`<button class="btn-secondary" onclick="v32RegistrarMovimento('${r.id}','checkin')"><i class="fa-solid fa-key"></i> Check-in</button>`);if(r.checkin_em&&!r.checkout_em)ar.insertAdjacentHTML('beforeend',`<button class="btn-secondary" onclick="v32RegistrarMovimento('${r.id}','checkout')"><i class="fa-solid fa-door-open"></i> Check-out</button>`);}})}catch(e){console.warn(e)}};
+const v32RenderChatBase=renderChat; renderChat=async function(){await v32RenderChatBase();const r=reservaChatAtual,resumo=document.getElementById('chatReservaResumo');if(r&&resumo&&!resumo.querySelector('.v32-timeline'))resumo.insertAdjacentHTML('beforeend',v32LinhaTempo(r));};
+
+function v32InstalarFinanceiro(){
+ const tabs=document.querySelector('#adminModal .admin-tabs'); if(!tabs||document.getElementById('tabAdminFinanceiro'))return;
+ const b=document.createElement('button');b.id='tabAdminFinanceiro';b.className='admin-tab';b.innerHTML='<i class="fa-solid fa-chart-line"></i> Financeiro';b.onclick=()=>v32AbrirFinanceiro();tabs.insertBefore(b,document.getElementById('tabAdminAcessos'));
+ const sec=document.createElement('div');sec.id='adminSecFinanceiro';sec.className='admin-section';sec.innerHTML=`<div class="admin-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><div><h3 style="color:var(--primary-dark)">Visão financeira</h3><p class="mini-note">Valores movimentados diretamente entre hóspede e anfitrião. O SULBAHIAGO não recebe esses valores.</p></div><div class="action-row"><button class="btn-secondary" onclick="v32RenderFinanceiro()"><i class="fa-solid fa-rotate"></i> Atualizar</button><button class="btn-secondary" onclick="v32AtivarNotificacoes()"><i class="fa-solid fa-bell"></i> Ativar notificações</button></div></div><div id="v32FinanceiroConteudo"></div></div>`;
+ document.getElementById('adminSecAcessos')?.parentNode.insertBefore(sec,document.getElementById('adminSecAcessos'));
+}
+function v32AbrirFinanceiro(){document.querySelectorAll('#adminModal .admin-section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#adminModal .admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById('adminSecFinanceiro')?.classList.add('active');document.getElementById('tabAdminFinanceiro')?.classList.add('active');v32RenderFinanceiro();}
+async function v32RenderFinanceiro(){
+ const box=document.getElementById('v32FinanceiroConteudo');if(!box)return;box.innerHTML='<p class="mini-note" style="padding:18px"><i class="fa-solid fa-spinner fa-spin"></i> Calculando...</p>';
+ try{const {data,error}=await sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});if(error)throw error;const a=data||[];const total=a.reduce((s,r)=>s+(Number(r.total)||0),0);const pagos=a.filter(r=>r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase()));const valorPago=pagos.reduce((s,r)=>s+(Number(r.total)||0),0);const pend=a.filter(r=>['aprovada','aguardando_pagamento'].includes(String(r.status||'').toLowerCase())&&!r.pagamento_confirmado);const valorPend=pend.reduce((s,r)=>s+(Number(r.total)||0),0);const reemb=a.reduce((s,r)=>s+(Number(r.cancelamento_reembolso_valor)||0),0);const concl=a.filter(r=>r.checkout_em||['concluida','finalizada'].includes(String(r.status||'').toLowerCase())).length;
+ box.innerHTML=`<div class="v32-fin-grid"><div class="v32-fin-card"><span>Reservas</span><strong>${a.length}</strong><div class="v32-kpi-sub">${concl} finalizadas</div></div><div class="v32-fin-card"><span>Pagamentos confirmados</span><strong>${brl(valorPago)}</strong><div class="v32-kpi-sub">${pagos.length} reservas</div></div><div class="v32-fin-card"><span>Pagamento pendente</span><strong>${brl(valorPend)}</strong><div class="v32-kpi-sub">${pend.length} reservas</div></div><div class="v32-fin-card"><span>Reembolsos registrados</span><strong>${brl(reemb)}</strong><div class="v32-kpi-sub">Cancelamentos processados</div></div></div><div class="rules-box"><strong>Total de reservas lançadas:</strong> ${brl(total)}<br><span class="mini-note">Indicador gerencial. Como o pagamento é direto com o anfitrião, este painel não representa saldo bancário do SULBAHIAGO.</span></div><div class="v32-fin-list">${a.slice(0,8).map(r=>`<div class="v32-fin-row"><span><b>${adminEsc(r.codigo||String(r.id).slice(0,8))}</b> · ${adminEsc(r.imovel||'Hospedagem')}<br><span class="mini-note">${dataBR(r.checkin)} a ${dataBR(r.checkout)}</span></span><strong>${brl(Number(r.total)||0)}</strong></div>`).join('')}</div>`;
+ }catch(e){box.innerHTML='<p class="mini-note" style="color:#b42318">'+adminEsc(e?.message||e)+'</p>'}
+}
+async function v32AtivarNotificacoes(){if(!('Notification'in window)){alert('Seu navegador não oferece notificações do sistema. As notificações dentro do site continuarão funcionando.');return}const p=await Notification.requestPermission();alert(p==='granted'?'Notificações ativadas neste navegador.':'Permissão de notificação não foi concedida.');}
+function v32NotificarSistema(t,d){v32Toast(t,d);try{if(Notification.permission==='granted')new Notification(t,{body:d,icon:''})}catch(e){}}
+let v32Canal=null;async function v32IniciarNotificacoesAdmin(){try{if(v32Canal)return;const ok=await usuarioEhAdmin();if(!ok)return;v32Canal=sb.channel('v32-admin-alertas').on('postgres_changes',{event:'INSERT',schema:'public',table:'sulbahiago_reservas'},p=>{v32NotificarSistema('Nova solicitação de reserva',`${p.new?.imovel||'Hospedagem'} · ${p.new?.codigo||''}`);v32RenderFinanceiro();}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'sulbahiago_reservas'},p=>{const n=p.new||{},o=p.old||{};if(n.pagamento_confirmado&&!o.pagamento_confirmado)v32NotificarSistema('Pagamento confirmado',`${n.imovel||'Reserva'} · ${n.codigo||''}`);if(n.cancelamento_status&&n.cancelamento_status!==o.cancelamento_status)v32NotificarSistema('Cancelamento atualizado',`${n.codigo||''} · ${n.cancelamento_status}`);if(n.checkin_em&&!o.checkin_em)v32NotificarSistema('Check-in registrado',n.codigo||'Reserva');if(n.checkout_em&&!o.checkout_em)v32NotificarSistema('Check-out registrado',n.codigo||'Reserva');v32RenderFinanceiro();}).subscribe();}catch(e){console.warn(e)}}
+const v32AbrirPainelBase=abrirPainelAdmin;abrirPainelAdmin=async function(){await v32AbrirPainelBase();v32InstalarFinanceiro();v32IniciarNotificacoesAdmin();};
+
+// Avaliação: após checkout registrado OU após a data prevista de saída.
+const v32AbrirAvaliacaoRealBase=typeof abrirAvaliacaoReal==='function'?abrirAvaliacaoReal:null;
+if(v32AbrirAvaliacaoRealBase){abrirAvaliacaoReal=async function(id){try{const {data:r,error}=await sb.from('sulbahiago_reservas').select('*').eq('id',id).single();if(error)throw error;const passou=r.checkout&&new Date(String(r.checkout)+'T23:59:59')<new Date();if(!r.checkout_em&&!passou){alert('A avaliação será liberada após o check-out da hospedagem.');return;}return v32AbrirAvaliacaoRealBase(id)}catch(e){alert(e?.message||e)}}}
+
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(v32InstalarFinanceiro,500)});
+</script>
 </body>
 </html>

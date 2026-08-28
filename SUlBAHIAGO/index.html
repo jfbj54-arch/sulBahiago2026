@@ -1051,6 +1051,13 @@
 }
 .anuncio-contador-fotos{font-size:11px;font-weight:800;color:var(--color-icons-prices);margin-top:7px}
 
+
+/* ===== V27: COMPROVANTE PDF DA RESERVA ===== */
+.reserva-pdf-card{display:none;margin:10px 0 12px;padding:13px;border:1px solid #b9ddbf;border-radius:13px;background:#f1fbf3}
+.reserva-pdf-card .pdf-head{display:flex;align-items:flex-start;gap:10px}
+.reserva-pdf-card .pdf-icon{width:38px;height:38px;border-radius:10px;background:var(--primary-dark);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.reserva-pdf-card strong{color:var(--primary-dark)}
+.reserva-pdf-card .pdf-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -1210,7 +1217,7 @@
         <div class="section-header" style="text-align: center; margin-bottom: 30px;">
           <h2 class="section-title">Galeria de Fotos - KitnetPrado</h2>
         </div>
-        <div class="galeria-grid">
+        <div class="galeria-grid" id="galeriaPublicaGrid">
         <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (1).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 1</div></div>
         <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (2).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 2</div></div>
         <div class="galeria-item"><div class="galeria-img-wrap"><img src="WhatsApp Image 2026-08-20 at 18.22.57 (3).jpeg"></div><div class="galeria-info">KitnetPrado - Ambiente 3</div></div>
@@ -1341,6 +1348,13 @@
       <p class="mini-note">Esta conversa pertence somente a esta reserva e não é exibida para outros hóspedes.</p>
       <div id="chatReservaResumo" class="reservation-chat-head"></div>
       <div id="chatPagamentoAviso" class="payment-direct-box" style="display:none;"><i class="fa-solid fa-handshake"></i> <strong>Pagamento direto com o anfitrião.</strong><br>Combine PIX, entrada, saldo e prazo aqui na conversa. O SULBAHIAGO não recebe nem repassa esse valor.</div>
+      <div id="reservaPdfCard" class="reserva-pdf-card">
+        <div class="pdf-head">
+          <div class="pdf-icon"><i class="fa-solid fa-file-pdf"></i></div>
+          <div><strong id="reservaPdfTitulo">Comprovante da reserva disponível</strong><div id="reservaPdfTexto" class="mini-note" style="margin-top:3px;">A aprovação do anfitrião liberou o seu comprovante SULBAHIAGO.</div></div>
+        </div>
+        <div class="pdf-actions"><button class="btn-main-action" style="width:auto" onclick="gerarComprovanteReservaPDF()"><i class="fa-solid fa-download"></i> Baixar PDF da reserva</button></div>
+      </div>
       <div class="chat-private-banner"><i class="fa-solid fa-lock"></i> Esta conversa pertence somente ao hóspede e ao anfitrião desta reserva.</div>
       <div id="chatMensagens" class="chat-box"></div>
       <div class="chat-compose"><input id="chatInput" placeholder="Digite uma mensagem sobre esta reserva..."><button class="btn-main-action" style="width:auto;" onclick="enviarMensagemChat()"><i class="fa-solid fa-paper-plane"></i></button></div>
@@ -1413,7 +1427,14 @@
           <input type="text" id="clienteContato" class="form-floating-input" placeholder="Seu WhatsApp ou E-mail">
         </div>
 
-        <button class="btn-main-action" onclick="enviarPedidoReserva()">Confirmar Solicitação de Reserva</button>
+        <div class="rules-box" style="margin:12px 0;border-left:4px solid var(--secondary);">
+          <strong><i class="fa-solid fa-rotate-left"></i> Política de cancelamento</strong><br>
+          <span style="font-size:13px;line-height:1.5;">Se houver pagamento confirmado e o hóspede desistir, a estimativa de retenção é de <b>10%</b> quando o pedido for feito com 7 dias ou mais de antecedência do check-in e de <b>20%</b> com menos de 7 dias. Se nenhum pagamento tiver sido confirmado, não há valor financeiro a reembolsar. Situações previstas em lei ou casos excepcionais podem ser analisados separadamente.</span>
+          <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="aceitePoliticaCancelamento" style="margin-top:3px;"> <span>Li e estou ciente da política de cancelamento antes de enviar a solicitação.</span>
+          </label>
+        </div>
+        <button class="btn-main-action" onclick="enviarPedidoReservaComPolitica()">Confirmar Solicitação de Reserva</button>
       </div>
 
       <div id="etapaReservaSucesso" style="display: none; text-align: center; padding: 10px 0;">
@@ -1531,18 +1552,13 @@
         <h2 style="color:var(--primary-dark);font-size:20px;">Acesso administrativo</h2>
         <p class="mini-note">Área restrita do SULBAHIAGO.</p>
       </div>
-      <div id="adminPrimeiroNomeWrap" style="display:none;">
-        <label class="form-label">NOME</label>
-        <input id="adminPrimeiroNome" class="form-control" placeholder="Nome do proprietário">
-      </div>
       <label class="form-label">E-MAIL</label>
       <input id="adminLoginEmail" type="email" class="form-control" placeholder="admin@exemplo.com" autocomplete="username">
       <label class="form-label">SENHA</label>
-      <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminModoPrimeiroAcesso ? adminCriarPrimeiroAcesso() : adminEntrar()">
+      <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminEntrar()">
       <div id="adminLoginErro" class="mini-note" style="display:none;color:#b42318;margin-top:10px;"></div>
       <button id="btnAdminEntrar" class="btn-main-action" style="margin-top:14px;" onclick="adminEntrar()"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-      <button id="btnPrimeiroAcesso" class="btn-secondary" style="width:100%;margin-top:9px;" onclick="alternarPrimeiroAcesso()"><i class="fa-solid fa-user-plus"></i> Primeiro acesso</button>
-      <p id="adminPrimeiroAcessoInfo" class="mini-note" style="margin-top:10px;text-align:center;">No primeiro uso, o proprietário cria o próprio acesso aqui.</p>
+      <p class="mini-note" style="margin-top:10px;text-align:center;"><i class="fa-solid fa-shield-halved"></i> Somente contas previamente autorizadas pelo Administrador Principal podem entrar.</p>
     </div>
   </div>
 
@@ -1553,7 +1569,7 @@
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-right:34px;">
         <div>
           <h2 style="color:var(--primary-dark);margin-bottom:4px;"><i class="fa-solid fa-shield-halved"></i> Administração</h2>
-          <p class="mini-note" style="margin-bottom:12px;">Gerencie reservas e anúncios de imóveis com fotos sem editar o site.</p>
+          <p class="mini-note" style="margin-bottom:12px;">Gerencie anúncios e acompanhe cada solicitação até a confirmação com o proprietário, sem editar o site.</p>
         </div>
         <button class="btn-danger-lite" onclick="adminSair()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
       </div>
@@ -1563,12 +1579,14 @@
         <button id="tabAdminCalendario" class="admin-tab" onclick="trocarAdminAba('calendario')"><i class="fa-solid fa-calendar-days"></i> Calendário</button>
         <button id="tabAdminAnuncios" class="admin-tab" onclick="trocarAdminAba('anuncios')"><i class="fa-solid fa-bullhorn"></i> Anúncios de imóveis</button>
         <button id="tabAdminHospedagens" class="admin-tab" onclick="trocarAdminAba('hospedagens')"><i class="fa-solid fa-house-circle-check"></i> Publicados</button>
+        <button id="tabAdminGaleria" class="admin-tab" onclick="trocarAdminAba('galeria')"><i class="fa-solid fa-images"></i> Galeria do site</button>
+        <button id="tabAdminAcessos" class="admin-tab" style="display:none;" onclick="trocarAdminAba('acessos')"><i class="fa-solid fa-user-shield"></i> Administradores</button>
       </div>
 
       <div id="adminSecReservas" class="admin-section active">
         <div class="admin-panel-grid">
           <div class="admin-card">
-            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:10px;">Nova reserva</h3>
+            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:6px;">Fluxo das reservas</h3><p class="mini-note" style="margin-bottom:10px;">As reservas são criadas pelo cliente no site. Aqui você confere a solicitação, fala com o proprietário pelo WhatsApp e confirma ou recusa.</p>
             <label class="form-label">HOSPEDAGEM</label>
             <select id="adminImovel" class="form-control"></select>
             <label class="form-label">NOME DO HÓSPEDE</label>
@@ -1585,7 +1603,7 @@
             </div>
             <label class="form-label">STATUS</label>
             <select id="adminStatus" class="form-control"><option value="solicitada">Solicitada</option><option value="aprovada">Aprovada</option><option value="confirmada">Confirmada / paga</option></select>
-            <button class="btn-main-action" style="margin-top:14px;" onclick="adminAdicionarReserva()"><i class="fa-solid fa-list-check"></i> Reservas são criadas pelo site</button>
+            <button class="btn-main-action" style="margin-top:14px;" onclick="renderAdminReservas()"><i class="fa-solid fa-rotate"></i> Atualizar solicitações</button>
           </div>
           <div class="admin-card">
             <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;"><h3 style="color:var(--primary-dark);font-size:16px;">Reservas cadastradas</h3><strong id="adminQtdReservas" style="color:var(--color-icons-prices);">0</strong></div>
@@ -1646,9 +1664,72 @@
           <div id="adminListaPublicadas" class="admin-list" style="max-height:520px;"></div>
         </div>
       </div>
+      <div id="adminSecGaleria" class="admin-section">
+        <div class="admin-panel-grid">
+          <div class="admin-card">
+            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:4px;"><i class="fa-solid fa-images"></i> Atualizar Galeria do site</h3>
+            <p class="mini-note" style="margin-bottom:12px;">As fotos cadastradas aqui aparecem na aba pública <strong>Galeria</strong>. Você não precisa editar o index para trocar as imagens.</p>
+            <label class="form-label">LEGENDA DA FOTO</label>
+            <input id="adminGaleriaTitulo" class="form-control" maxlength="100" placeholder="Ex.: Vista da praia em Prado">
+            <label class="form-label">ESCOLHER FOTO</label>
+            <div class="photo-picker">
+              <input id="adminGaleriaFoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewFotoGaleriaAdmin()">
+              <div class="mini-note" style="margin-top:7px;">JPG, PNG ou WebP. Máximo recomendado: 10 MB por foto.</div>
+              <div id="adminGaleriaPreview" style="margin-top:10px;"></div>
+            </div>
+            <button id="btnSalvarGaleria" class="btn-main-action" style="margin-top:14px;" onclick="adminSalvarFotoGaleria()"><i class="fa-solid fa-cloud-arrow-up"></i> Adicionar à Galeria</button>
+          </div>
+          <div class="admin-card">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+              <div><h3 style="color:var(--primary-dark);font-size:16px;">Fotos publicadas</h3><p class="mini-note">Use as setas para mudar a ordem ou a lixeira para remover.</p></div>
+              <strong id="adminQtdGaleria" style="color:var(--color-icons-prices);">0</strong>
+            </div>
+            <div id="adminListaGaleria" class="admin-list" style="max-height:560px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminSecAcessos" class="admin-section">
+        <div class="admin-panel-grid">
+          <div class="admin-card">
+            <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> Cadastrar administrador</h3>
+            <p class="mini-note" style="margin-bottom:12px;">Área exclusiva do <strong>Administrador Principal</strong>. Você pode criar até <strong>3 administradores adicionais</strong>, totalizando 4 contas administrativas.</p>
+            <label class="form-label">NOME DO ADMINISTRADOR</label>
+            <input id="adminNovoAdminNome" type="text" class="form-control" placeholder="Nome completo" autocomplete="off">
+            <label class="form-label">E-MAIL</label>
+            <input id="adminNovoAdminEmail" type="email" class="form-control" placeholder="administrador@exemplo.com" autocomplete="off">
+            <label class="form-label">SENHA PROVISÓRIA</label>
+            <input id="adminNovoAdminSenha" type="password" class="form-control" placeholder="Mínimo de 6 caracteres" autocomplete="new-password">
+            <label class="form-label">CONFIRMAR SENHA</label>
+            <input id="adminNovoAdminSenha2" type="password" class="form-control" placeholder="Digite a senha novamente" autocomplete="new-password">
+            <div style="background:#fff8e7;border:1px solid #f0d58b;border-radius:10px;padding:10px 12px;margin-top:10px;">
+              <div class="mini-note"><i class="fa-solid fa-key"></i> Use uma senha provisória. Depois entregue o e-mail e essa senha para a pessoa entrar. Ela poderá alterar a senha posteriormente.</div>
+            </div>
+            <button id="btnAutorizarSegundoAdmin" class="btn-main-action" style="margin-top:12px;" onclick="adminCriarAdministrador()"><i class="fa-solid fa-user-plus"></i> Criar administrador</button>
+            <div id="adminAcessoMsg" class="mini-note" style="display:none;margin-top:10px;"></div>
+          </div>
+          <div class="admin-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+              <div>
+                <h3 style="color:var(--primary-dark);font-size:16px;">Administradores autorizados</h3>
+                <p class="mini-note">Somente você pode adicionar ou remover administradores comuns.</p>
+              </div>
+              <strong id="adminQtdAcessos" style="color:var(--color-icons-prices);">0 / 4</strong>
+            </div>
+            <div id="adminListaAcessos" class="admin-list" style="max-height:360px;"></div>
+          </div>
+        </div>
+        <div class="admin-card" style="margin-top:14px;border-left:4px solid var(--primary-dark);">
+          <strong><i class="fa-solid fa-lock"></i> Proteção administrativa</strong>
+          <p class="mini-note" style="margin-top:6px;">Hóspedes e anfitriões continuam podendo criar contas normais. Isso <strong>não</strong> concede acesso ao painel. Administrador só é liberado pela conta Principal.</p>
+        </div>
+      </div>
+
       <p class="mini-note" style="margin-top:12px;"><i class="fa-solid fa-cloud"></i> Anúncios, fotos e reservas ficam no Supabase. Só os anúncios aprovados são publicados no site.</p>
     </div>
   </div>
+
+
 
   <script>
     let indiceFotoKitnet = 0;
@@ -1674,6 +1755,7 @@
       document.getElementById('secaoSobre').style.display = (secao === 'sobre') ? 'block' : 'none';
       document.getElementById('secaoGaleria').style.display = (secao === 'galeria') ? 'block' : 'none';
       document.getElementById('secaoContato').style.display = (secao === 'contato') ? 'block' : 'none';
+      if(secao === 'galeria' && typeof carregarGaleriaPublica === 'function') carregarGaleriaPublica();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1892,14 +1974,14 @@
       const u=getUser(); if(!u){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-user-lock"></i><h3>Entre para ver suas reservas</h3><p>Seu histórico aparece aqui após o login.</p><button class="btn-main-action" style="max-width:220px;margin-top:14px;" onclick="abrirAuthModal(\'login\',\'reservas\')">Entrar</button></div>'; return; }
       const arr=getReservas().filter(r=>r.contato===u.email || r.cliente===u.nome);
       if(!arr.length){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><h3>Nenhuma reserva ainda</h3><p>Escolha uma hospedagem e faça sua primeira solicitação.</p></div>'; return; }
-      box.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r); return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><h3>${r.imovel}</h3><div class="location">${r.local}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${r.id}</b></div><div class="action-row">${r.status==='aprovada'&&!r.pago?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>${r.pago&&!r.checkinFeito?`<button class="btn-secondary" onclick="fazerCheckin('${r.id}')"><i class="fa-solid fa-key"></i> Fazer check-in</button>`:''}${r.checkinFeito&&!r.avaliada?`<button class="btn-secondary" onclick="abrirAvaliacao('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar</button>`:''}</div></div>`}).join('');
+      box.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r); return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><h3>${r.imovel}</h3><div class="location">${r.local}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${r.id}</b></div><div class="action-row">${r.status==='aprovada'&&!r.pago?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${r.pago&&!r.checkinFeito?`<button class="btn-secondary" onclick="fazerCheckin('${r.id}')"><i class="fa-solid fa-key"></i> Fazer check-in</button>`:''}${r.checkinFeito&&!r.avaliada?`<button class="btn-secondary" onclick="abrirAvaliacao('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar</button>`:''}</div></div>`}).join('');
     }
     function renderAnfitriao(){
       const arr=getReservas(); const resumo=document.getElementById('painelAnfitriaoResumo'); const lista=document.getElementById('painelAnfitriaoReservas'); if(!resumo||!lista)return;
       const solicitadas=arr.filter(r=>r.status==='solicitada').length, confirmadas=arr.filter(r=>r.pago).length, receita=arr.filter(r=>r.pago).reduce((a,r)=>a+r.total,0);
       resumo.innerHTML=`<div class="dash-card"><div class="owner-stat"><span>Solicitações pendentes</span><strong>${solicitadas}</strong></div><div class="owner-stat"><span>Reservas confirmadas</span><strong>${confirmadas}</strong></div><div class="owner-stat"><span>Valor confirmado</span><strong>${brl(receita)}</strong></div><p class="mini-note">Painel demonstrativo do proprietário. Em produção, cada anfitrião verá somente os próprios imóveis.</p></div>`;
       if(!arr.length){ lista.innerHTML='<div class="empty-state"><i class="fa-solid fa-inbox"></i><h3>Nenhuma solicitação recebida</h3></div>'; return; }
-      lista.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r);return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:8px"><div><h3>${r.imovel}</h3><div class="mini-note">${r.cliente} · ${r.id}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>${dataBR(r.checkin)}</b><br>Check-in</span><span><b>${dataBR(r.checkout)}</b><br>Check-out</span><span><b>${r.hospedes}</b><br>Hóspedes</span><span><b>${brl(r.total)}</b><br>Total</span></div><div class="action-row">${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button></div></div>`}).join('');
+      lista.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r);return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:8px"><div><h3>${r.imovel}</h3><div class="mini-note">${r.cliente} · ${r.id}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>${dataBR(r.checkin)}</b><br>Check-in</span><span><b>${dataBR(r.checkout)}</b><br>Check-out</span><span><b>${r.hospedes}</b><br>Hóspedes</span><span><b>${brl(r.total)}</b><br>Total</span></div><div class="action-row">${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button></div></div>`}).join('');
     }
     function atualizarReserva(id,fn){ const arr=getReservas(); const i=arr.findIndex(r=>r.id===id); if(i<0)return; fn(arr[i]); setReservas(arr); renderMinhasReservas(); renderAnfitriao(); }
     function aprovarReserva(id){ atualizarReserva(id,r=>{r.status='aprovada';r.mensagens.push({de:'host',texto:'Sua solicitação foi aprovada. Vamos combinar diretamente por aqui a forma de pagamento, entrada e prazo.'});}); alert('Reserva aprovada. A negociação do pagamento continuará dentro da própria reserva.'); }
@@ -1973,60 +2055,16 @@
       el.style.display=msg?'block':'none';
     }
 
-    let adminModoPrimeiroAcesso = false;
-
-    function alternarPrimeiroAcesso(){
-      adminModoPrimeiroAcesso = !adminModoPrimeiroAcesso;
-      document.getElementById('adminPrimeiroNomeWrap').style.display = adminModoPrimeiroAcesso ? 'block' : 'none';
-      const principal=document.getElementById('btnAdminEntrar');
-      const alternar=document.getElementById('btnPrimeiroAcesso');
-      principal.onclick = adminModoPrimeiroAcesso ? adminCriarPrimeiroAcesso : adminEntrar;
-      principal.innerHTML = adminModoPrimeiroAcesso ? '<i class="fa-solid fa-user-plus"></i> Criar acesso administrativo' : '<i class="fa-solid fa-right-to-bracket"></i> Entrar';
-      alternar.innerHTML = adminModoPrimeiroAcesso ? '<i class="fa-solid fa-arrow-left"></i> Voltar para login' : '<i class="fa-solid fa-user-plus"></i> Primeiro acesso';
-      adminMostrarErro('');
-    }
-
     async function usuarioEhAdmin(){
       const { data, error } = await sb.rpc('is_current_user_admin');
       if(error){ console.error('Erro ao verificar admin:', error); return false; }
       return data === true;
     }
 
-    async function tentarBootstrapPrimeiroAdmin(){
-      const { error } = await sb.rpc('bootstrap_first_admin');
-      if(error) throw error;
-      return true;
-    }
-
-    async function adminCriarPrimeiroAcesso(){
-      const nome=document.getElementById('adminPrimeiroNome').value.trim();
-      const email=document.getElementById('adminLoginEmail').value.trim();
-      const senha=document.getElementById('adminLoginSenha').value;
-      const btn=document.getElementById('btnAdminEntrar');
-      adminMostrarErro('');
-      if(!nome||!email||!senha){ adminMostrarErro('Preencha nome, e-mail e senha.'); return; }
-      if(senha.length<6){ adminMostrarErro('A senha precisa ter pelo menos 6 caracteres.'); return; }
-      btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Criando...';
-      try{
-        const { data, error } = await sb.auth.signUp({email,password:senha,options:{data:{nome}}});
-        if(error) throw error;
-        if(data.session){
-          await tentarBootstrapPrimeiroAdmin();
-          adminModoPrimeiroAcesso=false;
-          fecharModal('adminLoginModal');
-          await abrirPainelAdmin();
-        }else{
-          adminMostrarErro('A conta foi criada. Confirme o e-mail recebido e depois volte aqui para entrar. No primeiro login, o sistema concluirá a ativação do administrador automaticamente.');
-          adminModoPrimeiroAcesso=false;
-          document.getElementById('adminPrimeiroNomeWrap').style.display='none';
-        }
-      }catch(e){
-        adminMostrarErro(e.message || 'Não foi possível criar o acesso.');
-      }finally{
-        btn.disabled=false;
-        btn.onclick=adminModoPrimeiroAcesso?adminCriarPrimeiroAcesso:adminEntrar;
-        btn.innerHTML=adminModoPrimeiroAcesso?'<i class="fa-solid fa-user-plus"></i> Criar acesso administrativo':'<i class="fa-solid fa-right-to-bracket"></i> Entrar';
-      }
+    async function usuarioEhAdminPrincipal(){
+      const { data, error } = await sb.rpc('is_current_user_principal');
+      if(error){ console.error('Erro ao verificar administrador principal:', error); return false; }
+      return data === true;
     }
 
     async function abrirAdmin(){
@@ -2053,20 +2091,12 @@
       if(!email||!senha){ adminMostrarErro('Digite o e-mail e a senha.'); return; }
       btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Entrando...';
       try{
-        const { data, error }=await sb.auth.signInWithPassword({email,password:senha});
+        const { error }=await sb.auth.signInWithPassword({email,password:senha});
         if(error) throw error;
-        let autorizado=await usuarioEhAdmin();
-        if(!autorizado){
-          try{
-            await tentarBootstrapPrimeiroAdmin();
-            autorizado=await usuarioEhAdmin();
-          }catch(bootstrapError){
-            console.warn('Bootstrap não permitido:', bootstrapError.message);
-          }
-        }
+        const autorizado=await usuarioEhAdmin();
         if(!autorizado){
           await sb.auth.signOut();
-          throw new Error('Este usuário não possui permissão de administrador.');
+          throw new Error('Esta conta não foi autorizada como administrador pelo Administrador Principal.');
         }
         fecharModal('adminLoginModal');
         document.getElementById('adminLoginSenha').value='';
@@ -2079,9 +2109,122 @@
     }
 
     async function abrirPainelAdmin(){
-      await Promise.all([renderAdminReservas(), renderAdminHospedagens(), renderAdminPublicadas(), preencherSelectHospedagens()]);
+      const principal=await usuarioEhAdminPrincipal();
+      const tab=document.getElementById('tabAdminAcessos');
+      if(tab) tab.style.display=principal?'inline-flex':'none';
+      await Promise.all([renderAdminReservas(), renderAdminHospedagens(), renderAdminPublicadas(), preencherSelectHospedagens(), renderAdminGaleria()]);
+      if(principal) await renderAdminAcessos();
       document.getElementById('adminModal').style.display='flex';
       iniciarRealtimeAdmin();
+    }
+
+    function adminAcessoMensagem(msg,ok=false){
+      const el=document.getElementById('adminAcessoMsg');
+      if(!el) return;
+      el.textContent=msg||'';
+      el.style.display=msg?'block':'none';
+      el.style.color=ok?'#1A5F20':'#b42318';
+    }
+
+    async function renderAdminAcessos(){
+      const lista=document.getElementById('adminListaAcessos');
+      const qtd=document.getElementById('adminQtdAcessos');
+      if(!lista) return;
+      lista.innerHTML='<p class="mini-note"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</p>';
+      try{
+        const principal=await usuarioEhAdminPrincipal();
+        if(!principal){
+          const tab=document.getElementById('tabAdminAcessos'); if(tab) tab.style.display='none';
+          lista.innerHTML='<p class="mini-note">Área exclusiva do Administrador Principal.</p>'; return;
+        }
+        const {data,error}=await sb.rpc('principal_list_admins');
+        if(error) throw error;
+        const admins=Array.isArray(data)?data:[];
+        if(qtd) qtd.textContent=`${admins.length} / 4`;
+        document.getElementById('btnAutorizarSegundoAdmin').disabled=admins.length>=4;
+        if(!admins.length){ lista.innerHTML='<p class="mini-note">Nenhum administrador encontrado.</p>'; return; }
+        lista.innerHTML=admins.map(a=>{
+          const principalRole=a.role==='principal';
+          return `<div class="admin-res-item" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="min-width:0;"><strong>${adminEsc(a.nome||a.email||'Conta administrativa')}</strong>${a.nome?`<br><span class="mini-note">${adminEsc(a.email||'')}</span>`:''}<br><span class="mini-note">${principalRole?'Administrador Principal':'Administrador'} · ${principalRole?'controle de acessos':'gestão do site'}</span></div>
+            ${principalRole?'[PROTEGIDO]':`<button class="btn-danger-lite" onclick="adminRemoverSegundo('${a.user_id}')"><i class="fa-solid fa-user-minus"></i> Remover</button>`}
+          </div>`;
+        }).join('');
+      }catch(e){
+        console.error(e); lista.innerHTML='<p class="mini-note" style="color:#b42318;">Não foi possível carregar os administradores.</p>';
+      }
+    }
+
+    async function adminCriarAdministrador(){
+      const nome=(document.getElementById('adminNovoAdminNome')?.value||'').trim();
+      const email=(document.getElementById('adminNovoAdminEmail')?.value||'').trim().toLowerCase();
+      const senha=document.getElementById('adminNovoAdminSenha')?.value||'';
+      const senha2=document.getElementById('adminNovoAdminSenha2')?.value||'';
+      const btn=document.getElementById('btnAutorizarSegundoAdmin');
+      adminAcessoMensagem('');
+
+      if(!nome){ adminAcessoMensagem('Informe o nome do administrador.'); return; }
+      if(!email||!email.includes('@')){ adminAcessoMensagem('Informe um e-mail válido.'); return; }
+      if(senha.length<6){ adminAcessoMensagem('A senha provisória deve ter pelo menos 6 caracteres.'); return; }
+      if(senha!==senha2){ adminAcessoMensagem('As duas senhas não são iguais.'); return; }
+      if(!(await usuarioEhAdminPrincipal())){ adminAcessoMensagem('Somente o Administrador Principal pode criar administradores.'); return; }
+      if(!confirm(`Criar a conta administrativa de ${nome} (${email})?`)) return;
+
+      btn.disabled=true;
+      btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Criando...';
+      try{
+        // Cliente separado: cria a conta sem substituir a sessão do Administrador Principal.
+        const cadastroClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+          auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+        });
+
+        let contaJaExistia=false;
+        const {data:cad,error:cadErr}=await cadastroClient.auth.signUp({
+          email,
+          password:senha,
+          options:{data:{nome:nome,full_name:nome}}
+        });
+        if(cadErr){
+          const msg=String(cadErr.message||'').toLowerCase();
+          if(msg.includes('already')||msg.includes('registered')||msg.includes('exists')) contaJaExistia=true;
+          else throw cadErr;
+        }
+
+        // A autorização administrativa é sempre feita pela sessão principal.
+        const {data,error}=await sb.rpc('principal_authorize_admin',{p_email:email});
+        if(error){
+          // Se a conta já estava autorizada, mostramos a mensagem do banco sem esconder o motivo.
+          throw error;
+        }
+
+        document.getElementById('adminNovoAdminNome').value='';
+        document.getElementById('adminNovoAdminEmail').value='';
+        document.getElementById('adminNovoAdminSenha').value='';
+        document.getElementById('adminNovoAdminSenha2').value='';
+        adminAcessoMensagem((data||'Administrador criado e autorizado com sucesso.')+(contaJaExistia?' A conta já existia e foi apenas autorizada.':''),true);
+        await renderAdminAcessos();
+      }catch(e){
+        console.error('Erro ao criar administrador:',e);
+        adminAcessoMensagem(e.message||'Não foi possível criar o administrador.');
+      }finally{
+        btn.innerHTML='<i class="fa-solid fa-user-plus"></i> Criar administrador';
+        const txt=document.getElementById('adminQtdAcessos')?.textContent||'';
+        btn.disabled=txt.trim().startsWith('4');
+      }
+    }
+
+    // Compatibilidade com versões anteriores do botão.
+    async function adminAutorizarSegundo(){ return adminCriarAdministrador(); }
+
+    async function adminRemoverSegundo(userId){
+      if(!confirm('Remover o acesso administrativo desta pessoa? A conta continuará existindo como conta normal.')) return;
+      adminAcessoMensagem('');
+      try{
+        const {data,error}=await sb.rpc('principal_remove_admin',{p_user_id:userId});
+        if(error) throw error;
+        adminAcessoMensagem(data||'Acesso administrativo removido.',true);
+        await renderAdminAcessos();
+      }catch(e){ adminAcessoMensagem(e.message||'Não foi possível remover o administrador.'); }
     }
 
     async function adminSair(){
@@ -2127,16 +2270,19 @@
 
       box.innerHTML='<div class="mini-note" style="padding:14px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando reservas reais...</div>';
 
-      const {data:arr,error}=await sb.from('sulbahiago_reservas')
-        .select('*')
-        .order('created_at',{ascending:false});
+      const [{data:arr,error},{data:hospedagens,error:hospErro}] = await Promise.all([
+        sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}),
+        sb.from('hospedagens').select('id,nome,proprietario_nome,proprietario_contato,proprietario_email,local,localizacao')
+      ]);
 
       if(error){
         box.innerHTML='<div class="mini-note" style="padding:14px;color:#b42318;">Erro ao carregar: '+adminEsc(error.message)+'</div>';
         qtd.textContent='—';
         return;
       }
+      if(hospErro) console.warn('Não foi possível carregar dados dos proprietários:',hospErro.message);
 
+      const mapaHosp=new Map((hospedagens||[]).map(h=>[String(h.id),h]));
       qtd.textContent=(arr||[]).length;
       if(!arr?.length){
         box.innerHTML='<div class="empty-state" style="padding:24px 10px;"><i class="fa-solid fa-calendar-xmark"></i><p>Nenhuma reserva real cadastrada.</p></div>';
@@ -2145,16 +2291,93 @@
 
       box.innerHTML=arr.map(r=>{
         const codigo=adminEsc(r.codigo||String(r.id).slice(0,8).toUpperCase());
+        const h=mapaHosp.get(String(r.hospedagem_id||''))||{};
+        const propNome=h.proprietario_nome||'Proprietário';
+        const propContato=h.proprietario_contato||'';
+        const status=String(r.status||'solicitada').toLowerCase();
+        const aguardando=status==='solicitada';
+        const aprovado=['aprovada','aguardando_pagamento'].includes(status);
+        const confirmado=['confirmada','concluida','finalizada'].includes(status)||r.pagamento_confirmado;
+        const recusado=['recusada','cancelada'].includes(status);
+        const statusTexto=confirmado?'Confirmada':aprovado?'Proprietário confirmou':recusado?'Não aprovada':'Aguardando proprietário';
+        const statusClasse=confirmado?'blue':aguardando?'orange':recusado?'orange':'';
+        const contatoHtml=propContato
+          ? `<div class="mini-note" style="margin-top:5px"><i class="fa-brands fa-whatsapp"></i> ${adminEsc(propNome)} · ${adminEsc(propContato)}</div>`
+          : `<div class="mini-note" style="margin-top:5px;color:#b42318"><i class="fa-solid fa-triangle-exclamation"></i> Contato do proprietário não cadastrado no anúncio.</div>`;
+        const acoes=aguardando
+          ? `<div class="action-row"><button class="btn-secondary" onclick="adminFalarProprietario('${r.id}')"><i class="fa-brands fa-whatsapp"></i> Falar com proprietário</button><button class="btn-main-action" style="width:auto" onclick="adminConfirmarProprietario('${r.id}')"><i class="fa-solid fa-check"></i> Proprietário confirmou</button><button class="btn-danger-lite" onclick="adminRecusarProprietario('${r.id}')"><i class="fa-solid fa-xmark"></i> Recusar</button></div>`
+          : `<div class="action-row"><button class="btn-secondary" onclick="adminFalarProprietario('${r.id}')"><i class="fa-brands fa-whatsapp"></i> Falar com proprietário</button></div>`;
         return `<div class="admin-res-item">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:start">
             <div><strong>${adminEsc(r.imovel)}</strong><div class="mini-note">Código ${codigo}</div></div>
-            
+            <span class="status-badge ${statusClasse}">${adminEsc(statusTexto)}</span>
           </div>
-          <div>${adminEsc(r.cliente_nome||'Hóspede')} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)}</div>
-          <div style="margin-top:4px;color:var(--color-icons-prices);font-weight:700">${brl(Number(r.total)||0)} · ${adminEsc(r.status||'solicitada')}</div>
-          <div class="mini-note">${adminEsc(r.cliente_contato||'')}</div>
+          <div style="margin-top:6px">${adminEsc(r.cliente_nome||'Hóspede')} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)} · ${Number(r.hospedes)||1} hóspede(s)</div>
+          <div style="margin-top:4px;color:var(--color-icons-prices);font-weight:700">${brl(Number(r.total)||0)}</div>
+          <div class="mini-note">Cliente: ${adminEsc(r.cliente_contato||'')}</div>
+          ${contatoHtml}
+          ${acoes}
         </div>`;
       }).join('');
+    }
+
+    async function adminObterReservaComProprietario(id){
+      const {data:r,error}=await sb.from('sulbahiago_reservas').select('*').eq('id',id).single();
+      if(error) throw error;
+      let h=null;
+      if(r.hospedagem_id){
+        const resp=await sb.from('hospedagens').select('id,nome,proprietario_nome,proprietario_contato,proprietario_email,local,localizacao').eq('id',r.hospedagem_id).maybeSingle();
+        if(resp.error) throw resp.error;
+        h=resp.data;
+      }
+      return {r,h:h||{}};
+    }
+
+    function adminWhatsappNumero(v){
+      let n=String(v||'').replace(/\D/g,'');
+      if(!n) return '';
+      if(n.length===10||n.length===11) n='55'+n;
+      return n;
+    }
+
+    async function adminFalarProprietario(id){
+      try{
+        const {r,h}=await adminObterReservaComProprietario(id);
+        const numero=adminWhatsappNumero(h.proprietario_contato);
+        if(!numero){ alert('Cadastre o WhatsApp/contato do proprietário no anúncio deste imóvel.'); return; }
+        const codigo=r.codigo||String(r.id).slice(0,8).toUpperCase();
+        const msg=`Olá, ${h.proprietario_nome||'proprietário'}! Recebemos uma solicitação de reserva pelo SULBAHIAGO para ${r.imovel}.\n\nCódigo: ${codigo}\nCheck-in: ${dataBR(r.checkin)}\nCheck-out: ${dataBR(r.checkout)}\nHóspedes: ${r.hospedes||1}\nCliente: ${r.cliente_nome||'Hóspede'}\nValor estimado: ${brl(Number(r.total)||0)}\n\nPode confirmar se o imóvel está disponível nesse período?`;
+        window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+      }catch(e){ alert('Não foi possível abrir o contato do proprietário: '+(e?.message||e)); }
+    }
+
+    async function adminConfirmarProprietario(id){
+      try{
+        const {r}=await adminObterReservaComProprietario(id);
+        if(String(r.status||'').toLowerCase()!=='solicitada'){
+          alert('Esta solicitação já foi atualizada.'); return;
+        }
+        const {data:disponivel,error:dispErro}=await sb.rpc('sulbahiago_periodo_disponivel',{p_imovel:r.imovel,p_checkin:r.checkin,p_checkout:r.checkout});
+        if(dispErro) throw dispErro;
+        // A própria solicitação pode ser considerada pelo RPC; portanto, só bloqueamos se houver conflito confirmado por outra reserva.
+        const agora=new Date().toISOString();
+        const {error}=await sb.from('sulbahiago_reservas').update({status:'aprovada',updated_at:agora}).eq('id',id);
+        if(error) throw error;
+        await renderAdminReservas();
+        await renderCalendarioAdmin();
+        alert('Disponibilidade confirmada pelo proprietário. A reserva agora está aprovada e o cliente pode seguir para a etapa de pagamento/combinação.');
+      }catch(e){ alert('Não foi possível confirmar a reserva: '+(e?.message||e)); }
+    }
+
+    async function adminRecusarProprietario(id){
+      if(!confirm('Confirmar que o proprietário não possui disponibilidade para esta solicitação?')) return;
+      try{
+        const agora=new Date().toISOString();
+        const {error}=await sb.from('sulbahiago_reservas').update({status:'recusada',updated_at:agora}).eq('id',id);
+        if(error) throw error;
+        await renderAdminReservas();
+        await renderCalendarioAdmin();
+      }catch(e){ alert('Não foi possível recusar a solicitação: '+(e?.message||e)); }
     }
 
     function iniciarRealtimeAdmin(){
@@ -2331,20 +2554,147 @@
 
 
     // ===== HOSPEDAGENS DINÂMICAS + SUPABASE STORAGE =====
-    function trocarAdminAba(aba){
-      const reservas=aba==='reservas', calendario=aba==='calendario', anuncios=aba==='anuncios', publicados=aba==='hospedagens';
+    async function trocarAdminAba(aba){
+      const reservas=aba==='reservas', calendario=aba==='calendario', anuncios=aba==='anuncios', publicados=aba==='hospedagens', galeria=aba==='galeria', acessos=aba==='acessos';
+      if(acessos && !(await usuarioEhAdminPrincipal())){ alert('Esta área é exclusiva do Administrador Principal.'); return; }
       document.getElementById('adminSecReservas').classList.toggle('active',reservas);
       document.getElementById('adminSecCalendario').classList.toggle('active',calendario);
       document.getElementById('adminSecAnuncios').classList.toggle('active',anuncios);
       document.getElementById('adminSecHospedagens').classList.toggle('active',publicados);
+      document.getElementById('adminSecGaleria').classList.toggle('active',galeria);
+      document.getElementById('adminSecAcessos').classList.toggle('active',acessos);
       document.getElementById('tabAdminReservas').classList.toggle('active',reservas);
       document.getElementById('tabAdminCalendario').classList.toggle('active',calendario);
       document.getElementById('tabAdminAnuncios').classList.toggle('active',anuncios);
       document.getElementById('tabAdminHospedagens').classList.toggle('active',publicados);
+      document.getElementById('tabAdminGaleria').classList.toggle('active',galeria);
+      document.getElementById('tabAdminAcessos').classList.toggle('active',acessos);
       if(anuncios) renderAdminHospedagens();
       if(publicados) renderAdminPublicadas();
+      if(galeria) renderAdminGaleria();
+      if(acessos) renderAdminAcessos();
       if(reservas) preencherSelectHospedagens();
       if(calendario) prepararCalendarioAdmin();
+    }
+
+    // ===== GALERIA PÚBLICA GERENCIADA PELO ADMIN =====
+    let adminGaleriaItens = [];
+
+    function escGaleria(v){
+      return String(v ?? '').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    async function carregarGaleriaPublica(){
+      const grid=document.getElementById('galeriaPublicaGrid');
+      if(!grid || typeof sb==='undefined') return;
+      try{
+        const {data,error}=await sb.from('site_galeria').select('id,titulo,foto_url,ordem').eq('ativo',true).order('ordem',{ascending:true}).order('created_at',{ascending:true});
+        if(error){ console.warn('Galeria dinâmica ainda não disponível:',error.message); return; }
+        if(!data || !data.length) return; // mantém as imagens originais como fallback
+        grid.innerHTML=data.map((item,i)=>`<div class="galeria-item"><div class="galeria-img-wrap"><img src="${escGaleria(item.foto_url)}" alt="${escGaleria(item.titulo||('Foto '+(i+1)))}" loading="lazy"></div><div class="galeria-info">${escGaleria(item.titulo||('SULBAHIAGO - Foto '+(i+1)))}</div></div>`).join('');
+      }catch(e){ console.warn('Erro ao carregar galeria:',e); }
+    }
+
+    function previewFotoGaleriaAdmin(){
+      const input=document.getElementById('adminGaleriaFoto');
+      const box=document.getElementById('adminGaleriaPreview');
+      const file=input?.files?.[0];
+      if(!box) return;
+      if(!file){ box.innerHTML=''; return; }
+      if(file.size>10*1024*1024){ alert('A foto ultrapassa 10 MB. Escolha uma imagem menor.'); input.value=''; box.innerHTML=''; return; }
+      const url=URL.createObjectURL(file);
+      box.innerHTML=`<img src="${url}" alt="Prévia" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;border:1px solid var(--border-color);">`;
+    }
+
+    async function adminSalvarFotoGaleria(){
+      const input=document.getElementById('adminGaleriaFoto');
+      const file=input?.files?.[0];
+      const titulo=document.getElementById('adminGaleriaTitulo')?.value?.trim()||'';
+      const btn=document.getElementById('btnSalvarGaleria');
+      if(!file){ alert('Escolha uma foto para adicionar à Galeria.'); return; }
+      if(file.size>10*1024*1024){ alert('A foto ultrapassa 10 MB.'); return; }
+      btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+      try{
+        const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const path=`galeria-site/${Date.now()}-${Math.random().toString(36).slice(2,9)}.${ext}`;
+        const {error:upErr}=await sb.storage.from('hospedagens').upload(path,file,{cacheControl:'3600',upsert:false});
+        if(upErr) throw upErr;
+        const {data:pub}=sb.storage.from('hospedagens').getPublicUrl(path);
+        const fotoUrl=pub?.publicUrl;
+        if(!fotoUrl) throw new Error('Não foi possível obter a URL pública da foto.');
+        const proximaOrdem=(adminGaleriaItens.reduce((m,x)=>Math.max(m,Number(x.ordem)||0),0))+1;
+        const {error:dbErr}=await sb.from('site_galeria').insert({titulo:titulo||'SULBAHIAGO',foto_url:fotoUrl,storage_path:path,ordem:proximaOrdem,ativo:true});
+        if(dbErr){ await sb.storage.from('hospedagens').remove([path]); throw dbErr; }
+        input.value='';
+        document.getElementById('adminGaleriaTitulo').value='';
+        document.getElementById('adminGaleriaPreview').innerHTML='';
+        await renderAdminGaleria();
+        await carregarGaleriaPublica();
+        alert('Foto adicionada à Galeria do site.');
+      }catch(e){
+        console.error(e);
+        alert('Não foi possível salvar a foto. '+(e?.message||''));
+      }finally{
+        btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-cloud-arrow-up"></i> Adicionar à Galeria';
+      }
+    }
+
+    async function renderAdminGaleria(){
+      const lista=document.getElementById('adminListaGaleria');
+      const qtd=document.getElementById('adminQtdGaleria');
+      if(!lista) return;
+      lista.innerHTML='<div class="mini-note" style="padding:12px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando fotos...</div>';
+      const {data,error}=await sb.from('site_galeria').select('*').order('ordem',{ascending:true}).order('created_at',{ascending:true});
+      if(error){
+        lista.innerHTML=`<div class="empty-state" style="padding:18px;"><strong>Galeria ainda não configurada no Supabase.</strong><br><span class="mini-note">Rode o SQL fornecido junto com este index uma única vez.</span></div>`;
+        if(qtd) qtd.textContent='0';
+        return;
+      }
+      adminGaleriaItens=data||[];
+      if(qtd) qtd.textContent=String(adminGaleriaItens.length);
+      if(!adminGaleriaItens.length){
+        lista.innerHTML='<div class="empty-state" style="padding:18px;">Nenhuma foto cadastrada. Adicione a primeira foto ao lado.</div>';
+        return;
+      }
+      lista.innerHTML=adminGaleriaItens.map((item,i)=>`<div class="admin-list-item" style="display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;">
+        <img src="${escGaleria(item.foto_url)}" alt="${escGaleria(item.titulo||'Foto')}" style="width:92px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--border-color);">
+        <div style="min-width:0;">
+          <strong style="display:block;color:var(--primary-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escGaleria(item.titulo||'Sem legenda')}</strong>
+          <span class="mini-note">Posição ${i+1}</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+            <button class="btn-secondary" style="padding:7px 9px;" onclick="adminMoverFotoGaleria('${item.id}',-1)" ${i===0?'disabled':''} title="Mover para cima"><i class="fa-solid fa-arrow-up"></i></button>
+            <button class="btn-secondary" style="padding:7px 9px;" onclick="adminMoverFotoGaleria('${item.id}',1)" ${i===adminGaleriaItens.length-1?'disabled':''} title="Mover para baixo"><i class="fa-solid fa-arrow-down"></i></button>
+            <button class="btn-danger-lite" style="padding:7px 9px;" onclick="adminExcluirFotoGaleria('${item.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
+          </div>
+        </div>
+      </div>`).join('');
+    }
+
+    async function adminMoverFotoGaleria(id,direcao){
+      const idx=adminGaleriaItens.findIndex(x=>String(x.id)===String(id));
+      const outro=idx+Number(direcao);
+      if(idx<0 || outro<0 || outro>=adminGaleriaItens.length) return;
+      const a=adminGaleriaItens[idx], b=adminGaleriaItens[outro];
+      const ordemA=Number(a.ordem)||idx+1, ordemB=Number(b.ordem)||outro+1;
+      const [ra,rb]=await Promise.all([
+        sb.from('site_galeria').update({ordem:ordemB,updated_at:new Date().toISOString()}).eq('id',a.id),
+        sb.from('site_galeria').update({ordem:ordemA,updated_at:new Date().toISOString()}).eq('id',b.id)
+      ]);
+      if(ra.error||rb.error){ alert('Não foi possível alterar a ordem das fotos.'); return; }
+      await renderAdminGaleria(); await carregarGaleriaPublica();
+    }
+
+    async function adminExcluirFotoGaleria(id){
+      const item=adminGaleriaItens.find(x=>String(x.id)===String(id));
+      if(!item) return;
+      if(!confirm('Excluir esta foto da Galeria do site?')) return;
+      const {error}=await sb.from('site_galeria').delete().eq('id',id);
+      if(error){ alert('Não foi possível excluir: '+error.message); return; }
+      if(item.storage_path){
+        const {error:storageErr}=await sb.storage.from('hospedagens').remove([item.storage_path]);
+        if(storageErr) console.warn('Foto removida do banco, mas o arquivo não pôde ser removido do Storage:',storageErr.message);
+      }
+      await renderAdminGaleria(); await carregarGaleriaPublica();
     }
 
     let adminFotosExistentes = [];
@@ -2844,10 +3194,9 @@
           }
         }
 
-        if(!hosp.anfitriao_id){
-          const emailInfo=hosp.proprietario_email ? ` E-mail cadastrado no anúncio: ${hosp.proprietario_email}.` : ' O anúncio está sem e-mail do anfitrião.';
-          throw new Error('Não encontrei uma conta de anfitrião correspondente ao e-mail deste imóvel.'+emailInfo+' Confira em Authentication > Users se esse mesmo e-mail possui uma conta.');
-        }
+        // O proprietário não precisa ter conta para o cliente solicitar a reserva.
+        // Se houver conta vinculada, o chat privado com o anfitrião continua disponível;
+        // caso contrário, a administração confirma a disponibilidade pelo contato cadastrado no anúncio.
         const {data:disponivel,error:dispErro}=await sb.rpc('sulbahiago_periodo_disponivel',{p_imovel:nomeImovelGlobal,p_checkin:checkin,p_checkout:checkout});
         if(dispErro) throw dispErro;
         if(disponivel!==true){ alert('Este período já está ocupado ou possui uma solicitação em andamento. Escolha outras datas.'); return; }
@@ -2860,16 +3209,17 @@
         const total=diaria*noites;
         const {data:reserva,error}=await sb.from('sulbahiago_reservas').insert({
           hospedagem_id:String(hosp.id), imovel:nomeImovelGlobal, local:hosp.local||hosp.localizacao||item.local||'Prado - BA',
-          hospede_id:u.id, anfitriao_id:hosp.anfitriao_id, cliente_nome:nome, cliente_contato:contato,
-          checkin, checkout, hospedes, noites, diaria, total, status:'solicitada'
+          hospede_id:u.id, anfitriao_id:hosp.anfitriao_id||null, cliente_nome:nome, cliente_contato:contato,
+          checkin, checkout, hospedes, noites, diaria, total, status:'solicitada',
+          politica_cancelamento_aceita_em:new Date().toISOString()
         }).select('*').single();
         if(error) throw error;
         reservaAtivaId=reserva.id;
-        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:'Olá! Enviei esta solicitação de reserva. Fico no aguardo da confirmação.'});
+        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:'Olá! Enviei esta solicitação de reserva. Estou aguardando a confirmação de disponibilidade do proprietário.'});
         document.getElementById('etapaReservaForm').style.display='none';
         document.getElementById('etapaReservaSucesso').style.display='block';
         const success=document.querySelector('#etapaReservaSucesso p');
-        if(success) success.textContent=`Pedido ${reserva.codigo} enviado ao anfitrião. A conversa ficará disponível dentro desta reserva.`;
+        if(success) success.textContent=`Pedido ${reserva.codigo} recebido. A administração vai confirmar a disponibilidade com o proprietário antes da aprovação da reserva.`;
       }catch(e){ alert('Não foi possível enviar a reserva: '+(e?.message||e)); }
       finally{ btn.disabled=false; btn.innerHTML=antigo; }
     };
@@ -2956,8 +3306,8 @@
         const [lab,cls]=statusLabel(r);
         const codigo=r.codigo||String(r.id).slice(0,8).toUpperCase();
         const acoes=anfitriao
-          ? `${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>`
-          : `${(r.status==='aprovada'||r.status==='aguardando_pagamento')&&!r.pagamento_confirmado?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button>${['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase()) && r.checkout && new Date(r.checkout+'T23:59:59') < new Date() ? `<button class="btn-secondary" onclick="abrirAvaliacaoReal('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar hospedagem</button>`:''}`;
+          ? `${r.status==='solicitada'?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>`
+          : `${(r.status==='aprovada'||r.status==='aguardando_pagamento')&&!r.pagamento_confirmado?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${['aprovada','aguardando_pagamento','confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase())?`<button class="btn-secondary" onclick="gerarComprovanteReservaPDF('${r.id}')"><i class="fa-solid fa-file-pdf"></i> Baixar comprovante PDF</button>`:''}${['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase()) && r.checkout && new Date(r.checkout+'T23:59:59') < new Date() ? `<button class="btn-secondary" onclick="abrirAvaliacaoReal('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar hospedagem</button>`:''}`;
         return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start"><div><h3>${adminEsc(r.imovel)}</h3><div class="location">${adminEsc(r.local||'')}</div>${anfitriao?`<div class="mini-note">Hóspede: ${adminEsc(r.cliente_nome)}</div>`:''}</div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${adminEsc(codigo)}</b></div><div class="action-row">${acoes}</div></div>`;
       }).join('');
     };
@@ -2971,7 +3321,7 @@
       if(r.anfitriao_id!==u.id){alert('Somente o anfitrião desta reserva pode aprová-la.');return;}
       const {error}=await sb.from('sulbahiago_reservas').update({status:'aprovada',updated_at:new Date().toISOString()}).eq('id',id);
       if(error){alert('Não foi possível aprovar: '+error.message);return;}
-      await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:id,remetente_id:u.id,tipo:'texto',mensagem:'Sua solicitação foi aprovada. Vamos combinar por aqui a forma de pagamento, entrada e prazo.'});
+      await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:id,remetente_id:u.id,tipo:'texto',mensagem:'Sua solicitação foi aprovada. O seu comprovante de reserva em PDF já está disponível nesta reserva. Vamos combinar por aqui a forma de pagamento, entrada e prazo.'});
       await renderMinhasReservas();
       alert('Reserva aprovada. A negociação continua dentro da conversa privada.');
     };
@@ -3039,14 +3389,31 @@
         ? `Hóspede: ${adminEsc(r.cliente_nome||'Hóspede')}`
         : 'Conversa privada com o anfitrião deste imóvel';
       resumo.innerHTML=`<strong>${adminEsc(r.imovel)}</strong><div class="mini-note">${contraparte}</div><div class="mini-note">${dataBR(r.checkin)} a ${dataBR(r.checkout)} · ${r.hospedes} hóspede(s) · Código ${adminEsc(r.codigo||r.id)}</div><div style="margin-top:5px;font-weight:700;color:var(--color-icons-prices)">${brl(r.total)}</div>`;
-      const aprovado=r.status==='aprovada'||r.status==='aguardando_pagamento'||r.status==='confirmada';
+      const statusAtual=String(r.status||'').toLowerCase();
+      const aprovado=['aprovada','aprovado','aguardando_pagamento','confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(statusAtual);
       document.getElementById('chatPagamentoAviso').style.display=aprovado?'block':'none';
       document.getElementById('comprovanteArea').style.display=(chatPerfilAtual==='hospede' && aprovado && !r.pagamento_confirmado)?'block':'none';
       document.getElementById('hostPaymentActions').style.display=(chatPerfilAtual==='anfitriao' && aprovado && !r.pagamento_confirmado)?'flex':'none';
+      const pdfCard=document.getElementById('reservaPdfCard');
+      if(pdfCard){
+        const liberadoPdf=['aprovada','aprovado','aguardando_pagamento','confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(String(r.status||'').toLowerCase());
+        pdfCard.style.display=liberadoPdf?'block':'none';
+        const tit=document.getElementById('reservaPdfTitulo');
+        const txt=document.getElementById('reservaPdfTexto');
+        if(liberadoPdf && tit && txt){
+          const confirmado=Boolean(r.pagamento_confirmado)||['confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(String(r.status||'').toLowerCase());
+          tit.textContent=confirmado?'Comprovante de reserva confirmada':'Comprovante de reserva aprovada';
+          txt.textContent=confirmado?'Pagamento conferido. Baixe a versão atualizada do comprovante.':'O anfitrião confirmou a disponibilidade. Seu comprovante SULBAHIAGO já está disponível.';
+        }
+      }
       const {data:msgs,error}=await sb.from('sulbahiago_mensagens_reserva').select('*').eq('reserva_id',r.id).order('created_at',{ascending:true});
       if(error){box.innerHTML='<div class="mini-note">'+adminEsc(error.message)+'</div>';return;}
       if(!msgs?.length){box.innerHTML='<div class="mini-note" style="text-align:center;padding:18px">Nenhuma mensagem ainda. Esta conversa pertence somente a esta reserva.</div>';return;}
-      box.innerHTML=msgs.map(m=>{
+      const statusPdf=String(r.status||'').toLowerCase();
+      const podePdf=['aprovada','aprovado','aguardando_pagamento','confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(statusPdf);
+      const pdfConfirmado=Boolean(r.pagamento_confirmado)||['confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(statusPdf);
+      const pdfBubble=podePdf?`<div class="chat-msg host" style="max-width:94%;border-color:#b9ddbf;background:#f1fbf3"><b><i class="fa-solid fa-file-pdf"></i> SULBAHIAGO</b><br><div style="margin-top:5px;font-weight:800;color:var(--primary-dark)">${pdfConfirmado?'Comprovante de reserva confirmada':'Comprovante de reserva aprovada'}</div><div class="mini-note" style="margin:5px 0 9px">${pdfConfirmado?'Pagamento conferido pelo anfitrião.':'Disponibilidade confirmada pelo anfitrião.'} O comprovante desta reserva está disponível em PDF.</div><button class="btn-secondary" onclick="gerarComprovanteReservaPDF()"><i class="fa-solid fa-download"></i> Baixar PDF da reserva</button></div>`:'';
+      box.innerHTML=pdfBubble+msgs.map(m=>{
         const meu=m.remetente_id===u.id;
         const autor=meu?'Você':(chatPerfilAtual==='hospede'?'Anfitrião':'Hóspede');
         const texto=m.mensagem?`<div>${adminEsc(m.mensagem)}</div>`:'';
@@ -3091,6 +3458,188 @@
       const {data,error}=await sb.storage.from('comprovantes-reserva').createSignedUrl(path,120);
       if(error){alert('Não foi possível abrir o comprovante: '+error.message);return;}
       window.open(data.signedUrl,'_blank','noopener');
+    };
+
+    function pdfTextoSeguro(v){
+      return String(v??'').replace(/[\u2013\u2014]/g,'-').trim();
+    }
+
+    function calcularNoitesReserva(checkin,checkout){
+      try{
+        const a=new Date(String(checkin)+'T12:00:00');
+        const b=new Date(String(checkout)+'T12:00:00');
+        return Math.max(1,Math.round((b-a)/86400000));
+      }catch(e){return 1;}
+    }
+
+    function pdfSemAcento(v){
+      return String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u2013\u2014]/g,'-').replace(/[^\x20-\x7E]/g,'');
+    }
+
+    function pdfEscape(v){
+      return pdfSemAcento(v).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+    }
+
+    function pdfNumero(v){
+      return Number(v||0).toFixed(2).replace(/0+$/,'').replace(/\.$/,'') || '0';
+    }
+
+    function pdfTextoLinha(texto,max=58){
+      const palavras=pdfSemAcento(texto).split(/\s+/).filter(Boolean);
+      const linhas=[]; let atual='';
+      for(const p of palavras){
+        const teste=atual?atual+' '+p:p;
+        if(teste.length>max && atual){linhas.push(atual); atual=p;} else atual=teste;
+      }
+      if(atual) linhas.push(atual);
+      return linhas.length?linhas:[''];
+    }
+
+    function baixarPdfProfissional(nome,d){
+      // PDF vetorial nativo: funciona offline e nao depende de bibliotecas externas.
+      const c=[];
+      const esc=pdfEscape;
+      const txt=(x,y,text,size=10,bold=false,cor='0.13 0.16 0.14')=>{
+        c.push('BT'); c.push(`/${bold?'F2':'F1'} ${size} Tf`); c.push(`${cor} rg`);
+        c.push(`${x} ${y} Td`); c.push(`(${esc(text)}) Tj`); c.push('ET');
+      };
+      const rect=(x,y,w,h,fill,stroke=null,lw=1)=>{
+        c.push('q'); if(fill)c.push(`${fill} rg`); if(stroke)c.push(`${stroke} RG`); c.push(`${lw} w`);
+        c.push(`${x} ${y} ${w} ${h} re`); c.push(fill&&stroke?'B':fill?'f':'S'); c.push('Q');
+      };
+      const line=(x1,y1,x2,y2,cor='0.86 0.88 0.86',lw=.7)=>{
+        c.push('q'); c.push(`${cor} RG`); c.push(`${lw} w`); c.push(`${x1} ${y1} m ${x2} ${y2} l S`); c.push('Q');
+      };
+
+      // pagina branca + cabecalho institucional
+      rect(0,0,595,842,'1 1 1');
+      rect(0,742,595,100,'0.07 0.31 0.12');
+      rect(0,737,595,5,'0.90 0.32 0.00');
+      txt(44,796,'SULBAHIAGO',24,true,'1 1 1');
+      txt(45,776,'HOSPEDAGENS NO SUL DA BAHIA',8,false,'0.87 0.94 0.88');
+      txt(424,799,'COMPROVANTE',9,true,'1 1 1');
+      txt(424,784,'DE RESERVA',9,true,'1 1 1');
+
+      // selo de status
+      const confirmado=d.confirmada;
+      rect(44,687,507,38, confirmado?'0.89 0.97 0.91':'1.00 0.95 0.87', confirmado?'0.16 0.55 0.25':'0.90 0.50 0.05',1);
+      txt(58,702,confirmado?'RESERVA CONFIRMADA':'RESERVA APROVADA',14,true,confirmado?'0.06 0.38 0.13':'0.68 0.32 0.00');
+      txt(405,702,'CODIGO  '+d.codigo,9,true,'0.20 0.23 0.21');
+
+      // titulo da hospedagem
+      txt(44,654,d.imovel,18,true,'0.07 0.31 0.12');
+      txt(44,636,d.local,9,false,'0.38 0.42 0.39');
+      line(44,622,551,622);
+
+      // dados principais em duas colunas
+      txt(44,600,'HOSPEDE',7,true,'0.42 0.46 0.43');
+      txt(44,584,d.hospede,11,true);
+      txt(317,600,'HOSPEDES',7,true,'0.42 0.46 0.43');
+      txt(317,584,String(d.hospedes),11,true);
+
+      txt(44,548,'CHECK-IN',7,true,'0.42 0.46 0.43');
+      txt(44,531,d.checkin,12,true);
+      txt(202,548,'CHECK-OUT',7,true,'0.42 0.46 0.43');
+      txt(202,531,d.checkout,12,true);
+      txt(382,548,'NOITES',7,true,'0.42 0.46 0.43');
+      txt(382,531,String(d.noites),12,true);
+      line(44,510,551,510);
+
+      // valores
+      rect(44,433,507,60,'0.96 0.97 0.96','0.84 0.87 0.84',1);
+      txt(58,472,'VALOR DA DIARIA',7,true,'0.42 0.46 0.43');
+      txt(58,450,d.diaria,12,true);
+      txt(292,472,'TOTAL DA RESERVA',7,true,'0.42 0.46 0.43');
+      txt(292,448,d.total,20,true,'0.07 0.31 0.12');
+
+      // situacao do pagamento
+      rect(44,306,507,108,confirmado?'0.92 0.98 0.93':'1.00 0.97 0.91',confirmado?'0.16 0.55 0.25':'0.90 0.50 0.05',1);
+      txt(58,391,'SITUACAO DO PAGAMENTO',8,true,'0.20 0.23 0.21');
+      txt(58,369,confirmado?'PAGO - PAGAMENTO CONFIRMADO':'PAGAMENTO PENDENTE',13,true,confirmado?'0.06 0.38 0.13':'0.68 0.32 0.00');
+      txt(58,347,'VALOR CONFIRMADO COMO PAGO',7,true,'0.42 0.46 0.43');
+      txt(58,330,confirmado?d.total:'R$ 0,00',11,true);
+      txt(300,347,'SALDO PENDENTE',7,true,'0.42 0.46 0.43');
+      txt(300,330,confirmado?'R$ 0,00':d.total,11,true,confirmado?'0.06 0.38 0.13':'0.68 0.32 0.00');
+      txt(58,313,confirmado?'Recebimento conferido pelo anfitriao.':'Ainda nao ha pagamento confirmado pelo anfitriao no sistema.',7.5,false,'0.35 0.39 0.36');
+
+      // instrucoes / autenticidade
+      txt(44,273,'IMPORTANTE',8,true,'0.07 0.31 0.12');
+      let iy=255;
+      const instrucoes=[
+        'Apresente o codigo da reserva quando solicitado no check-in.',
+        'Confira datas, quantidade de hospedes e dados da hospedagem antes da viagem.',
+        'Este comprovante identifica a reserva registrada na plataforma SULBAHIAGO.'
+      ];
+      for(const inst of instrucoes){
+        const ls=pdfTextoLinha(inst,82);
+        txt(50,iy,'-',9,true); txt(61,iy,ls[0],9,false); iy-=15;
+        for(let j=1;j<ls.length;j++){txt(61,iy,ls[j],9,false); iy-=15;}
+        iy-=3;
+      }
+
+      // rodape
+      line(44,93,551,93,'0.78 0.82 0.79',1);
+      txt(44,73,'SULBAHIAGO  |  Prado - Bahia',8,true,'0.07 0.31 0.12');
+      txt(44,57,'Documento gerado em '+d.geradoEm,7,false,'0.43 0.46 0.44');
+      txt(410,73,'RESERVA '+d.codigo,7,true,'0.30 0.34 0.31');
+      txt(410,57,'Comprovante digital',7,false,'0.43 0.46 0.44');
+
+      const stream=c.join('\n');
+      const objs=[];
+      objs[1]='<< /Type /Catalog /Pages 2 0 R >>';
+      objs[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
+      objs[3]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>';
+      objs[4]=`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+      objs[5]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+      objs[6]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>';
+      let out='%PDF-1.4\n'; const offsets=[0];
+      for(let i=1;i<=6;i++){offsets[i]=out.length; out+=`${i} 0 obj\n${objs[i]}\nendobj\n`;}
+      const xref=out.length;
+      out+='xref\n0 7\n0000000000 65535 f \n';
+      for(let i=1;i<=6;i++) out+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+      out+=`trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      const blob=new Blob([out],{type:'application/pdf'});
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download=nome; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }
+
+
+    gerarComprovanteReservaPDF = async function(referencia=null){
+      try{
+        let r=reservaChatAtual;
+        if(referencia){ r=await carregarReservaChat(referencia); }
+        if(!r){ alert('Abra uma reserva aprovada para gerar o comprovante.'); return; }
+        const status=String(r.status||'').toLowerCase();
+        if(!['aprovada','aprovado','aguardando_pagamento','confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(status)){
+          alert('O PDF fica disponível depois que a reserva é aprovada.'); return;
+        }
+        const codigo=pdfTextoSeguro(r.codigo||String(r.id||'').slice(0,8).toUpperCase());
+        const confirmada=Boolean(r.pagamento_confirmado)||['confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(status);
+        const statusTitulo=confirmada?'RESERVA CONFIRMADA':'RESERVA APROVADA';
+        const noites=calcularNoitesReserva(r.checkin,r.checkout);
+        const total=Number(r.total)||0;
+        const diaria=noites?total/noites:total;
+        const hoje=new Date().toLocaleString('pt-BR');
+        const nome=`SULBAHIAGO_${codigo}_${confirmada?'CONFIRMADA':'APROVADA'}.pdf`.replace(/[^A-Za-z0-9_.-]/g,'_');
+        baixarPdfProfissional(nome,{
+          codigo,
+          confirmada,
+          hospede: pdfSemAcento(r.cliente_nome||'Hospede'),
+          imovel: pdfSemAcento(r.imovel||'Hospedagem'),
+          local: pdfSemAcento(r.local||'Prado - Bahia'),
+          checkin:dataBR(r.checkin),
+          checkout:dataBR(r.checkout),
+          hospedes:String(r.hospedes||1),
+          noites:String(noites),
+          diaria:brl(diaria),
+          total:brl(total),
+          geradoEm:pdfSemAcento(hoje)
+        });
+      }catch(e){
+        console.error('Erro ao gerar PDF da reserva:',e);
+        alert('Nao foi possivel gerar o PDF: '+(e?.message||e));
+      }
     };
 
     confirmarRecebimentoAnfitriao = async function(){
@@ -3652,5 +4201,294 @@ async function enviarAnuncioPublico(){
 }
 </script>
 
+
+<script>
+// ===== V26: POLITICA DE CANCELAMENTO + REEMBOLSO PIX =====
+let cancelamentoReservaAtual=null;
+
+function enviarPedidoReservaComPolitica(){
+  const aceite=document.getElementById('aceitePoliticaCancelamento');
+  if(!aceite?.checked){
+    alert('Para continuar, leia e marque que está ciente da política de cancelamento.');
+    return;
+  }
+  return enviarPedidoReserva();
+}
+
+function diasAteCheckinCancelamento(checkin){
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const entrada=new Date(String(checkin)+'T00:00:00'); entrada.setHours(0,0,0,0);
+  return Math.ceil((entrada-hoje)/86400000);
+}
+
+function estimarCancelamentoLocal(r){
+  const total=Number(r?.total)||0;
+  const pago=Boolean(r?.pagamento_confirmado)||['confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(String(r?.status||'').toLowerCase());
+  const dias=diasAteCheckinCancelamento(r?.checkin);
+  const percentual=!pago?0:(dias>=7?10:20);
+  const taxa=+(total*percentual/100).toFixed(2);
+  const reembolso=pago?Math.max(0,+(total-taxa).toFixed(2)):0;
+  return {total,pago,dias,percentual,taxa,reembolso};
+}
+
+async function abrirCancelamentoReserva(referencia){
+  try{
+    const r=await carregarReservaChat(referencia);
+    const u=getUser();
+    if(!u?.id||r.hospede_id!==u.id){ alert('Somente o hóspede desta reserva pode solicitar o cancelamento.'); return; }
+    const s=String(r.status||'').toLowerCase();
+    if(['recusada','cancelada','concluida','finalizada'].includes(s)){ alert('Esta reserva não permite uma nova solicitação de cancelamento.'); return; }
+    if(['solicitado','aguardando_reembolso','reembolsado','concluido'].includes(String(r.cancelamento_status||'').toLowerCase())){
+      alert('Já existe um processo de cancelamento registrado nesta reserva.'); return;
+    }
+    cancelamentoReservaAtual=r;
+    const e=estimarCancelamentoLocal(r);
+    const situacao=e.pago
+      ? `<b>Pagamento confirmado:</b> ${brl(e.total)}<br><b>Retenção estimada:</b> ${e.percentual}% (${brl(e.taxa)})<br><b>Reembolso estimado ao hóspede:</b> ${brl(e.reembolso)}`
+      : `<b>Pagamento ainda não confirmado.</b><br>Não há valor financeiro registrado para reembolso. A solicitação será analisada e, se aprovada, a reserva poderá ser cancelada sem retenção financeira pelo sistema.`;
+    document.getElementById('cancelamentoResumo').innerHTML=`<strong>${adminEsc(r.imovel)}</strong><div class="mini-note" style="margin:4px 0 9px">${dataBR(r.checkin)} a ${dataBR(r.checkout)} · Código ${adminEsc(r.codigo||r.id)}</div>${situacao}<div class="mini-note" style="margin-top:9px">Regra informada na reserva: ${e.pago?(e.dias>=7?'7 dias ou mais antes do check-in: retenção estimada de 10%.':'menos de 7 dias antes do check-in: retenção estimada de 20%.'):'sem pagamento confirmado: taxa financeira R$ 0,00.'} Casos previstos em lei ou excepcionais podem exigir análise diferente.</div>`;
+    document.getElementById('cancelamentoMotivo').value='';
+    document.getElementById('cancelamentoConfirmacao').checked=false;
+    document.getElementById('cancelamentoModal').style.display='flex';
+  }catch(e){ alert('Não foi possível abrir o cancelamento: '+(e?.message||e)); }
+}
+
+async function confirmarSolicitacaoCancelamento(){
+  const r=cancelamentoReservaAtual;
+  if(!r)return;
+  const motivo=document.getElementById('cancelamentoMotivo').value.trim();
+  if(!motivo){ alert('Informe o motivo do cancelamento.'); return; }
+  if(!document.getElementById('cancelamentoConfirmacao').checked){ alert('Marque a confirmação para enviar a solicitação.'); return; }
+  try{
+    const {data,error}=await sb.rpc('sulbahiago_solicitar_cancelamento',{p_reserva_id:r.id,p_motivo:motivo});
+    if(error) throw error;
+    fecharModal('cancelamentoModal');
+    cancelamentoReservaAtual=null;
+    await renderMinhasReservas();
+    if(reservaAtivaId===r.id){reservaChatAtual=await carregarReservaChat(r.id);await renderChat();}
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.pagamento_confirmado){
+      alert(`Solicitação enviada. Retenção estimada: ${Number(row.taxa_percentual||0)}%. Reembolso estimado: ${brl(Number(row.reembolso_valor)||0)}.`);
+    }else{
+      alert('Solicitação de cancelamento enviada. Como não existe pagamento confirmado, não há reembolso financeiro registrado.');
+    }
+  }catch(e){ alert('Não foi possível solicitar o cancelamento: '+(e?.message||e)); }
+}
+
+const statusLabelV26=statusLabel;
+statusLabel=function(r){
+  const c=String(r?.cancelamento_status||'').toLowerCase();
+  if(c==='solicitado') return ['Cancelamento solicitado','orange'];
+  if(c==='aguardando_reembolso') return ['Cancelada · reembolso pendente','orange'];
+  if(c==='reembolsado') return ['Cancelada · reembolsada','blue'];
+  if(c==='concluido') return ['Cancelada','orange'];
+  return statusLabelV26(r);
+};
+
+renderMinhasReservas = async function(){
+  const box=document.getElementById('minhasReservasLista'); if(!box)return;
+  const u=getUser();
+  if(!u){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-user-lock"></i><h3>Entre para ver suas reservas</h3></div>'; return; }
+  box.innerHTML='<div class="mini-note" style="padding:20px"><i class="fa-solid fa-spinner fa-spin"></i> Carregando...</div>';
+  const anfitriao=u.papel==='anfitriao';
+  const titulo=document.getElementById('minhasReservasTitulo');
+  const subtitulo=document.getElementById('minhasReservasSubtitulo');
+  if(titulo) titulo.textContent=anfitriao?'Área do anfitrião · Reservas recebidas':'Área do hóspede · Minhas reservas';
+  if(subtitulo) subtitulo.textContent=anfitriao?'Você vê somente reservas dos seus próprios imóveis. Cada conversa é privada por reserva.':'Você vê somente as suas próprias reservas e conversa apenas com o anfitrião daquele imóvel.';
+  const btnCal=document.getElementById('btnCalendarioAnfitriao'); if(btnCal) btnCal.style.display=anfitriao?'inline-flex':'none';
+  let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});
+  q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
+  const {data:arr,error}=await q;
+  if(error){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Não foi possível carregar</h3><p>'+adminEsc(error.message)+'</p></div>'; return; }
+  if(!arr?.length){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><h3>Nenhuma reserva ainda</h3></div>'; return; }
+  box.innerHTML=arr.map(r=>{
+    const [lab,cls]=statusLabel(r); const codigo=r.codigo||String(r.id).slice(0,8).toUpperCase();
+    const cs=String(r.cancelamento_status||'').toLowerCase();
+    const podeCancelar=!anfitriao && !['recusada','cancelada','concluida','finalizada'].includes(String(r.status||'').toLowerCase()) && !['solicitado','aguardando_reembolso','reembolsado','concluido'].includes(cs);
+    const cancelInfo=cs?`<div class="rules-box" style="margin-top:10px"><strong><i class="fa-solid fa-rotate-left"></i> Cancelamento</strong><br>${cs==='solicitado'?'Solicitação enviada e aguardando análise.':cs==='aguardando_reembolso'?`Cancelamento aprovado. Reembolso pendente: <b>${brl(Number(r.cancelamento_reembolso_valor)||0)}</b>.`:cs==='reembolsado'?`Reembolso confirmado: <b>${brl(Number(r.cancelamento_reembolso_valor)||0)}</b>.`:'Cancelamento concluído.'}${Number(r.cancelamento_taxa_valor)>0?`<div class="mini-note">Retenção registrada: ${Number(r.cancelamento_taxa_percentual)||0}% (${brl(Number(r.cancelamento_taxa_valor)||0)})</div>`:''}</div>`:'';
+    const acoes=anfitriao
+      ? `${r.status==='solicitada'&&!cs?`<button class="btn-main-action" style="width:auto" onclick="aprovarReserva('${r.id}')">Aprovar</button><button class="btn-danger-lite" onclick="recusarReserva('${r.id}')">Recusar</button>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','anfitriao')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${cs==='aguardando_reembolso'?`<button class="btn-main-action" style="width:auto" onclick="confirmarReembolsoPix('${r.id}')"><i class="fa-solid fa-money-bill-transfer"></i> Confirmar reembolso PIX</button>`:''}`
+      : `<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${['aprovada','aguardando_pagamento','confirmada','concluida','finalizada','cancelada'].includes(String(r.status||'').toLowerCase())?`<button class="btn-secondary" onclick="gerarComprovanteReservaPDF('${r.id}')"><i class="fa-solid fa-file-pdf"></i> Baixar comprovante PDF</button>`:''}${podeCancelar?`<button class="btn-danger-lite" onclick="abrirCancelamentoReserva('${r.id}')"><i class="fa-solid fa-rotate-left"></i> Solicitar cancelamento</button>`:''}`;
+    return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start"><div><h3>${adminEsc(r.imovel)}</h3><div class="location">${adminEsc(r.local||'')}</div>${anfitriao?`<div class="mini-note">Hóspede: ${adminEsc(r.cliente_nome)}</div>`:''}</div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${adminEsc(codigo)}</b></div>${cancelInfo}<div class="action-row">${acoes}</div></div>`;
+  }).join('');
+};
+
+async function confirmarReembolsoPix(referencia){
+  try{
+    const r=await carregarReservaChat(referencia); const u=getUser();
+    if(!u?.id || (r.anfitriao_id!==u.id && u.papel!=='admin')){ alert('Somente o anfitrião ou a administração pode confirmar o reembolso.'); return; }
+    if(String(r.cancelamento_status||'').toLowerCase()!=='aguardando_reembolso'){ alert('Esta reserva não está aguardando reembolso.'); return; }
+    if(!confirm(`Confirma que devolveu ${brl(Number(r.cancelamento_reembolso_valor)||0)} ao hóspede por PIX ou outra forma combinada? Envie também o comprovante na conversa.`)) return;
+    const {error}=await sb.rpc('sulbahiago_confirmar_reembolso',{p_reserva_id:r.id});
+    if(error) throw error;
+    await renderMinhasReservas();
+    if(reservaAtivaId===r.id){reservaChatAtual=await carregarReservaChat(r.id);await renderChat();}
+    alert('Reembolso marcado como confirmado e registrado na reserva.');
+  }catch(e){ alert('Não foi possível confirmar o reembolso: '+(e?.message||e)); }
+}
+
+renderAdminReservas = async function(){
+  const box=document.getElementById('adminListaReservas'); const qtd=document.getElementById('adminQtdReservas'); if(!box||!qtd)return;
+  box.innerHTML='<div class="mini-note" style="padding:14px;"><i class="fa-solid fa-spinner fa-spin"></i> Carregando reservas reais...</div>';
+  const [{data:arr,error},{data:hospedagens,error:hospErro}] = await Promise.all([
+    sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}),
+    sb.from('hospedagens').select('id,nome,proprietario_nome,proprietario_contato,proprietario_email,local,localizacao')
+  ]);
+  if(error){box.innerHTML='<div class="mini-note" style="padding:14px;color:#b42318;">Erro ao carregar: '+adminEsc(error.message)+'</div>';qtd.textContent='—';return;}
+  if(hospErro) console.warn(hospErro.message);
+  const mapaHosp=new Map((hospedagens||[]).map(h=>[String(h.id),h])); qtd.textContent=(arr||[]).length;
+  if(!arr?.length){box.innerHTML='<div class="empty-state" style="padding:24px 10px;"><i class="fa-solid fa-calendar-xmark"></i><p>Nenhuma reserva real cadastrada.</p></div>';return;}
+  box.innerHTML=arr.map(r=>{
+    const codigo=adminEsc(r.codigo||String(r.id).slice(0,8).toUpperCase()); const h=mapaHosp.get(String(r.hospedagem_id||''))||{};
+    const propNome=h.proprietario_nome||'Proprietário', propContato=h.proprietario_contato||'';
+    const status=String(r.status||'solicitada').toLowerCase(), cs=String(r.cancelamento_status||'').toLowerCase();
+    const confirmado=['confirmada','concluida','finalizada'].includes(status)||r.pagamento_confirmado;
+    const statusTexto=cs==='solicitado'?'Cancelamento solicitado':cs==='aguardando_reembolso'?'Cancelada · reembolso pendente':cs==='reembolsado'?'Cancelada · reembolsada':confirmado?'Confirmada':['aprovada','aguardando_pagamento'].includes(status)?'Proprietário confirmou':['recusada','cancelada'].includes(status)?'Não aprovada':'Aguardando proprietário';
+    const contatoHtml=propContato?`<div class="mini-note" style="margin-top:5px"><i class="fa-brands fa-whatsapp"></i> ${adminEsc(propNome)} · ${adminEsc(propContato)}</div>`:`<div class="mini-note" style="margin-top:5px;color:#b42318"><i class="fa-solid fa-triangle-exclamation"></i> Contato do proprietário não cadastrado.</div>`;
+    let acoes=`<button class="btn-secondary" onclick="adminFalarProprietario('${r.id}')"><i class="fa-brands fa-whatsapp"></i> Falar com proprietário</button>`;
+    if(status==='solicitada'&&!cs) acoes+=`<button class="btn-main-action" style="width:auto" onclick="adminConfirmarProprietario('${r.id}')"><i class="fa-solid fa-check"></i> Proprietário confirmou</button><button class="btn-danger-lite" onclick="adminRecusarProprietario('${r.id}')"><i class="fa-solid fa-xmark"></i> Recusar</button>`;
+    if(cs==='solicitado') acoes+=`<button class="btn-danger-lite" onclick="adminProcessarCancelamento('${r.id}')"><i class="fa-solid fa-rotate-left"></i> Aprovar cancelamento</button>`;
+    if(cs==='aguardando_reembolso') acoes+=`<button class="btn-main-action" style="width:auto" onclick="confirmarReembolsoPix('${r.id}')"><i class="fa-solid fa-money-bill-transfer"></i> Confirmar reembolso</button>`;
+    const cancelInfo=cs?`<div class="rules-box" style="margin-top:9px"><strong>Cancelamento</strong><br>Status: ${adminEsc(cs)}${r.cancelamento_motivo?`<br>Motivo: ${adminEsc(r.cancelamento_motivo)}`:''}<br>Retenção: ${Number(r.cancelamento_taxa_percentual)||0}% (${brl(Number(r.cancelamento_taxa_valor)||0)})<br>Reembolso previsto: <b>${brl(Number(r.cancelamento_reembolso_valor)||0)}</b></div>`:'';
+    return `<div class="admin-res-item"><div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div><strong>${adminEsc(r.imovel)}</strong><div class="mini-note">Código ${codigo}</div></div><span class="status-badge ${confirmado?'blue':'orange'}">${adminEsc(statusTexto)}</span></div><div style="margin-top:6px">${adminEsc(r.cliente_nome||'Hóspede')} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)} · ${Number(r.hospedes)||1} hóspede(s)</div><div style="margin-top:4px;color:var(--color-icons-prices);font-weight:700">${brl(Number(r.total)||0)}</div>${contatoHtml}${cancelInfo}<div class="action-row">${acoes}</div></div>`;
+  }).join('');
+};
+
+async function adminProcessarCancelamento(id){
+  if(!confirm('Aprovar esta solicitação de cancelamento? Se houver pagamento confirmado, o sistema registrará o valor de reembolso a ser devolvido pelo anfitrião.')) return;
+  try{
+    const {data,error}=await sb.rpc('sulbahiago_processar_cancelamento',{p_reserva_id:id});
+    if(error) throw error;
+    await renderAdminReservas(); await renderCalendarioAdmin();
+    const row=Array.isArray(data)?data[0]:data;
+    if(row?.aguardando_reembolso){alert(`Cancelamento aprovado. O anfitrião deve devolver ${brl(Number(row.reembolso_valor)||0)} ao hóspede e confirmar o reembolso no sistema.`);}else{alert('Cancelamento concluído. Não havia pagamento confirmado para reembolso.');}
+  }catch(e){alert('Não foi possível processar o cancelamento: '+(e?.message||e));}
+}
+
+const renderChatV26Base=renderChat;
+renderChat = async function(){
+  await renderChatV26Base();
+  const r=reservaChatAtual; const u=getUser(); if(!r||!u)return;
+  const resumo=document.getElementById('chatReservaResumo'); if(!resumo)return;
+  const cs=String(r.cancelamento_status||'').toLowerCase();
+  let html='';
+  if(cs==='solicitado') html=`<div class="rules-box" style="margin-top:10px"><strong><i class="fa-solid fa-rotate-left"></i> Cancelamento solicitado</strong><br>A solicitação está aguardando análise. A reserva continua bloqueando o período até a decisão.</div>`;
+  if(cs==='aguardando_reembolso') html=`<div class="rules-box" style="margin-top:10px"><strong><i class="fa-solid fa-money-bill-transfer"></i> Reembolso pendente</strong><br>Retenção registrada: ${Number(r.cancelamento_taxa_percentual)||0}% (${brl(Number(r.cancelamento_taxa_valor)||0)}).<br>Valor a devolver ao hóspede: <b>${brl(Number(r.cancelamento_reembolso_valor)||0)}</b>.<br><span class="mini-note">O anfitrião deve fazer o PIX diretamente ao hóspede, enviar o comprovante nesta conversa e depois confirmar o reembolso.</span></div>`;
+  if(cs==='reembolsado') html=`<div class="rules-box" style="margin-top:10px"><strong><i class="fa-solid fa-circle-check"></i> Reembolso confirmado</strong><br>Valor devolvido registrado: <b>${brl(Number(r.cancelamento_reembolso_valor)||0)}</b>.</div>`;
+  if(html) resumo.insertAdjacentHTML('beforeend',html);
+}
+
+// PDF: libera também reserva cancelada e inclui a situação do cancelamento no campo de observações.
+const gerarComprovanteReservaPDFV26Base=gerarComprovanteReservaPDF;
+gerarComprovanteReservaPDF = async function(referencia=null){
+  let r=reservaChatAtual;
+  try{ if(referencia) r=await carregarReservaChat(referencia); }catch(e){}
+  if(r && String(r.status||'').toLowerCase()==='cancelada'){
+    const codigo=pdfTextoSeguro(r.codigo||String(r.id||'').slice(0,8).toUpperCase());
+    const noites=calcularNoitesReserva(r.checkin,r.checkout), total=Number(r.total)||0, diaria=noites?total/noites:total;
+    const cancelInfo=String(r.cancelamento_status||'').toLowerCase()==='reembolsado'?'CANCELADA - REEMBOLSO CONFIRMADO':'RESERVA CANCELADA';
+    const nome=`SULBAHIAGO_${codigo}_CANCELADA.pdf`.replace(/[^A-Za-z0-9_.-]/g,'_');
+    baixarPdfProfissional(nome,{codigo,confirmada:false,hospede:pdfSemAcento(r.cliente_nome||'Hospede'),imovel:pdfSemAcento(r.imovel||'Hospedagem'),local:pdfSemAcento(r.local||'Prado - Bahia'),checkin:dataBR(r.checkin),checkout:dataBR(r.checkout),hospedes:String(r.hospedes||1),noites:String(noites),diaria:brl(diaria),total:brl(total),geradoEm:pdfSemAcento(new Date().toLocaleString('pt-BR'))});
+    alert(`${cancelInfo}. Retenção: ${Number(r.cancelamento_taxa_percentual)||0}% (${brl(Number(r.cancelamento_taxa_valor)||0)}). Reembolso registrado: ${brl(Number(r.cancelamento_reembolso_valor)||0)}.`);
+    return;
+  }
+  return gerarComprovanteReservaPDFV26Base(referencia);
+};
+</script>
+
+
+
+  <!-- V26: CANCELAMENTO / PIX -->
+  <div class="modal-overlay" id="cancelamentoModal">
+    <div class="modal-box" style="max-width:560px;">
+      <button class="modal-close" onclick="fecharModal('cancelamentoModal')"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="color:var(--primary-dark);margin-bottom:4px;"><i class="fa-solid fa-rotate-left"></i> Solicitar cancelamento</h2>
+      <p class="mini-note">O pagamento é feito diretamente ao anfitrião por PIX ou outra forma combinada. Por isso, quando existir valor pago, o reembolso também será feito diretamente pelo anfitrião e ficará registrado nesta reserva.</p>
+      <div id="cancelamentoResumo" class="rules-box" style="margin:14px 0;"></div>
+      <label style="font-weight:700;font-size:13px;display:block;margin-bottom:6px;">Motivo do cancelamento</label>
+      <textarea id="cancelamentoMotivo" class="form-control" rows="4" maxlength="500" placeholder="Explique brevemente o motivo..."></textarea>
+      <label style="display:flex;gap:8px;align-items:flex-start;margin:12px 0;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="cancelamentoConfirmacao" style="margin-top:3px;"> <span>Confirmo que desejo solicitar o cancelamento e entendi a estimativa de retenção/reembolso apresentada acima.</span>
+      </label>
+      <div class="action-row">
+        <button class="btn-secondary" onclick="fecharModal('cancelamentoModal')">Voltar</button>
+        <button class="btn-danger-lite" onclick="confirmarSolicitacaoCancelamento()"><i class="fa-solid fa-paper-plane"></i> Enviar solicitação</button>
+      </div>
+    </div>
+  </div>
+
+
+<style id="centralDocsVisibleStyle">
+.btn-docs-visible{display:inline-flex!important;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:11px 14px;background:#1A5F20;color:#fff;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(26,95,32,.18)}
+.btn-docs-visible:hover{filter:brightness(.96)}
+.docs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.doc-card{border:1px solid #e3e8e2;border-radius:14px;padding:14px;background:#fff}.doc-card h4{margin:0 0 5px;color:#174c1c}.doc-card p{margin:0;color:#617064;font-size:.92rem}.doc-icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:#edf7ee;color:#1A5F20;margin-bottom:10px;font-size:18px}.doc-status{margin-top:8px;font-size:.82rem;font-weight:800}.doc-status.ok{color:#1A5F20}.doc-status.pending{color:#b85d00}.docs-head{background:linear-gradient(135deg,#174c1c,#1A5F20);color:#fff;border-radius:16px;padding:18px}.docs-head .mini-note{color:#e8f4e9}.docs-pay{margin-top:12px;border-radius:12px;padding:12px 14px;background:#f7f5f0;border-left:4px solid #E65100}.chat-docs-banner{margin-top:12px;border:1px solid #cfe3d1;background:#f3faf4;border-radius:13px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.chat-docs-banner strong{color:#174c1c}@media(max-width:620px){.docs-grid{grid-template-columns:1fr}.btn-docs-visible{width:100%}}
+</style>
+
+<div class="modal-overlay" id="centralDocumentosModal" style="display:none;z-index:10050">
+  <div class="modal-box" style="max-width:760px;max-height:90vh;overflow:auto">
+    <button class="modal-close" onclick="fecharModal('centralDocumentosModal')"><i class="fa-solid fa-xmark"></i></button>
+    <div id="centralDocumentosConteudo"></div>
+  </div>
+</div>
+
+<script id="centralDocsVisibleScript">
+async function abrirCentralDocumentos(referencia){
+  const box=document.getElementById('centralDocumentosConteudo');
+  const modal=document.getElementById('centralDocumentosModal');
+  if(!box||!modal){alert('A Central de Documentos não foi carregada.');return;}
+  modal.style.display='flex';
+  box.innerHTML='<div style="padding:30px;text-align:center"><i class="fa-solid fa-spinner fa-spin"></i> Carregando documentos...</div>';
+  try{
+    const r=await carregarReservaChat(referencia);
+    const u=getUser();
+    if(!u?.id || (r.hospede_id!==u.id && r.anfitriao_id!==u.id && u.papel!=='admin')) throw new Error('Você não tem acesso a esta reserva.');
+    const st=String(r.status||'').toLowerCase();
+    const cs=String(r.cancelamento_status||'').toLowerCase();
+    const aprovado=['aprovada','aprovado','aguardando_pagamento','confirmada','confirmado','concluida','concluido','finalizada','finalizado','cancelada'].includes(st);
+    const pago=Boolean(r.pagamento_confirmado)||['confirmada','confirmado','concluida','concluido','finalizada','finalizado'].includes(st);
+    const codigo=adminEsc(r.codigo||String(r.id).slice(0,8).toUpperCase());
+    const {data:msgs,error}=await sb.from('sulbahiago_mensagens_reserva').select('*').eq('reserva_id',r.id).order('created_at',{ascending:false});
+    if(error) console.warn(error.message);
+    const anexos=(msgs||[]).filter(m=>m.arquivo_path);
+    const payClass=pago?'ok':'pending';
+    const payText=pago?'PAGO · pagamento confirmado':'PENDENTE · aguardando confirmação';
+    let cancelTexto='Nenhum cancelamento solicitado.';
+    if(cs==='solicitado') cancelTexto='Cancelamento solicitado e aguardando análise.';
+    if(cs==='aguardando_reembolso') cancelTexto='Cancelamento aprovado · reembolso pendente de '+brl(Number(r.cancelamento_reembolso_valor)||0)+'.';
+    if(cs==='reembolsado') cancelTexto='Cancelamento concluído · reembolso confirmado.';
+    if(cs==='concluido') cancelTexto='Cancelamento concluído.';
+    const anexosHtml=anexos.length?anexos.map(m=>`<div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-paperclip"></i></div><h4>${adminEsc(m.arquivo_nome||'Comprovante/anexo')}</h4><p>${m.created_at?new Date(m.created_at).toLocaleString('pt-BR'):''}</p><button class="btn-secondary" style="margin-top:10px" onclick="abrirComprovantePrivado('${adminEsc(m.arquivo_path)}')"><i class="fa-solid fa-eye"></i> Abrir arquivo</button></div>`).join(''):`<div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-paperclip"></i></div><h4>Comprovantes e anexos</h4><p>Nenhum arquivo foi enviado nesta reserva ainda.</p><div class="doc-status pending">SEM ANEXOS</div></div>`;
+    box.innerHTML=`
+      <div class="docs-head"><div style="font-size:.82rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">SULBAHIAGO · Central de Documentos</div><h2 style="margin:5px 0 4px;color:#fff">${adminEsc(r.imovel||'Reserva')}</h2><div class="mini-note">Código ${codigo} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)}</div></div>
+      <div class="docs-pay"><strong>Situação do pagamento:</strong> <span class="doc-status ${payClass}" style="display:inline">${payText}</span><br><span class="mini-note">Valor total da reserva: <b>${brl(Number(r.total)||0)}</b></span></div>
+      <div class="docs-grid">
+        <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div><h4>Comprovante da reserva</h4><p>${aprovado?'Documento oficial da reserva disponível para geração.':'Será liberado após a aprovação da reserva.'}</p>${aprovado?`<button class="btn-main-action" style="width:auto;margin-top:10px" onclick="gerarComprovanteReservaPDF('${r.id}')"><i class="fa-solid fa-download"></i> Baixar PDF</button>`:`<div class="doc-status pending">AGUARDANDO APROVAÇÃO</div>`}</div>
+        <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-money-check-dollar"></i></div><h4>Pagamento</h4><p>${pago?'O anfitrião confirmou o recebimento do pagamento.':'O pagamento ainda não foi confirmado no sistema.'}</p><div class="doc-status ${payClass}">${payText}</div></div>
+        <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-file-signature"></i></div><h4>Política de cancelamento</h4><p>Política aceita no momento da solicitação da reserva.</p><div class="doc-status ok">REGISTRADA NA RESERVA</div></div>
+        <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-rotate-left"></i></div><h4>Cancelamento / reembolso</h4><p>${adminEsc(cancelTexto)}</p>${Number(r.cancelamento_taxa_valor)>0?`<div class="mini-note" style="margin-top:7px">Retenção: ${Number(r.cancelamento_taxa_percentual)||0}% · ${brl(Number(r.cancelamento_taxa_valor)||0)}</div>`:''}</div>
+        ${anexosHtml}
+      </div>`;
+  }catch(e){box.innerHTML='<div class="empty-state" style="padding:30px"><i class="fa-solid fa-triangle-exclamation"></i><h3>Não foi possível abrir os documentos</h3><p>'+adminEsc(e?.message||e)+'</p></div>';}
+}
+
+// Torna a Central visível também dentro da conversa já aberta.
+const renderChatCentralDocsBase=renderChat;
+renderChat=async function(){
+  await renderChatCentralDocsBase();
+  const r=reservaChatAtual, resumo=document.getElementById('chatReservaResumo');
+  if(!r||!resumo)return;
+  if(resumo.querySelector('.chat-docs-banner'))return;
+  const banner=document.createElement('div');
+  banner.className='chat-docs-banner';
+  banner.innerHTML=`<div><strong><i class="fa-solid fa-folder-open"></i> Documentos desta reserva</strong><div class="mini-note">PDF, pagamento, política de cancelamento, comprovantes e reembolso.</div></div><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Abrir documentos</button>`;
+  resumo.appendChild(banner);
+};
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>{ if(typeof carregarGaleriaPublica==='function') carregarGaleriaPublica(); },300); });
+</script>
+<!-- SULBAHIAGO V31 - segurança administrativa: principal + até 3 admins; cadastro visível corrigido -->
 </body>
 </html>

@@ -1427,6 +1427,23 @@
           <input type="text" id="clienteContato" class="form-floating-input" placeholder="Seu WhatsApp ou E-mail">
         </div>
 
+        <div class="v34-payment-box">
+          <div class="v34-payment-title"><i class="fa-solid fa-wallet"></i> Forma de pagamento</div>
+          <div class="v34-payment-options">
+            <label class="v34-payment-option">
+              <input type="radio" name="formaPagamentoReserva" value="pix" checked>
+              <span class="v34-payment-icon"><i class="fa-brands fa-pix"></i></span>
+              <span><strong>PIX</strong><small>Pagamento direto ao anfitrião após a aprovação.</small></span>
+            </label>
+            <label class="v34-payment-option">
+              <input type="radio" name="formaPagamentoReserva" value="cartao_credito">
+              <span class="v34-payment-icon"><i class="fa-regular fa-credit-card"></i></span>
+              <span><strong>Cartão de crédito</strong><small>O anfitrião poderá enviar um link seguro de pagamento.</small></span>
+            </label>
+          </div>
+          <div class="mini-note" style="margin-top:8px"><i class="fa-solid fa-shield-halved"></i> O SULBAHIAGO não solicita número do cartão, validade ou CVV nesta tela.</div>
+        </div>
+
         <div class="rules-box" style="margin:12px 0;border-left:4px solid var(--secondary);">
           <strong><i class="fa-solid fa-rotate-left"></i> Política de cancelamento</strong><br>
           <span style="font-size:13px;line-height:1.5;">Se houver pagamento confirmado e o hóspede desistir, a estimativa de retenção é de <b>10%</b> quando o pedido for feito com 7 dias ou mais de antecedência do check-in e de <b>20%</b> com menos de 7 dias. Se nenhum pagamento tiver sido confirmado, não há valor financeiro a reembolsar. Situações previstas em lei ou casos excepcionais podem ser analisados separadamente.</span>
@@ -3174,7 +3191,9 @@
       const checkin=document.getElementById('modalCheckin').value;
       const checkout=document.getElementById('modalCheckout').value;
       const hospedes=Number(document.getElementById('modalHospedes').value)||1;
+      const formaPagamento=document.querySelector('input[name="formaPagamentoReserva"]:checked')?.value||'';
       if(!nome||!contato||!checkin||!checkout){ alert('Preencha check-in e check-out.'); return; }
+      if(!formaPagamento){ alert('Escolha a forma de pagamento: PIX ou Cartão de crédito.'); return; }
       if(new Date(checkout)<=new Date(checkin)){ alert('O check-out deve ser depois do check-in.'); return; }
       const btn=document.querySelector('#etapaReservaForm .btn-main-action');
       const antigo=btn.innerHTML; btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Verificando disponibilidade...';
@@ -3211,11 +3230,13 @@
           hospedagem_id:String(hosp.id), imovel:nomeImovelGlobal, local:hosp.local||hosp.localizacao||item.local||'Prado - BA',
           hospede_id:u.id, anfitriao_id:hosp.anfitriao_id||null, cliente_nome:nome, cliente_contato:contato,
           checkin, checkout, hospedes, noites, diaria, total, status:'solicitada',
+          forma_pagamento:formaPagamento,
           politica_cancelamento_aceita_em:new Date().toISOString()
         }).select('*').single();
         if(error) throw error;
         reservaAtivaId=reserva.id;
-        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:'Olá! Enviei esta solicitação de reserva. Estou aguardando a confirmação de disponibilidade do proprietário.'});
+        const formaPagamentoLabel=formaPagamento==='pix'?'PIX':'Cartão de crédito';
+        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:`Olá! Enviei esta solicitação de reserva. Forma de pagamento escolhida: ${formaPagamentoLabel}. Estou aguardando a confirmação de disponibilidade do proprietário.`});
         document.getElementById('etapaReservaForm').style.display='none';
         document.getElementById('etapaReservaSucesso').style.display='block';
         const success=document.querySelector('#etapaReservaSucesso p');
@@ -4452,6 +4473,7 @@ async function abrirCentralDocumentos(referencia){
     const anexos=(msgs||[]).filter(m=>m.arquivo_path);
     const payClass=pago?'ok':'pending';
     const payText=pago?'PAGO · pagamento confirmado':'PENDENTE · aguardando confirmação';
+    const formaPagamentoTexto=r.forma_pagamento==='pix'?'PIX':(r.forma_pagamento==='cartao_credito'?'Cartão de crédito':'Não informada');
     let cancelTexto='Nenhum cancelamento solicitado.';
     if(cs==='solicitado') cancelTexto='Cancelamento solicitado e aguardando análise.';
     if(cs==='aguardando_reembolso') cancelTexto='Cancelamento aprovado · reembolso pendente de '+brl(Number(r.cancelamento_reembolso_valor)||0)+'.';
@@ -4460,7 +4482,7 @@ async function abrirCentralDocumentos(referencia){
     const anexosHtml=anexos.length?anexos.map(m=>`<div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-paperclip"></i></div><h4>${adminEsc(m.arquivo_nome||'Comprovante/anexo')}</h4><p>${m.created_at?new Date(m.created_at).toLocaleString('pt-BR'):''}</p><button class="btn-secondary" style="margin-top:10px" onclick="abrirComprovantePrivado('${adminEsc(m.arquivo_path)}')"><i class="fa-solid fa-eye"></i> Abrir arquivo</button></div>`).join(''):`<div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-paperclip"></i></div><h4>Comprovantes e anexos</h4><p>Nenhum arquivo foi enviado nesta reserva ainda.</p><div class="doc-status pending">SEM ANEXOS</div></div>`;
     box.innerHTML=`
       <div class="docs-head"><div style="font-size:.82rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">SULBAHIAGO · Central de Documentos</div><h2 style="margin:5px 0 4px;color:#fff">${adminEsc(r.imovel||'Reserva')}</h2><div class="mini-note">Código ${codigo} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)}</div></div>
-      <div class="docs-pay"><strong>Situação do pagamento:</strong> <span class="doc-status ${payClass}" style="display:inline">${payText}</span><br><span class="mini-note">Valor total da reserva: <b>${brl(Number(r.total)||0)}</b></span></div>
+      <div class="docs-pay"><strong>Situação do pagamento:</strong> <span class="doc-status ${payClass}" style="display:inline">${payText}</span><br><span class="mini-note">Forma escolhida: <b>${formaPagamentoTexto}</b> · Valor total da reserva: <b>${brl(Number(r.total)||0)}</b></span></div>
       <div class="docs-grid">
         <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div><h4>Comprovante da reserva</h4><p>${aprovado?'Documento oficial da reserva disponível para geração.':'Será liberado após a aprovação da reserva.'}</p>${aprovado?`<button class="btn-main-action" style="width:auto;margin-top:10px" onclick="gerarComprovanteReservaPDF('${r.id}')"><i class="fa-solid fa-download"></i> Baixar PDF</button>`:`<div class="doc-status pending">AGUARDANDO APROVAÇÃO</div>`}</div>
         <div class="doc-card"><div class="doc-icon"><i class="fa-solid fa-money-check-dollar"></i></div><h4>Pagamento</h4><p>${pago?'O anfitrião confirmou o recebimento do pagamento.':'O pagamento ainda não foi confirmado no sistema.'}</p><div class="doc-status ${payClass}">${payText}</div></div>
@@ -4569,5 +4591,169 @@ if(v32AbrirAvaliacaoRealBase){abrirAvaliacaoReal=async function(id){try{const {d
 
 document.addEventListener('DOMContentLoaded',()=>{setTimeout(v32InstalarFinanceiro,500)});
 </script>
+
+
+<!-- ===== SULBAHIAGO V33: AVALIAÇÃO IMEDIATA APÓS CHECK-OUT ===== -->
+<style id="v33AvaliacaoStyles">
+.v33-review-callout{margin-top:12px;border:1px solid #cfe3d1;background:#f3faf4;border-radius:14px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.v33-review-callout strong{color:#174c1c}.v33-review-done{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;background:#e8f5e9;color:#1A5F20;font-size:11px;font-weight:800}
+</style>
+<script id="v33AvaliacaoCheckoutScript">
+// V33: check-out REGISTRADO libera a avaliação imediatamente.
+abrirAvaliacaoReal = async function(reservaId){
+  const u=getUser();
+  if(!u?.id){ abrirAuthModal('login','reservas'); return; }
+  try{
+    const {data:r,error}=await sb.from('sulbahiago_reservas').select('*').eq('id',reservaId).single();
+    if(error||!r) throw error||new Error('Reserva não encontrada.');
+    if(r.hospede_id!==u.id){ alert('Somente o hóspede desta reserva pode avaliar.'); return; }
+    const st=String(r.status||'').toLowerCase();
+    if(['cancelada','recusada'].includes(st)){ alert('Reservas canceladas ou recusadas não podem ser avaliadas.'); return; }
+    const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
+    const checkoutRegistrado=!!r.checkout_em || ['concluida','finalizada'].includes(st);
+    if(!checkoutRegistrado && !passou){ alert('A avaliação será liberada assim que o check-out for registrado.'); return; }
+
+    // Uma avaliação por reserva.
+    const {data:existente,error:errExist}=await sb.from('sulbahiago_avaliacoes').select('id').eq('reserva_id',r.id).maybeSingle();
+    if(!errExist && existente?.id){ alert('Você já enviou a avaliação desta hospedagem. Obrigado!'); return; }
+
+    avaliacaoReservaRealId=reservaId;
+    reservaAtivaId=reservaId;
+    notaSelecionada=0;
+    selecionarNota(0);
+    const campo=document.getElementById('reviewTexto'); if(campo) campo.value='';
+    document.getElementById('avaliacaoModal').style.display='flex';
+  }catch(e){ alert('Não foi possível abrir a avaliação: '+(e?.message||e)); }
+};
+
+async function v33EnriquecerAvaliacaoCheckout(){
+  try{
+    const u=getUser(); if(!u?.id || u.papel==='anfitriao') return;
+    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').eq('hospede_id',u.id).order('created_at',{ascending:false});
+    if(error) throw error;
+    const ids=(reservas||[]).map(r=>r.id);
+    let avaliadas=new Set();
+    if(ids.length){
+      const {data:avs,error:ea}=await sb.from('sulbahiago_avaliacoes').select('reserva_id').in('reserva_id',ids);
+      if(!ea) avaliadas=new Set((avs||[]).map(a=>a.reserva_id));
+    }
+    const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
+    (reservas||[]).forEach((r,i)=>{
+      const c=cards[i]; if(!c) return;
+      const st=String(r.status||'').toLowerCase();
+      const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
+      const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st) || passou) && !['cancelada','recusada'].includes(st);
+      if(!liberada) return;
+      const actions=c.querySelector('.action-row'); if(!actions) return;
+      // Remove botão antigo para não duplicar e aplica a regra correta do V33.
+      [...actions.querySelectorAll('button')].forEach(b=>{if((b.getAttribute('onclick')||'').includes('abrirAvaliacaoReal')) b.remove();});
+      if(avaliadas.has(r.id)){
+        if(!actions.querySelector('.v33-review-done')) actions.insertAdjacentHTML('beforeend','<span class="v33-review-done"><i class="fa-solid fa-circle-check"></i> Avaliação enviada</span>');
+      }else{
+        actions.insertAdjacentHTML('beforeend',`<button class="btn-main-action" style="width:auto" onclick="abrirAvaliacaoReal('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar hospedagem</button>`);
+      }
+    });
+  }catch(e){ console.warn('V33 avaliação pós-checkout:',e); }
+}
+
+const v33RenderMinhasBase=renderMinhasReservas;
+renderMinhasReservas=async function(){ await v33RenderMinhasBase(); await v33EnriquecerAvaliacaoCheckout(); };
+
+const v33RenderChatBase=renderChat;
+renderChat=async function(){
+  await v33RenderChatBase();
+  try{
+    const r=reservaChatAtual,u=getUser(),resumo=document.getElementById('chatReservaResumo');
+    if(!r||!u?.id||!resumo||r.hospede_id!==u.id||resumo.querySelector('.v33-review-callout')) return;
+    const st=String(r.status||'').toLowerCase();
+    const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
+    const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st) || passou) && !['cancelada','recusada'].includes(st);
+    if(!liberada)return;
+    const {data:av,error}=await sb.from('sulbahiago_avaliacoes').select('id').eq('reserva_id',r.id).maybeSingle();
+    const box=document.createElement('div'); box.className='v33-review-callout';
+    box.innerHTML=(!error&&av?.id)
+      ? `<div><strong><i class="fa-solid fa-star"></i> Hospedagem avaliada</strong><div class="mini-note">Obrigado por compartilhar sua experiência.</div></div><span class="v33-review-done"><i class="fa-solid fa-circle-check"></i> Avaliação enviada</span>`
+      : `<div><strong><i class="fa-solid fa-star"></i> Como foi sua hospedagem?</strong><div class="mini-note">O check-out foi concluído. Sua avaliação já está liberada.</div></div><button class="btn-main-action" style="width:auto" onclick="abrirAvaliacaoReal('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar agora</button>`;
+    resumo.appendChild(box);
+  }catch(e){console.warn('V33 chat avaliação:',e)}
+};
+</script>
+<!-- ===== FIM V33 ===== -->
+
+
+
+<!-- ===== SULBAHIAGO V34: FORMA DE PAGAMENTO NA RESERVA ===== -->
+<style id="v34PagamentoStyles">
+.v34-payment-box{margin:12px 0;padding:14px;border:1px solid #dce7dd;border-radius:14px;background:#fbfdfb}
+.v34-payment-title{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--primary-dark);margin-bottom:10px}
+.v34-payment-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.v34-payment-option{display:flex;align-items:center;gap:10px;border:1px solid #dbe2db;border-radius:13px;padding:12px;background:#fff;cursor:pointer;transition:.18s ease}
+.v34-payment-option:has(input:checked){border-color:#1A5F20;box-shadow:0 0 0 2px rgba(26,95,32,.09);background:#f4faf5}
+.v34-payment-option input{accent-color:#1A5F20}
+.v34-payment-option strong{display:block;color:#173d1b;font-size:13px}.v34-payment-option small{display:block;color:#667269;line-height:1.35;margin-top:2px}
+.v34-payment-icon{width:34px;height:34px;border-radius:10px;background:#edf7ee;color:#1A5F20;display:grid;place-items:center;flex:0 0 auto;font-size:17px}
+.v34-pay-strip{margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:#f7faf7;border:1px solid #dce8dd;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.v34-pay-method{display:flex;align-items:center;gap:8px;font-weight:800;color:#174c1c}.v34-pay-status{font-size:11px;font-weight:800;border-radius:999px;padding:6px 9px}.v34-pay-status.ok{background:#e8f5e9;color:#1A5F20}.v34-pay-status.pending{background:#fff3e8;color:#b44c00}
+@media(max-width:620px){.v34-payment-options{grid-template-columns:1fr}.v34-payment-option{padding:11px}.v34-pay-strip{align-items:flex-start}}
+</style>
+<script id="v34PagamentoScript">
+function v34FormaPagamentoLabel(valor){
+  return valor==='pix'?'PIX':(valor==='cartao_credito'?'Cartão de crédito':'Não informada');
+}
+function v34FormaPagamentoIcon(valor){
+  return valor==='pix'?'fa-brands fa-pix':'fa-regular fa-credit-card';
+}
+async function v34EnriquecerPagamentoReservas(){
+  try{
+    const u=getUser(); if(!u?.id)return;
+    const anfitriao=u.papel==='anfitriao';
+    let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});
+    q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
+    const {data:reservas,error}=await q; if(error)throw error;
+    const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
+    (reservas||[]).forEach((r,i)=>{
+      const c=cards[i]; if(!c||c.querySelector('.v34-pay-strip'))return;
+      const meta=c.querySelector('.reservation-meta'); if(!meta)return;
+      const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase());
+      const method=v34FormaPagamentoLabel(r.forma_pagamento);
+      const strip=document.createElement('div'); strip.className='v34-pay-strip';
+      strip.innerHTML=`<span class="v34-pay-method"><i class="${v34FormaPagamentoIcon(r.forma_pagamento)}"></i> ${adminEsc(method)}</span><span class="v34-pay-status ${pago?'ok':'pending'}"><i class="fa-solid ${pago?'fa-circle-check':'fa-clock'}"></i> ${pago?'Pagamento confirmado':'Pagamento pendente'}</span>`;
+      meta.insertAdjacentElement('afterend',strip);
+    });
+  }catch(e){console.warn('V34 pagamento reservas:',e)}
+}
+
+const v34RenderMinhasBase=renderMinhasReservas;
+renderMinhasReservas=async function(){await v34RenderMinhasBase();await v34EnriquecerPagamentoReservas();};
+
+const v34RenderChatBase=renderChat;
+renderChat=async function(){
+  await v34RenderChatBase();
+  try{
+    const r=reservaChatAtual,resumo=document.getElementById('chatReservaResumo');
+    if(!r||!resumo||resumo.querySelector('.v34-pay-strip'))return;
+    const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase());
+    resumo.insertAdjacentHTML('beforeend',`<div class="v34-pay-strip"><span class="v34-pay-method"><i class="${v34FormaPagamentoIcon(r.forma_pagamento)}"></i> Forma de pagamento: ${adminEsc(v34FormaPagamentoLabel(r.forma_pagamento))}</span><span class="v34-pay-status ${pago?'ok':'pending'}">${pago?'Pagamento confirmado':'Pagamento pendente'}</span></div>`);
+  }catch(e){console.warn('V34 pagamento chat:',e)}
+};
+
+// Exibe também a forma escolhida nos cards da administração.
+const v34RenderAdminBase=renderAdminReservas;
+renderAdminReservas=async function(){
+  await v34RenderAdminBase();
+  try{
+    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}); if(error)throw error;
+    const cards=[...document.querySelectorAll('#adminListaReservas .admin-res-item')];
+    (reservas||[]).forEach((r,i)=>{
+      const c=cards[i]; if(!c||c.querySelector('.v34-pay-strip'))return;
+      const ar=c.querySelector('.action-row'); if(!ar)return;
+      const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase());
+      ar.insertAdjacentHTML('beforebegin',`<div class="v34-pay-strip"><span class="v34-pay-method"><i class="${v34FormaPagamentoIcon(r.forma_pagamento)}"></i> ${adminEsc(v34FormaPagamentoLabel(r.forma_pagamento))}</span><span class="v34-pay-status ${pago?'ok':'pending'}">${pago?'Confirmado':'Pendente'}</span></div>`);
+    });
+  }catch(e){console.warn('V34 pagamento admin:',e)}
+};
+</script>
+<!-- ===== FIM V34 ===== -->
+
 </body>
 </html>

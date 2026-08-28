@@ -4755,5 +4755,96 @@ renderAdminReservas=async function(){
 </script>
 <!-- ===== FIM V34 ===== -->
 
+
+
+<!-- ===== SULBAHIAGO V35: ÁREA VISÍVEL DE CONFIRMAÇÃO DE PAGAMENTO ===== -->
+<style id="v35PagamentoAprovacaoStyles">
+.v35-pay-action{border:1px solid #b8d8bc;background:#f1faf2;border-radius:13px;padding:11px 12px;margin:9px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.v35-pay-action strong{color:#154b1b}.v35-pay-action .mini-note{margin-top:2px}
+.v35-pay-confirmed{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 10px;background:#e8f5e9;color:#1A5F20;font-size:12px;font-weight:800}
+@media(max-width:620px){.v35-pay-action{align-items:flex-start}.v35-pay-action .btn-main-action{width:100%!important}}
+</style>
+<script id="v35PagamentoAprovacaoScript">
+async function v35AdminConfirmarPagamento(id){
+  try{
+    if(!confirm('Confirma que o pagamento desta reserva foi recebido e conferido?')) return;
+    const {error}=await sb.rpc('sulbahiago_admin_confirmar_pagamento',{p_reserva_id:id});
+    if(error) throw error;
+    await renderAdminReservas();
+    if(typeof v32RenderFinanceiro==='function') await v32RenderFinanceiro();
+    alert('Pagamento confirmado. A reserva agora está confirmada.');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível confirmar o pagamento: '+(e?.message||e));
+  }
+}
+
+async function v35AnfitriaoConfirmarPagamento(id){
+  try{
+    const u=getUser(); if(!u?.id) return;
+    const {data:r,error}=await sb.from('sulbahiago_reservas').select('*').eq('id',id).single();
+    if(error) throw error;
+    if(r.anfitriao_id!==u.id){alert('Somente o anfitrião desta reserva pode confirmar o recebimento.');return;}
+    if(!confirm('Você confirma que recebeu o pagamento diretamente do hóspede?')) return;
+    const agora=new Date().toISOString();
+    const upd=await sb.from('sulbahiago_reservas').update({status:'confirmada',pagamento_confirmado:true,pagamento_confirmado_em:agora,updated_at:agora}).eq('id',id);
+    if(upd.error) throw upd.error;
+    try{await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:id,remetente_id:u.id,tipo:'texto',mensagem:'Pagamento recebido e conferido. Sua reserva está confirmada!'});}catch(_){ }
+    await renderMinhasReservas();
+    alert('Pagamento marcado como recebido. A reserva está confirmada.');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível confirmar o pagamento: '+(e?.message||e));
+  }
+}
+
+// ADMIN: botão visível no próprio cartão da reserva.
+const v35RenderAdminBase=renderAdminReservas;
+renderAdminReservas=async function(){
+  await v35RenderAdminBase();
+  try{
+    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    const cards=[...document.querySelectorAll('#adminListaReservas .admin-res-item')];
+    (reservas||[]).forEach((r,i)=>{
+      const c=cards[i]; if(!c||c.querySelector('.v35-pay-action')) return;
+      const st=String(r.status||'').toLowerCase();
+      const aprovado=['aprovada','aguardando_pagamento'].includes(st);
+      const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(st);
+      const ar=c.querySelector('.action-row'); if(!ar) return;
+      if(aprovado&&!pago){
+        const metodo=v34FormaPagamentoLabel(r.forma_pagamento);
+        ar.insertAdjacentHTML('beforebegin',`<div class="v35-pay-action"><div><strong><i class="fa-solid fa-money-check-dollar"></i> Conferência de pagamento</strong><div class="mini-note">Forma escolhida: ${adminEsc(metodo)} · confirme somente depois de conferir o recebimento.</div></div><button class="btn-main-action" style="width:auto" onclick="v35AdminConfirmarPagamento('${r.id}')"><i class="fa-solid fa-circle-check"></i> Confirmar pagamento recebido</button></div>`);
+      }else if(pago){
+        ar.insertAdjacentHTML('beforebegin','<div class="v35-pay-action"><div><strong><i class="fa-solid fa-money-check-dollar"></i> Conferência de pagamento</strong><div class="mini-note">O recebimento desta reserva já foi confirmado.</div></div><span class="v35-pay-confirmed"><i class="fa-solid fa-circle-check"></i> PAGAMENTO CONFIRMADO</span></div>');
+      }
+    });
+  }catch(e){console.warn('V35 pagamento admin:',e)}
+};
+
+// ANFITRIÃO: botão direto no cartão de Minhas Reservas, sem precisar procurar dentro da conversa.
+const v35RenderMinhasBase=renderMinhasReservas;
+renderMinhasReservas=async function(){
+  await v35RenderMinhasBase();
+  try{
+    const u=getUser(); if(!u?.id||u.papel!=='anfitriao') return;
+    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').eq('anfitriao_id',u.id).order('created_at',{ascending:false});
+    if(error) throw error;
+    const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
+    (reservas||[]).forEach((r,i)=>{
+      const c=cards[i]; if(!c||c.querySelector('.v35-pay-action'))return;
+      const st=String(r.status||'').toLowerCase();
+      const aprovado=['aprovada','aguardando_pagamento'].includes(st);
+      const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(st);
+      const ar=c.querySelector('.action-row'); if(!ar)return;
+      if(aprovado&&!pago){
+        ar.insertAdjacentHTML('beforebegin',`<div class="v35-pay-action"><div><strong><i class="fa-solid fa-wallet"></i> Pagamento pendente</strong><div class="mini-note">${adminEsc(v34FormaPagamentoLabel(r.forma_pagamento))} · confirme apenas após conferir o recebimento.</div></div><button class="btn-main-action" style="width:auto" onclick="v35AnfitriaoConfirmarPagamento('${r.id}')"><i class="fa-solid fa-circle-check"></i> Confirmar pagamento recebido</button></div>`);
+      }
+    });
+  }catch(e){console.warn('V35 pagamento anfitrião:',e)}
+};
+</script>
+<!-- ===== FIM V35 ===== -->
+
 </body>
 </html>

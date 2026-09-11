@@ -7,6 +7,16 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta name="description" content="SULBAHIAGO — hospedagens e experiências no sul da Bahia. Consulte disponibilidade, faça sua reserva e converse com o anfitrião dentro da plataforma.">
+  <link rel="canonical" href="https://sulbahiago.com.br/">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SULBAHIAGO">
+  <meta property="og:title" content="SULBAHIAGO - Hospedagens no sul da Bahia">
+  <meta property="og:description" content="Encontre hospedagens, consulte datas e faça sua solicitação de reserva no sul da Bahia.">
+  <meta property="og:url" content="https://sulbahiago.com.br/">
+  <meta property="og:image" content="https://eloxmouxuwxvkiiuhrxs.supabase.co/storage/v1/object/public/site-imagens/compartilhamento">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <title>SULBAHIAGO - Hospedagens e Experiências Exclusivas</title>
   
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -952,7 +962,9 @@
     .detail-cal-day{min-height:44px;border:1px solid #e6e8eb;border-radius:9px;display:flex;align-items:center;justify-content:center;position:relative;font-size:12px;background:#fff}
     .detail-cal-day.available{cursor:pointer}
     .detail-cal-day.available:hover{border-color:var(--primary-dark);background:#f0f7f1}
-    .detail-cal-day.booked{background:#f2f4f7;color:#98a2b3;text-decoration:line-through;cursor:not-allowed}
+    .detail-cal-day.booked{background:#fee2e2;border-color:#dc2626;color:#b91c1c;font-weight:900;cursor:not-allowed;box-shadow:inset 0 0 0 1px rgba(220,38,38,.08)}
+    .detail-cal-day.unavailable{background:#f2f4f7;color:#98a2b3;text-decoration:line-through;cursor:not-allowed}
+    .status-badge.occupied{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
     .detail-cal-day.pending{background:#fff7ed;color:#c2410c}
     .detail-cal-day.empty{border:0;background:transparent}
     .detail-cal-day.selected{background:#e8f5e9;border-color:var(--primary-dark);color:var(--primary-dark);font-weight:800}
@@ -1060,6 +1072,7 @@
 .reserva-pdf-card .pdf-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 </head>
 <body>
 
@@ -1070,7 +1083,7 @@
     </a>
     
     <ul class="nav-menu">
-      <li><a href="#" onclick="mostrarSecao('home'); return false;">Serviços</a></li>
+      <li><a href="#" onclick="mostrarSecao('home'); return false;">Início</a></li>
       <li><a href="#hospedagens" onclick="mostrarSecao('home')">Reserva</a></li>
       <li><a href="#" onclick="mostrarSecao('galeria'); return false;">Galeria</a></li>
       <li><a href="#" onclick="mostrarSecao('sobre'); return false;">Sobre</a></li>
@@ -1141,7 +1154,7 @@
       <div class="filter-group-inline">
         <button class="filter-pill-btn active" onclick="setTipoCasa('todos', this)"><i class="fa-solid fa-border-all"></i> Todos</button>
         <button class="filter-pill-btn" onclick="setTipoCasa('Casa Temporada', this)"><i class="fa-solid fa-house-chimney"></i> Casa Temporada</button>
-        <button class="filter-pill-btn" onclick="setTipoCasa('Hoteis', this)"><i class="fa-solid fa-hotel"></i> Hoteis</button>
+        <button class="filter-pill-btn" onclick="setTipoCasa('Hoteis', this)"><i class="fa-solid fa-hotel"></i> Hotéis</button>
         <button class="filter-pill-btn" onclick="setTipoCasa('Pousadas', this)"><i class="fa-solid fa-bed"></i> Pousadas</button>
       </div>
 
@@ -1176,7 +1189,7 @@
         </div>
 
         <div class="cards-grid" id="cardsGridContainer">
-          <div id="carregandoHospedagensPublicas" class="empty-state" style="grid-column:1/-1;">
+          <div id="carregandoHospedagensInicial" class="empty-state" style="grid-column:1/-1;">
             <i class="fa-solid fa-spinner fa-spin"></i>
             <h3>Carregando hospedagens...</h3>
             <p>Somente anúncios oficiais publicados no Supabase aparecem aqui.</p>
@@ -1315,7 +1328,7 @@
           <div class="detail-calendar-legend">
             <span class="status-badge">Livre</span>
             <span class="status-badge orange">Solicitação pendente</span>
-            <span class="status-badge blue">Ocupado</span>
+            <span class="status-badge occupied">Ocupado</span>
           </div>
           <div id="detalheCalendarioGrid" class="detail-cal-grid"></div>
           <p class="mini-note" style="margin-top:8px"><i class="fa-solid fa-circle-info"></i> Datas confirmadas ficam bloqueadas para novas reservas.</p>
@@ -1400,7 +1413,7 @@
             </div>
             <div style="padding: 10px;">
               <label style="font-size: 10px; font-weight: 800; color: var(--primary-dark); display: block;">CHECK-OUT</label>
-              <input type="date" id="modalCheckout" class="form-floating-input" style="border: none; padding: 2px 0;">
+              <input type="date" id="modalCheckout" class="form-floating-input" style="border: none; padding: 2px 0;" onchange="atualizarCalculoModal()">
             </div>
           </div>
           <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
@@ -1425,6 +1438,10 @@
         <div class="form-floating-group">
           <input type="text" id="clienteNome" class="form-floating-input" placeholder="Seu Nome Completo">
           <input type="text" id="clienteContato" class="form-floating-input" placeholder="Seu WhatsApp ou E-mail">
+        </div>
+        <div class="form-floating-group" style="display:flex;gap:8px;padding:9px;align-items:center;">
+          <input type="text" id="v39CupomReserva" class="form-floating-input" style="flex:1;border:0" placeholder="Cupom de desconto (opcional)">
+          <button type="button" class="btn-secondary" onclick="atualizarCalculoModal()">Aplicar</button>
         </div>
 
         <div class="v34-payment-box">
@@ -1575,7 +1592,7 @@
       <input id="adminLoginSenha" type="password" class="form-control" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') adminEntrar()">
       <div id="adminLoginErro" class="mini-note" style="display:none;color:#b42318;margin-top:10px;"></div>
       <button id="btnAdminEntrar" class="btn-main-action" style="margin-top:14px;" onclick="adminEntrar()"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-      <p class="mini-note" style="margin-top:10px;text-align:center;"><i class="fa-solid fa-shield-halved"></i> Somente contas previamente autorizadas pelo Administrador Principal podem entrar.</p>
+      <p class="mini-note" style="margin-top:10px;text-align:center;"><i class="fa-solid fa-shield-halved"></i> Somente contas previamente autorizadas podem entrar.</p>
     </div>
   </div>
 
@@ -1658,7 +1675,35 @@
             <label class="form-label">NOME DO IMÓVEL / HOSPEDAGEM</label><input id="adminHospNome" class="form-control" placeholder="Ex.: Casa Pé na Areia">
             <label class="form-label">LOCALIZAÇÃO</label><input id="adminHospLocal" class="form-control" placeholder="Ex.: Prado - BA">
             <label class="form-label">TIPO</label><select id="adminHospTipo" class="form-control"><option>Casa Temporada</option><option>Pousadas</option><option>Hoteis</option><option>Apartamento</option><option>Chalé</option></select>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><label class="form-label">DIÁRIA</label><input id="adminHospPreco" type="number" min="0" step="0.01" class="form-control" placeholder="150,00"></div><div><label class="form-label">MÁX. HÓSPEDES</label><input id="adminHospMax" type="number" min="1" value="2" class="form-control"></div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><label class="form-label">PREÇO ORIGINAL DA DIÁRIA</label><input id="adminHospPrecoOriginal" type="number" min="0" step="0.01" class="form-control" placeholder="Ex.: 165,00"><div class="mini-note" style="margin-top:4px;">Valor que aparecerá riscado.</div></div><div><label class="form-label">PREÇO PROMOCIONAL</label><input id="adminHospPreco" type="number" min="0" step="0.01" class="form-control" placeholder="Ex.: 150,00"><div class="mini-note" style="margin-top:4px;">Valor que será cobrado.</div></div></div>
+            <label class="form-label">MÁX. HÓSPEDES</label><input id="adminHospMax" type="number" min="1" value="2" class="form-control">
+            <div class="v44-admin-box">
+              <h4><i class="fa-solid fa-tags"></i> Promoção e disponibilidade</h4>
+              <div class="v39-admin-details">
+                <div><label class="form-label">INÍCIO DA PROMOÇÃO</label><input id="adminHospPromoInicio" type="date" class="form-control"></div>
+                <div><label class="form-label">FIM DA PROMOÇÃO</label><input id="adminHospPromoFim" type="date" class="form-control"></div>
+                <div><label class="form-label">TOTAL DE UNIDADES</label><input id="adminHospUnidades" type="number" min="1" value="1" class="form-control"></div>
+                <div><label class="form-label">SELO DE URGÊNCIA</label><select id="adminHospUrgencia" class="form-control"><option value="automatico">Automático</option><option value="oferta">Oferta por tempo limitado</option><option value="nenhum">Não mostrar</option></select></div>
+                <div><label class="form-label">DESCONTO 3+ NOITES (%)</label><input id="adminHospDesc3" type="number" min="0" max="100" value="5" class="form-control"></div>
+                <div><label class="form-label">DESCONTO 7+ NOITES (%)</label><input id="adminHospDesc7" type="number" min="0" max="100" value="10" class="form-control"></div>
+              </div>
+              <label class="form-label">TIPOS DE ACOMODAÇÃO</label>
+              <textarea id="adminHospAcomodacoes" class="form-control" rows="3" placeholder="Suíte casal|180|2|2&#10;Quarto família|260|5|1"></textarea>
+              <div class="mini-note" style="margin-top:5px;">Uma opção por linha: Nome | preço da diária | capacidade | unidades.</div>
+            </div>
+            <div class="v39-admin-details">
+              <div><label class="form-label">QUARTOS</label><input id="adminHospQuartos" type="number" min="0" value="1" class="form-control"></div>
+              <div><label class="form-label">CAMAS</label><input id="adminHospCamas" type="number" min="0" value="1" class="form-control"></div>
+              <div><label class="form-label">BANHEIROS</label><input id="adminHospBanheiros" type="number" min="0" step="0.5" value="1" class="form-control"></div>
+              <div><label class="form-label">ESTADIA MÍNIMA</label><input id="adminHospMinNoites" type="number" min="1" value="1" class="form-control"></div>
+              <div><label class="form-label">CHECK-IN A PARTIR DE</label><input id="adminHospCheckinHora" type="time" value="14:00" class="form-control"></div>
+              <div><label class="form-label">CHECK-OUT ATÉ</label><input id="adminHospCheckoutHora" type="time" value="11:00" class="form-control"></div>
+              <div><label class="form-label">DIÁRIA ALTA TEMPORADA</label><input id="adminHospPrecoAlta" type="number" min="0" step="0.01" class="form-control" placeholder="Opcional"></div>
+              <div><label class="form-label">TAXA DE LIMPEZA</label><input id="adminHospTaxaLimpeza" type="number" min="0" step="0.01" value="0" class="form-control"></div>
+            </div>
+            <label class="form-label">ENDEREÇO APROXIMADO / BAIRRO</label><input id="adminHospMapa" class="form-control" placeholder="Ex.: Centro, Prado - BA">
+            <label class="form-label">POLÍTICA DE CANCELAMENTO</label><select id="adminHospPolitica" class="form-control"><option value="flexivel">Flexível</option><option value="moderada">Moderada</option><option value="rigorosa">Rigorosa</option></select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><label class="form-label">CUPOM</label><input id="adminHospCupom" class="form-control" placeholder="Ex.: VERAO10"></div><div><label class="form-label">DESCONTO (%)</label><input id="adminHospDesconto" type="number" min="0" max="100" value="0" class="form-control"></div></div>
             <label class="form-label">COMODIDADES</label><input id="adminHospComodidades" class="form-control" placeholder="Wi-Fi, Ar-condicionado, Piscina">
             <label class="form-label">DESCRIÇÃO</label><textarea id="adminHospDescricao" class="form-control" rows="3" placeholder="Descreva a hospedagem..."></textarea>
             <label class="form-label">STATUS DO ANÚNCIO</label>
@@ -1710,7 +1755,7 @@
         <div class="admin-panel-grid">
           <div class="admin-card">
             <h3 style="color:var(--primary-dark);font-size:16px;margin-bottom:6px;"><i class="fa-solid fa-user-shield"></i> Cadastrar administrador</h3>
-            <p class="mini-note" style="margin-bottom:12px;">Área exclusiva do <strong>Administrador Principal</strong>. Você pode criar até <strong>3 administradores adicionais</strong>, totalizando 4 contas administrativas.</p>
+            <p class="mini-note" style="margin-bottom:12px;">Área privada de controle de acesso. Você pode cadastrar até <strong>4 administradores operacionais</strong>.</p>
             <label class="form-label">NOME DO ADMINISTRADOR</label>
             <input id="adminNovoAdminNome" type="text" class="form-control" placeholder="Nome completo" autocomplete="off">
             <label class="form-label">E-MAIL</label>
@@ -1728,8 +1773,8 @@
           <div class="admin-card">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
               <div>
-                <h3 style="color:var(--primary-dark);font-size:16px;">Administradores autorizados</h3>
-                <p class="mini-note">Somente você pode adicionar ou remover administradores comuns.</p>
+                <h3 style="color:var(--primary-dark);font-size:16px;">Equipe administrativa</h3>
+                <p class="mini-note">Gerencie somente os acessos operacionais cadastrados.</p>
               </div>
               <strong id="adminQtdAcessos" style="color:var(--color-icons-prices);">0 / 4</strong>
             </div>
@@ -1738,7 +1783,7 @@
         </div>
         <div class="admin-card" style="margin-top:14px;border-left:4px solid var(--primary-dark);">
           <strong><i class="fa-solid fa-lock"></i> Proteção administrativa</strong>
-          <p class="mini-note" style="margin-top:6px;">Hóspedes e anfitriões continuam podendo criar contas normais. Isso <strong>não</strong> concede acesso ao painel. Administrador só é liberado pela conta Principal.</p>
+          <p class="mini-note" style="margin-top:6px;">Hóspedes e anfitriões continuam podendo criar contas normais. Isso <strong>não</strong> concede acesso ao painel administrativo.</p>
         </div>
       </div>
 
@@ -1818,15 +1863,6 @@
       document.getElementById('reservaModal').style.display = 'none';
     }
 
-    function enviarPedidoReserva() {
-      if (!document.getElementById('clienteNome').value.trim() || !document.getElementById('clienteContato').value.trim()) {
-        alert('Por favor, preencha seu nome e contato.');
-        return;
-      }
-      document.getElementById('etapaReservaForm').style.display = 'none';
-      document.getElementById('etapaReservaSucesso').style.display = 'block';
-    }
-
     function setTipoCasa(tipo, btn) {
       tipoCasaSelecionado = tipo;
       btn.parentElement.querySelectorAll('.filter-pill-btn').forEach(b => b.classList.remove('active'));
@@ -1876,7 +1912,7 @@
 
 
   <script>
-    // ===== FLUXO COMPLETO SULBAHIAGO - PROTÓTIPO FUNCIONAL LOCAL =====
+    // ===== FLUXO PRINCIPAL SULBAHIAGO =====
     const catalogoSulbahiago = {};
 
     let authModo = 'login';
@@ -1890,10 +1926,7 @@
     let usuarioSupabaseAtual = null;
     let perfilSupabaseAtual = null;
 
-    function getUser(){ try{return JSON.parse(localStorage.getItem('sulbahiago_user'))}catch(e){return null} }
-    function setUser(u){ localStorage.setItem('sulbahiago_user', JSON.stringify(u)); atualizarUsuarioHeader(); }
-    // V4: reservas antigas do protótipo não são mais utilizadas.
-    // Toda reserva válida agora vem exclusivamente do Supabase.
+    // Toda reserva válida vem exclusivamente do Supabase.
     function getReservas(){ return []; }
     function setReservas(r){ /* legado desativado: não grava reservas no localStorage */ }
     try{
@@ -1956,26 +1989,6 @@
       const item=catalogoSulbahiago[imovelSelecionado];
       abrirReservaModal(imovelSelecionado,item.preco);
       const u=getUser(); if(u){ document.getElementById('clienteNome').value=u.nome; document.getElementById('clienteContato').value=u.email; }
-    }
-
-    // sobrescreve a função anterior e agora grava a solicitação de verdade no navegador
-    function enviarPedidoReserva(){
-      const nome=document.getElementById('clienteNome').value.trim();
-      const contato=document.getElementById('clienteContato').value.trim();
-      const checkin=document.getElementById('modalCheckin').value;
-      const checkout=document.getElementById('modalCheckout').value;
-      const hospedes=Number(document.getElementById('modalHospedes').value)||1;
-      if(!nome||!contato||!checkin||!checkout){ alert('Preencha nome, contato, check-in e check-out.'); return; }
-      if(new Date(checkout)<=new Date(checkin)){ alert('O check-out deve ser depois do check-in.'); return; }
-      const item=catalogoSulbahiago[nomeImovelGlobal]||{preco:precoBaseGlobal,alta:precoAltaGlobal,local:'Prado - BA'};
-      const alta=verificarSeEhAltaTemporada(checkin); const diaria=(alta?item.alta:item.preco)*hospedes;
-      const noites=Math.max(1,Math.round((new Date(checkout)-new Date(checkin))/86400000));
-      const total=diaria*noites;
-      const reserva={id:uid(),imovel:nomeImovelGlobal,local:item.local,cliente:nome,contato,checkin,checkout,hospedes,noites,diaria,total,status:'solicitada',pago:false,checkinFeito:false,avaliada:false,criadaEm:new Date().toISOString(),mensagens:[{de:'host',texto:'Recebemos sua solicitação. Vamos analisar a disponibilidade.'}]};
-      const arr=getReservas(); arr.unshift(reserva); setReservas(arr); reservaAtivaId=reserva.id;
-      document.getElementById('etapaReservaForm').style.display='none'; document.getElementById('etapaReservaSucesso').style.display='block';
-      const success=document.querySelector('#etapaReservaSucesso p'); if(success) success.textContent=`Pedido ${reserva.id} enviado com sucesso. Aguarde a confirmação da hospedagem.`;
-      renderMinhasReservas(); renderAnfitriao();
     }
 
     function statusLabel(r){
@@ -2080,7 +2093,7 @@
 
     async function usuarioEhAdminPrincipal(){
       const { data, error } = await sb.rpc('is_current_user_principal');
-      if(error){ console.error('Erro ao verificar administrador principal:', error); return false; }
+      if(error){ console.error('Erro ao verificar permissão de acesso:', error); return false; }
       return data === true;
     }
 
@@ -2113,7 +2126,7 @@
         const autorizado=await usuarioEhAdmin();
         if(!autorizado){
           await sb.auth.signOut();
-          throw new Error('Esta conta não foi autorizada como administrador pelo Administrador Principal.');
+          throw new Error('Esta conta não possui acesso ao painel administrativo.');
         }
         fecharModal('adminLoginModal');
         document.getElementById('adminLoginSenha').value='';
@@ -2152,19 +2165,18 @@
         const principal=await usuarioEhAdminPrincipal();
         if(!principal){
           const tab=document.getElementById('tabAdminAcessos'); if(tab) tab.style.display='none';
-          lista.innerHTML='<p class="mini-note">Área exclusiva do Administrador Principal.</p>'; return;
+          lista.innerHTML=''; return;
         }
         const {data,error}=await sb.rpc('principal_list_admins');
         if(error) throw error;
-        const admins=Array.isArray(data)?data:[];
+        const admins=(Array.isArray(data)?data:[]).filter(a=>a.role!=='principal');
         if(qtd) qtd.textContent=`${admins.length} / 4`;
         document.getElementById('btnAutorizarSegundoAdmin').disabled=admins.length>=4;
-        if(!admins.length){ lista.innerHTML='<p class="mini-note">Nenhum administrador encontrado.</p>'; return; }
+        if(!admins.length){ lista.innerHTML='<p class="mini-note">Nenhum administrador operacional cadastrado.</p>'; return; }
         lista.innerHTML=admins.map(a=>{
-          const principalRole=a.role==='principal';
           return `<div class="admin-res-item" style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <div style="min-width:0;"><strong>${adminEsc(a.nome||a.email||'Conta administrativa')}</strong>${a.nome?`<br><span class="mini-note">${adminEsc(a.email||'')}</span>`:''}<br><span class="mini-note">${principalRole?'Administrador Principal':'Administrador'} · ${principalRole?'controle de acessos':'gestão do site'}</span></div>
-            ${principalRole?'[PROTEGIDO]':`<button class="btn-danger-lite" onclick="adminRemoverSegundo('${a.user_id}')"><i class="fa-solid fa-user-minus"></i> Remover</button>`}
+            <div style="min-width:0;"><strong>${adminEsc(a.nome||a.email||'Conta administrativa')}</strong>${a.nome?`<br><span class="mini-note">${adminEsc(a.email||'')}</span>`:''}<br><span class="mini-note">Administrador · gestão operacional do site</span></div>
+            <button class="btn-danger-lite" onclick="adminRemoverSegundo('${a.user_id}')"><i class="fa-solid fa-user-minus"></i> Remover</button>
           </div>`;
         }).join('');
       }catch(e){
@@ -2184,13 +2196,13 @@
       if(!email||!email.includes('@')){ adminAcessoMensagem('Informe um e-mail válido.'); return; }
       if(senha.length<6){ adminAcessoMensagem('A senha provisória deve ter pelo menos 6 caracteres.'); return; }
       if(senha!==senha2){ adminAcessoMensagem('As duas senhas não são iguais.'); return; }
-      if(!(await usuarioEhAdminPrincipal())){ adminAcessoMensagem('Somente o Administrador Principal pode criar administradores.'); return; }
+      if(!(await usuarioEhAdminPrincipal())){ adminAcessoMensagem('Sua conta não possui permissão para controlar acessos.'); return; }
       if(!confirm(`Criar a conta administrativa de ${nome} (${email})?`)) return;
 
       btn.disabled=true;
       btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Criando...';
       try{
-        // Cliente separado: cria a conta sem substituir a sessão do Administrador Principal.
+        // Cliente separado: cria a conta sem substituir a sessão administrativa atual.
         const cadastroClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
           auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
         });
@@ -2260,21 +2272,6 @@
     }
 
     function adminEsc(v){ return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
-
-    function normalizarListaSupabase(valor){
-      if(Array.isArray(valor)) return valor.filter(Boolean).map(v=>String(v).trim()).filter(Boolean);
-      if(valor==null || valor==='') return [];
-      if(typeof valor==='string'){
-        const s=valor.trim();
-        if(!s) return [];
-        try{
-          const parsed=JSON.parse(s);
-          if(Array.isArray(parsed)) return parsed.filter(Boolean).map(v=>String(v).trim()).filter(Boolean);
-        }catch(e){}
-        return s.split(',').map(v=>v.trim()).filter(Boolean);
-      }
-      return [String(valor).trim()].filter(Boolean);
-    }
 
     function normalizarFotosSupabase(valor){
       return normalizarListaSupabase(valor);
@@ -2573,7 +2570,7 @@
     // ===== HOSPEDAGENS DINÂMICAS + SUPABASE STORAGE =====
     async function trocarAdminAba(aba){
       const reservas=aba==='reservas', calendario=aba==='calendario', anuncios=aba==='anuncios', publicados=aba==='hospedagens', galeria=aba==='galeria', acessos=aba==='acessos';
-      if(acessos && !(await usuarioEhAdminPrincipal())){ alert('Esta área é exclusiva do Administrador Principal.'); return; }
+      if(acessos && !(await usuarioEhAdminPrincipal())){ alert('Sua conta não possui permissão para controlar acessos.'); return; }
       document.getElementById('adminSecReservas').classList.toggle('active',reservas);
       document.getElementById('adminSecCalendario').classList.toggle('active',calendario);
       document.getElementById('adminSecAnuncios').classList.toggle('active',anuncios);
@@ -2815,6 +2812,7 @@
       const comodidades=document.getElementById('adminHospComodidades').value.split(',').map(x=>x.trim()).filter(Boolean);
       const descricao=document.getElementById('adminHospDescricao').value.trim();
       const status=document.getElementById('adminHospStatus').value;
+      const detalhes={quartos:Number(document.getElementById('adminHospQuartos')?.value)||0,camas:Number(document.getElementById('adminHospCamas')?.value)||0,banheiros:Number(document.getElementById('adminHospBanheiros')?.value)||0,min_noites:Math.max(1,Number(document.getElementById('adminHospMinNoites')?.value)||1),checkin_hora:document.getElementById('adminHospCheckinHora')?.value||'14:00',checkout_hora:document.getElementById('adminHospCheckoutHora')?.value||'11:00',preco_original:Math.max(Number(document.getElementById('adminHospPrecoOriginal')?.value)||preco,preco),promo_inicio:document.getElementById('adminHospPromoInicio')?.value||'',promo_fim:document.getElementById('adminHospPromoFim')?.value||'',unidades:Math.max(1,Number(document.getElementById('adminHospUnidades')?.value)||1),urgencia:document.getElementById('adminHospUrgencia')?.value||'automatico',desconto_3_noites:Math.min(100,Math.max(0,Number(document.getElementById('adminHospDesc3')?.value)||0)),desconto_7_noites:Math.min(100,Math.max(0,Number(document.getElementById('adminHospDesc7')?.value)||0)),acomodacoes:(document.getElementById('adminHospAcomodacoes')?.value||'').trim(),preco_alta:Number(document.getElementById('adminHospPrecoAlta')?.value)||preco,taxa_limpeza:Number(document.getElementById('adminHospTaxaLimpeza')?.value)||0,mapa:document.getElementById('adminHospMapa')?.value?.trim()||local,politica:document.getElementById('adminHospPolitica')?.value||'flexivel',cupom:document.getElementById('adminHospCupom')?.value?.trim().toUpperCase()||'',desconto:Math.min(100,Math.max(0,Number(document.getElementById('adminHospDesconto')?.value)||0))};
       const files=[...adminNovasFotos];
       const btn=document.getElementById('btnSalvarHospedagem');
       if(!proprietario_nome||!proprietario_contato||!proprietario_email||!nome||!local||preco<=0){ alert('Preencha proprietário, WhatsApp/contato, e-mail do anfitrião, nome do imóvel, localização e valor da diária.'); return; }
@@ -2834,7 +2832,7 @@
         if(adminCapaSelecionada?.tipo==='nova') capaUrl=novasFotos[Number(adminCapaSelecionada.valor)] || null;
         if(capaUrl && fotosCombinadas.includes(capaUrl)) fotosCombinadas=[capaUrl,...fotosCombinadas.filter(u=>u!==capaUrl)];
 
-        const payload={id:registroId,proprietario_nome,proprietario_email,proprietario_contato,nome,local,tipo,preco,max_hospedes,comodidades,descricao,fotos:fotosCombinadas,status,ativo:(status==='aprovado')};
+        const payload={id:registroId,proprietario_nome,proprietario_email,proprietario_contato,nome,local,tipo,preco,max_hospedes,comodidades,descricao,detalhes,fotos:fotosCombinadas,status,ativo:(status==='aprovado')};
         const {error}=await sb.from('hospedagens').upsert(payload,{onConflict:'id'}); if(error) throw error;
         limparFormHospedagem();
         await Promise.all([renderAdminHospedagens(),preencherSelectHospedagens(),carregarHospedagensPublicas()]);
@@ -2844,8 +2842,9 @@
     }
 
     function limparFormHospedagem(){
-      ['adminHospedagemId','adminPropNome','adminPropContato','adminPropEmail','adminHospNome','adminHospLocal','adminHospPreco','adminHospComodidades','adminHospDescricao'].forEach(id=>document.getElementById(id).value='');
+      ['adminHospedagemId','adminPropNome','adminPropContato','adminPropEmail','adminHospNome','adminHospLocal','adminHospPrecoOriginal','adminHospPreco','adminHospComodidades','adminHospDescricao'].forEach(id=>document.getElementById(id).value='');
       document.getElementById('adminHospMax').value='2'; document.getElementById('adminHospStatus').value='pendente'; document.getElementById('adminHospFotos').value='';
+      [['adminHospPromoInicio',''],['adminHospPromoFim',''],['adminHospUnidades','1'],['adminHospUrgencia','automatico'],['adminHospDesc3','5'],['adminHospDesc7','10'],['adminHospAcomodacoes',''],['adminHospQuartos','1'],['adminHospCamas','1'],['adminHospBanheiros','1'],['adminHospMinNoites','1'],['adminHospCheckinHora','14:00'],['adminHospCheckoutHora','11:00'],['adminHospPrecoAlta',''],['adminHospTaxaLimpeza','0'],['adminHospMapa',''],['adminHospPolitica','flexivel'],['adminHospCupom',''],['adminHospDesconto','0']].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});
       adminFotosExistentes=[]; adminNovasFotos=[]; adminCapaSelecionada=null; renderPreviewFotosHospedagem();
       document.getElementById('btnCancelarEdicaoHosp').style.display='none';
     }
@@ -2854,6 +2853,7 @@
       const {data:h,error}=await sb.from('hospedagens').select('*').eq('id',id).single(); if(error){alert(error.message);return;}
       document.getElementById('adminHospedagemId').value=h.id; document.getElementById('adminPropNome').value=h.proprietario_nome||'';
       const elPropEmail=document.getElementById('adminPropEmail'); if(elPropEmail) elPropEmail.value=h.proprietario_email||''; document.getElementById('adminPropContato').value=h.proprietario_contato||''; document.getElementById('adminHospNome').value=h.nome||''; document.getElementById('adminHospLocal').value=h.local||''; document.getElementById('adminHospTipo').value=h.tipo||'Casa Temporada'; document.getElementById('adminHospPreco').value=h.preco||0; document.getElementById('adminHospMax').value=h.max_hospedes||2; document.getElementById('adminHospComodidades').value=normalizarListaSupabase(h.comodidades).join(', '); document.getElementById('adminHospDescricao').value=h.descricao||''; document.getElementById('adminHospStatus').value=h.status||'pendente';
+      const det=h.detalhes||{};[['adminHospPrecoOriginal',det.preco_original||h.preco||0],['adminHospPromoInicio',det.promo_inicio||''],['adminHospPromoFim',det.promo_fim||''],['adminHospUnidades',det.unidades||1],['adminHospUrgencia',det.urgencia||'automatico'],['adminHospDesc3',det.desconto_3_noites??5],['adminHospDesc7',det.desconto_7_noites??10],['adminHospAcomodacoes',det.acomodacoes||''],['adminHospQuartos',det.quartos??1],['adminHospCamas',det.camas??1],['adminHospBanheiros',det.banheiros??1],['adminHospMinNoites',det.min_noites??1],['adminHospCheckinHora',det.checkin_hora||'14:00'],['adminHospCheckoutHora',det.checkout_hora||'11:00'],['adminHospPrecoAlta',det.preco_alta||''],['adminHospTaxaLimpeza',det.taxa_limpeza||0],['adminHospMapa',det.mapa||h.local||''],['adminHospPolitica',det.politica||'flexivel'],['adminHospCupom',det.cupom||''],['adminHospDesconto',det.desconto||0]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});
       adminFotosExistentes=normalizarFotosSupabase(h.fotos);
       adminNovasFotos=[];
       adminCapaSelecionada=adminFotosExistentes.length?{tipo:'existente',valor:adminFotosExistentes[0]}:null;
@@ -2972,6 +2972,7 @@
             comodidades,
             imagens: imgs.length ? imgs : [''],
             descricao:h.descricao||''
+            ,detalhes:h.detalhes||{},max_hospedes:h.max_hospedes||1,alta:Number(h.detalhes?.preco_alta)||preco
           };
 
           const c=document.createElement('div');
@@ -2982,9 +2983,11 @@
           c.dataset.altaprice=preco;
           c.dataset.tipo=h.tipo||'Casa Temporada';
           c.dataset.comodidades=comodidades.join(',');
+          c.dataset.quartos=String(h.detalhes?.quartos||0);c.dataset.camas=String(h.detalhes?.camas||0);c.dataset.banheiros=String(h.detalhes?.banheiros||0);c.dataset.maxHospedes=String(h.max_hospedes||1);
 
           const capa=imgs[0]||'';
-          c.innerHTML=`<div class="card-img"><span class="badge">${adminEsc(h.tipo||'Hospedagem')}</span>${capa?`<img src="${adminEsc(capa)}" class="ativo" alt="${adminEsc(nome)}">`:'<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#eef2f3;color:#667085">Sem foto</div>'}</div><div class="card-info"><div class="card-header"><h3>${adminEsc(nome)}</h3><span class="rating"><i class="fa-solid fa-star"></i> Novo</span></div><p class="location">${adminEsc(local)}</p><div class="property-details-tag"><span><i class="fa-solid fa-user-group"></i> Até ${h.max_hospedes||1} hóspedes</span>${comodidades.slice(0,2).map(a=>`<span><i class="fa-solid fa-check"></i> ${adminEsc(a)}</span>`).join('')}</div><div class="card-actions-bottom"><div class="card-price-row"><span class="price card-price-display">${brl(preco)} <small>/ noite</small></span><button class="btn-book btn-book-dinamico" type="button">Reservar</button></div></div></div>`;
+          const precoOriginal=Math.max(Number(h.detalhes?.preco_original)||preco,preco),temPromocao=precoOriginal>preco&&(!h.detalhes?.promo_inicio||new Date().toISOString().slice(0,10)>=h.detalhes.promo_inicio)&&(!h.detalhes?.promo_fim||new Date().toISOString().slice(0,10)<=h.detalhes.promo_fim);
+          c.innerHTML=`<div class="card-img"><span class="badge">${adminEsc(h.tipo||'Hospedagem')}</span>${capa?`<img src="${adminEsc(capa)}" class="ativo" alt="${adminEsc(nome)}">`:'<div style="height:100%;display:flex;align-items:center;justify-content:center;background:#eef2f3;color:#667085">Sem foto</div>'}</div><div class="card-info"><div class="card-header"><h3>${adminEsc(nome)}</h3><span class="rating"><i class="fa-solid fa-star"></i> Novo</span></div><p class="location">${adminEsc(local)}</p><div class="property-details-tag"><span><i class="fa-solid fa-user-group"></i> Até ${h.max_hospedes||1} hóspedes</span>${comodidades.slice(0,2).map(a=>`<span><i class="fa-solid fa-check"></i> ${adminEsc(a)}</span>`).join('')}</div><div class="card-actions-bottom"><div class="card-price-row"><span class="price card-price-display">${temPromocao?`<span class="promo-card-price"><span class="promo-card-old">${brl(precoOriginal)}</span><span class="promo-card-new">${brl(preco)}</span><small>/ noite</small><span class="promo-card-badge">Oferta</span></span>`:`${brl(preco)} <small>/ noite</small>`}</span><button class="btn-book btn-book-dinamico" type="button">Reservar</button></div></div></div>`;
           const imgCard=c.querySelector('.card-img');
           if(imgs.length) montarCarrosselCard(imgCard,imgs,nome);
           const btnReservarDinamico=c.querySelector('.btn-book-dinamico');
@@ -3064,10 +3067,12 @@
       const btn=document.getElementById('btnAuthPrincipal');
       if(!email || !senha || (authModo==='cadastro' && !nome)){ alert('Preencha os campos obrigatórios.'); return; }
       if(senha.length<6){ alert('A senha precisa ter pelo menos 6 caracteres.'); return; }
+      if(typeof v40LoginPermitido==='function'&&!v40LoginPermitido(email)){alert('Muitas tentativas incorretas. Aguarde 15 minutos e tente novamente.');return;}
+      const captchaToken=window.v40CaptchaToken||undefined;
       btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Aguarde...';
       try{
         if(authModo==='cadastro'){
-          const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:{nome,papel}}});
+          const {data,error}=await sb.auth.signUp({email,password:senha,options:{data:{nome,papel},captchaToken}});
           if(error) throw error;
           if(!data.session){
             alert('Conta criada. Confira seu e-mail para confirmar o cadastro e depois entre no SULBAHIAGO.');
@@ -3075,9 +3080,10 @@
             return;
           }
         }else{
-          const {error}=await sb.auth.signInWithPassword({email,password:senha});
+          const {error}=await sb.auth.signInWithPassword({email,password:senha,options:{captchaToken}});
           if(error) throw error;
         }
+        if(typeof v40LimparFalhas==='function')v40LimparFalhas(email);
         await sincronizarSessaoHospede();
         if(getUser()?.papel==='anfitriao'){
           const {data:qtd,error:vincErro}=await sb.rpc('sulbahiago_vincular_meus_imoveis');
@@ -3088,6 +3094,7 @@
         if(destino==='reserva') await continuarParaReserva();
         else if(destino==='reservas') await abrirContaOuLogin();
       }catch(e){
+        if(typeof v40RegistrarFalha==='function')v40RegistrarFalha(email);
         const msg=e?.message==='Invalid login credentials'?'E-mail ou senha incorretos.':(e?.message||'Não foi possível entrar.');
         alert(msg);
       }finally{
@@ -3183,7 +3190,7 @@
       return achado;
     }
 
-    enviarPedidoReserva = async function(){
+    window.enviarPedidoReserva = async function(){
       const u=getUser();
       if(!u?.id){ abrirAuthModal('login','reserva'); return; }
       const nome=document.getElementById('clienteNome').value.trim();
@@ -3221,11 +3228,24 @@
         if(disponivel!==true){ alert('Este período já está ocupado ou possui uma solicitação em andamento. Escolha outras datas.'); return; }
         const item=catalogoSulbahiago[nomeImovelGlobal]||{};
         const alta=verificarSeEhAltaTemporada(checkin);
-        const base=Number(hosp.preco ?? hosp.diaria ?? item.preco ?? precoBaseGlobal ?? 0);
-        const altaValor=Number(item.alta ?? precoAltaGlobal ?? base);
+        const detalhes=item.detalhes||{};
+        const acomodacaoEscolhida=(typeof v44AcomodacaoSelecionada==='function'?v44AcomodacaoSelecionada(detalhes):null);
+        const precoCadastrado=Number(acomodacaoEscolhida?.preco || (hosp.preco ?? hosp.diaria ?? item.preco ?? precoBaseGlobal ?? 0));
+        const precoOriginal=Math.max(Number(detalhes.preco_original)||precoCadastrado,precoCadastrado);
+        const promocaoAtiva=typeof v44PromocaoAtiva==='function'?v44PromocaoAtiva(detalhes,checkin):true;
+        const base=promocaoAtiva?precoCadastrado:precoOriginal;
+        const altaValor=Number(detalhes.preco_alta ?? item.alta ?? precoAltaGlobal ?? base);
         const diaria=(alta?altaValor:base)*hospedes;
         const noites=Math.max(1,Math.round((new Date(checkout)-new Date(checkin))/86400000));
-        const total=diaria*noites;
+        const minimo=Math.max(1,Number(detalhes.min_noites)||1);
+        if(noites<minimo){alert(`Esta hospedagem exige no mínimo ${minimo} noite(s).`);return;}
+        const taxaLimpeza=Number(detalhes.taxa_limpeza)||0;
+        const cupomDigitado=(document.getElementById('v39CupomReserva')?.value||'').trim().toUpperCase();
+        const descontoCupom=(cupomDigitado&&cupomDigitado===String(detalhes.cupom||'').toUpperCase())?Math.min(100,Number(detalhes.desconto)||0):0;
+        const descontoEstadia=noites>=7?Number(detalhes.desconto_7_noites)||0:noites>=3?Number(detalhes.desconto_3_noites)||0:0;
+        const desconto=Math.max(descontoCupom,descontoEstadia);
+        const subtotal=diaria*noites;
+        const total=Math.max(0,subtotal-(subtotal*desconto/100)+taxaLimpeza);
         const {data:reserva,error}=await sb.from('sulbahiago_reservas').insert({
           hospedagem_id:String(hosp.id), imovel:nomeImovelGlobal, local:hosp.local||hosp.localizacao||item.local||'Prado - BA',
           hospede_id:u.id, anfitriao_id:hosp.anfitriao_id||null, cliente_nome:nome, cliente_contato:contato,
@@ -3236,7 +3256,7 @@
         if(error) throw error;
         reservaAtivaId=reserva.id;
         const formaPagamentoLabel=formaPagamento==='pix'?'PIX':'Cartão de crédito';
-        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:`Olá! Enviei esta solicitação de reserva. Forma de pagamento escolhida: ${formaPagamentoLabel}. Estou aguardando a confirmação de disponibilidade do proprietário.`});
+        await sb.from('sulbahiago_mensagens_reserva').insert({reserva_id:reserva.id,remetente_id:u.id,tipo:'texto',mensagem:`Olá! Enviei esta solicitação de reserva${acomodacaoEscolhida?.nome?` para ${acomodacaoEscolhida.nome}`:''}. Forma de pagamento escolhida: ${formaPagamentoLabel}. Estou aguardando a confirmação de disponibilidade do proprietário.`});
         document.getElementById('etapaReservaForm').style.display='none';
         document.getElementById('etapaReservaSucesso').style.display='block';
         const success=document.querySelector('#etapaReservaSucesso p');
@@ -3646,6 +3666,7 @@
         baixarPdfProfissional(nome,{
           codigo,
           confirmada,
+          statusTitulo,
           hospede: pdfSemAcento(r.cliente_nome||'Hospede'),
           imovel: pdfSemAcento(r.imovel||'Hospedagem'),
           local: pdfSemAcento(r.local||'Prado - Bahia'),
@@ -3725,7 +3746,7 @@
         const confirmado=conflitos.some(r=>r.status==='confirmada'||r.status==='concluida'||r.pagamento_confirmado);
         const pendente=!confirmado && conflitos.length>0;
         const passado=dt<hoje;
-        let cls=(confirmado||passado)?'booked':(pendente?'pending':'available');
+        let cls=confirmado?'booked':(passado?'unavailable':(pendente?'pending':'available'));
         let title=passado?'Data indisponível':confirmado?'Ocupado':pendente?'Solicitação em análise':'Disponível';
         out+=`<div class="detail-cal-day ${cls}" title="${title}" ${cls==='available'?`onclick="selecionarDataDetalhe('${iso}')"`:''}>${d}</div>`;
       }
@@ -4321,6 +4342,7 @@ renderMinhasReservas = async function(){
   q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
   const {data:arr,error}=await q;
   if(error){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Não foi possível carregar</h3><p>'+adminEsc(error.message)+'</p></div>'; return; }
+  window.sulbahiagoReservasCache={userId:u.id,em:Date.now(),dados:arr||[]};
   if(!arr?.length){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><h3>Nenhuma reserva ainda</h3></div>'; return; }
   box.innerHTML=arr.map(r=>{
     const [lab,cls]=statusLabel(r); const codigo=r.codigo||String(r.id).slice(0,8).toUpperCase();
@@ -4409,7 +4431,7 @@ gerarComprovanteReservaPDF = async function(referencia=null){
     const noites=calcularNoitesReserva(r.checkin,r.checkout), total=Number(r.total)||0, diaria=noites?total/noites:total;
     const cancelInfo=String(r.cancelamento_status||'').toLowerCase()==='reembolsado'?'CANCELADA - REEMBOLSO CONFIRMADO':'RESERVA CANCELADA';
     const nome=`SULBAHIAGO_${codigo}_CANCELADA.pdf`.replace(/[^A-Za-z0-9_.-]/g,'_');
-    baixarPdfProfissional(nome,{codigo,confirmada:false,hospede:pdfSemAcento(r.cliente_nome||'Hospede'),imovel:pdfSemAcento(r.imovel||'Hospedagem'),local:pdfSemAcento(r.local||'Prado - Bahia'),checkin:dataBR(r.checkin),checkout:dataBR(r.checkout),hospedes:String(r.hospedes||1),noites:String(noites),diaria:brl(diaria),total:brl(total),geradoEm:pdfSemAcento(new Date().toLocaleString('pt-BR'))});
+    baixarPdfProfissional(nome,{codigo,confirmada:false,statusTitulo:cancelInfo,hospede:pdfSemAcento(r.cliente_nome||'Hospede'),imovel:pdfSemAcento(r.imovel||'Hospedagem'),local:pdfSemAcento(r.local||'Prado - Bahia'),checkin:dataBR(r.checkin),checkout:dataBR(r.checkout),hospedes:String(r.hospedes||1),noites:String(noites),diaria:brl(diaria),total:brl(total),geradoEm:pdfSemAcento(new Date().toLocaleString('pt-BR'))});
     alert(`${cancelInfo}. Retenção: ${Number(r.cancelamento_taxa_percentual)||0}% (${brl(Number(r.cancelamento_taxa_valor)||0)}). Reembolso registrado: ${brl(Number(r.cancelamento_reembolso_valor)||0)}.`);
     return;
   }
@@ -4516,7 +4538,7 @@ document.addEventListener('DOMContentLoaded',()=>{ setTimeout(()=>{ if(typeof ca
 
 <!-- ===== SULBAHIAGO V32: LINHA DO TEMPO + CHECK-IN/OUT + FINANCEIRO + NOTIFICAÇÕES ===== -->
 <style id="v32Styles">
-.v32-timeline{display:flex;gap:0;align-items:flex-start;margin:14px 0 8px;overflow-x:auto;padding:4px 2px 8px}.v32-step{min-width:112px;flex:1;position:relative;text-align:center;color:#98a2b3;font-size:10px;font-weight:800}.v32-step:before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:3px;background:#e4e7ec}.v32-step:first-child:before{display:none}.v32-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:#e4e7ec;color:#667085;position:relative;z-index:2}.v32-step.ok{color:#1A5F20}.v32-step.ok .v32-dot{background:#1A5F20;color:#fff}.v32-step.ok:before{background:#1A5F20}.v32-step.current{color:#E65100}.v32-step.current .v32-dot{background:#fff3e8;color:#E65100;border:2px solid #E65100}.v32-time{display:block;font-size:9px;font-weight:500;margin-top:3px;color:#667085}.v32-fin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.v32-fin-card{border:1px solid #e4e7ec;border-radius:15px;padding:15px;background:#fff}.v32-fin-card span{font-size:11px;color:#667085;font-weight:700}.v32-fin-card strong{display:block;font-size:22px;color:#1A5F20;margin-top:5px}.v32-toast{position:fixed;right:18px;bottom:18px;z-index:20000;max-width:360px;background:#173f1b;color:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 12px 35px rgba(0,0,0,.22);display:none}.v32-toast.show{display:block;animation:v32in .22s ease-out}.v32-toast small{display:block;opacity:.82;margin-top:4px}.v32-check-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.v32-kpi-sub{font-size:10px;color:#667085;margin-top:4px}.v32-fin-list{display:grid;gap:8px;margin-top:12px}.v32-fin-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:8px 0;font-size:12px}@keyframes v32in{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}@media(max-width:760px){.v32-fin-grid{grid-template-columns:1fr 1fr}.v32-step{min-width:95px}}
+.v32-timeline{display:flex;gap:0;align-items:flex-start;margin:14px 0 8px;overflow-x:auto;padding:4px 2px 8px}.v32-step{min-width:112px;flex:1;position:relative;text-align:center;color:#98a2b3;font-size:10px;font-weight:800}.v32-step:before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:3px;background:#e4e7ec}.v32-step:first-child:before{display:none}.v32-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:#e4e7ec;color:#667085;position:relative;z-index:2}.v32-step.ok{color:#1A5F20}.v32-step.ok .v32-dot{background:#1A5F20;color:#fff}.v32-step.ok:before{background:#1A5F20}.v32-step.current{color:#E65100}.v32-step.current .v32-dot{background:#fff3e8;color:#E65100;border:2px solid #E65100}.v32-time{display:block;font-size:9px;font-weight:500;margin-top:3px;color:#667085}.v32-fin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}.v32-fin-card{border:1px solid #e4e7ec;border-radius:15px;padding:15px;background:#fff}.v32-fin-card span{font-size:11px;color:#667085;font-weight:700}.v32-fin-card strong{display:block;font-size:22px;color:#1A5F20;margin-top:5px}.v32-toast{position:fixed;right:18px;bottom:18px;z-index:20000;max-width:360px;background:#173f1b;color:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 12px 35px rgba(0,0,0,.22);display:none}.v32-toast.show{display:block;animation:v32in .22s ease-out}.v32-toast small{display:block;opacity:.82;margin-top:4px}.v32-check-panel{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0;padding:13px 14px;border:1px solid #d7e6d9;border-radius:13px;background:#f6fbf7}.v32-check-panel.waiting{border-color:#e4e7ec;background:#f8f9fa}.v32-check-panel.done{border-color:#b7dfc0;background:#eef9f0}.v32-check-info{display:flex;align-items:flex-start;gap:10px;min-width:0}.v32-check-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;background:#e5f3e8;color:#1A5F20}.v32-check-panel.waiting .v32-check-icon{background:#eceff1;color:#667085}.v32-check-info strong{display:block;color:#17491c;font-size:13px}.v32-check-info small{display:block;color:#667085;margin-top:3px;line-height:1.35}.v32-check-panel .btn-main-action{width:auto;flex:0 0 auto}.v32-kpi-sub{font-size:10px;color:#667085;margin-top:4px}.v32-fin-list{display:grid;gap:8px;margin-top:12px}.v32-fin-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #eee;padding:8px 0;font-size:12px}@keyframes v32in{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}@media(max-width:760px){.v32-fin-grid{grid-template-columns:1fr 1fr}.v32-step{min-width:95px}.v32-check-panel{align-items:stretch;flex-direction:column}.v32-check-panel .btn-main-action{width:100%!important}.dash-card>.action-row{display:grid;grid-template-columns:1fr 1fr}.dash-card>.action-row>*{width:100%;justify-content:center}.dash-card>.action-row .status-badge{grid-column:1/-1}}@media(max-width:480px){.dash-card>.action-row{grid-template-columns:1fr}}
 </style>
 <div id="v32Toast" class="v32-toast"></div>
 <script id="v32Script">
@@ -4540,8 +4562,24 @@ function v32LinhaTempo(r){
 function v32Toast(titulo,detalhe=''){
  const el=document.getElementById('v32Toast'); if(!el)return; el.innerHTML=`<strong>${adminEsc(titulo)}</strong>${detalhe?`<small>${adminEsc(detalhe)}</small>`:''}`; el.classList.add('show'); clearTimeout(window.v32ToastTimer); window.v32ToastTimer=setTimeout(()=>el.classList.remove('show'),5000);
 }
+async function v32ReservasUsuario(u,anfitriao){
+  const cache=window.sulbahiagoReservasCache;
+  if(cache?.userId===u.id&&Date.now()-cache.em<15000)return cache.dados;
+  let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});
+  q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
+  const {data,error}=await q;if(error)throw error;
+  window.sulbahiagoReservasCache={userId:u.id,em:Date.now(),dados:data||[]};return data||[];
+}
 async function v32RegistrarMovimento(id,tipo){
   const nome=tipo==='checkin'?'check-in':'check-out';
+  const u=getUser?.();
+  if(!u?.id){alert('Entre na sua conta para continuar.');return;}
+  const ehAnfitriao=u.papel==='anfitriao';
+  const ehAdmin=typeof usuarioEhAdmin==='function' ? await usuarioEhAdmin() : false;
+  if(!ehAnfitriao&&!ehAdmin){
+    alert('O check-in e o check-out são confirmados exclusivamente pelo anfitrião.');
+    return;
+  }
   if(!confirm(`Confirmar ${nome} desta reserva? Esta ação ficará registrada com data e hora.`))return;
   try{
     const fn=tipo==='checkin'?'sulbahiago_registrar_checkin':'sulbahiago_registrar_checkout';
@@ -4556,10 +4594,24 @@ async function v32RegistrarMovimento(id,tipo){
 async function v32EnriquecerMinhasReservas(){
   try{
     const u=getUser(); if(!u?.id)return; const anfitriao=u.papel==='anfitriao';
-    let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}); q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
-    const {data}=await q; const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
+    const data=await v32ReservasUsuario(u,anfitriao); const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
     (data||[]).forEach((r,i)=>{const c=cards[i];if(!c||c.querySelector('.v32-timeline'))return; const actions=c.querySelector('.action-row'); const wrap=document.createElement('div');wrap.innerHTML=v32LinhaTempo(r);c.insertBefore(wrap,actions||null);
-      if(anfitriao&&actions){const st=String(r.status||'').toLowerCase(); if((r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(st))&&!r.checkin_em){actions.insertAdjacentHTML('beforeend',`<button class="btn-main-action" style="width:auto" onclick="v32RegistrarMovimento('${r.id}','checkin')"><i class="fa-solid fa-key"></i> Registrar check-in</button>`)} if(r.checkin_em&&!r.checkout_em){actions.insertAdjacentHTML('beforeend',`<button class="btn-secondary" onclick="v32RegistrarMovimento('${r.id}','checkout')"><i class="fa-solid fa-door-open"></i> Registrar check-out</button>`)}}
+      if(actions){
+        const st=String(r.status||'').toLowerCase(),cancelada=['cancelada','recusada'].includes(st);
+        const confirmada=r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(st);
+        const checkoutConcluido=!!r.checkout_em||['concluida','finalizada'].includes(st);
+        let painel='';
+        if(anfitriao&&!cancelada&&confirmada&&!checkoutConcluido&&!r.checkin_em){
+          painel=`<div class="v32-check-panel"><div class="v32-check-info"><span class="v32-check-icon"><i class="fa-solid fa-key"></i></span><div><strong>Entrada do hóspede</strong><small>Confirme somente quando o hóspede chegar ao imóvel.</small></div></div><button class="btn-main-action" onclick="v32RegistrarMovimento('${r.id}','checkin')"><i class="fa-solid fa-key"></i> Confirmar entrada</button></div>`;
+        }else if(anfitriao&&!cancelada&&!checkoutConcluido&&r.checkin_em&&!r.checkout_em){
+          painel=`<div class="v32-check-panel"><div class="v32-check-info"><span class="v32-check-icon"><i class="fa-solid fa-door-open"></i></span><div><strong>Saída do hóspede</strong><small>A hospedagem está em andamento. Confirme após a entrega do imóvel.</small></div></div><button class="btn-main-action" onclick="v32RegistrarMovimento('${r.id}','checkout')"><i class="fa-solid fa-door-open"></i> Confirmar saída</button></div>`;
+        }else if(!cancelada&&checkoutConcluido){
+          painel='<div class="v32-check-panel done"><div class="v32-check-info"><span class="v32-check-icon"><i class="fa-solid fa-circle-check"></i></span><div><strong>Hospedagem finalizada</strong><small>Entrada e saída registradas com sucesso.</small></div></div></div>';
+        }else if(!anfitriao&&!cancelada&&confirmada){
+          painel='<div class="v32-check-panel waiting"><div class="v32-check-info"><span class="v32-check-icon"><i class="fa-solid fa-shield-halved"></i></span><div><strong>Controle da hospedagem</strong><small>O anfitrião confirmará sua entrada e sua saída.</small></div></div></div>';
+        }
+        if(painel)actions.insertAdjacentHTML('beforebegin',painel);
+      }
     });
   }catch(e){console.warn('V32 reservas:',e)}
 }
@@ -4609,9 +4661,8 @@ abrirAvaliacaoReal = async function(reservaId){
     if(r.hospede_id!==u.id){ alert('Somente o hóspede desta reserva pode avaliar.'); return; }
     const st=String(r.status||'').toLowerCase();
     if(['cancelada','recusada'].includes(st)){ alert('Reservas canceladas ou recusadas não podem ser avaliadas.'); return; }
-    const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
     const checkoutRegistrado=!!r.checkout_em || ['concluida','finalizada'].includes(st);
-    if(!checkoutRegistrado && !passou){ alert('A avaliação será liberada assim que o check-out for registrado.'); return; }
+    if(!checkoutRegistrado){ alert('A avaliação será liberada assim que o check-out for registrado.'); return; }
 
     // Uma avaliação por reserva.
     const {data:existente,error:errExist}=await sb.from('sulbahiago_avaliacoes').select('id').eq('reserva_id',r.id).maybeSingle();
@@ -4629,8 +4680,7 @@ abrirAvaliacaoReal = async function(reservaId){
 async function v33EnriquecerAvaliacaoCheckout(){
   try{
     const u=getUser(); if(!u?.id || u.papel==='anfitriao') return;
-    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').eq('hospede_id',u.id).order('created_at',{ascending:false});
-    if(error) throw error;
+    const reservas=await v32ReservasUsuario(u,false);
     const ids=(reservas||[]).map(r=>r.id);
     let avaliadas=new Set();
     if(ids.length){
@@ -4641,12 +4691,11 @@ async function v33EnriquecerAvaliacaoCheckout(){
     (reservas||[]).forEach((r,i)=>{
       const c=cards[i]; if(!c) return;
       const st=String(r.status||'').toLowerCase();
-      const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
-      const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st) || passou) && !['cancelada','recusada'].includes(st);
-      if(!liberada) return;
       const actions=c.querySelector('.action-row'); if(!actions) return;
-      // Remove botão antigo para não duplicar e aplica a regra correta do V33.
+      // Remove qualquer botão antigo: a avaliação só volta depois do check-out registrado.
       [...actions.querySelectorAll('button')].forEach(b=>{if((b.getAttribute('onclick')||'').includes('abrirAvaliacaoReal')) b.remove();});
+      const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st)) && !['cancelada','recusada'].includes(st);
+      if(!liberada) return;
       if(avaliadas.has(r.id)){
         if(!actions.querySelector('.v33-review-done')) actions.insertAdjacentHTML('beforeend','<span class="v33-review-done"><i class="fa-solid fa-circle-check"></i> Avaliação enviada</span>');
       }else{
@@ -4666,8 +4715,7 @@ renderChat=async function(){
     const r=reservaChatAtual,u=getUser(),resumo=document.getElementById('chatReservaResumo');
     if(!r||!u?.id||!resumo||r.hospede_id!==u.id||resumo.querySelector('.v33-review-callout')) return;
     const st=String(r.status||'').toLowerCase();
-    const passou=!!r.checkout && new Date(String(r.checkout)+'T23:59:59') < new Date();
-    const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st) || passou) && !['cancelada','recusada'].includes(st);
+    const liberada=(!!r.checkout_em || ['concluida','finalizada'].includes(st)) && !['cancelada','recusada'].includes(st);
     if(!liberada)return;
     const {data:av,error}=await sb.from('sulbahiago_avaliacoes').select('id').eq('reserva_id',r.id).maybeSingle();
     const box=document.createElement('div'); box.className='v33-review-callout';
@@ -4707,12 +4755,18 @@ async function v34EnriquecerPagamentoReservas(){
   try{
     const u=getUser(); if(!u?.id)return;
     const anfitriao=u.papel==='anfitriao';
-    let q=sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false});
-    q=anfitriao?q.eq('anfitriao_id',u.id):q.eq('hospede_id',u.id);
-    const {data:reservas,error}=await q; if(error)throw error;
+    const reservas=await v32ReservasUsuario(u,anfitriao);
     const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
     (reservas||[]).forEach((r,i)=>{
       const c=cards[i]; if(!c||c.querySelector('.v34-pay-strip'))return;
+      c.dataset.reservaId=r.id||'';
+      c.dataset.reservaCodigo=r.codigo||String(r.id||'').slice(0,8).toUpperCase();
+      c.dataset.reservaStatus=String(r.status||'solicitada').toLowerCase();
+      c.dataset.reservaCheckin=r.checkin||'';
+      c.dataset.reservaCheckout=r.checkout||'';
+      c.dataset.reservaCheckinEm=r.checkin_em||'';
+      c.dataset.reservaCheckoutEm=r.checkout_em||'';
+      c.dataset.reservaPagamento=r.pagamento_confirmado?'1':'0';
       const meta=c.querySelector('.reservation-meta'); if(!meta)return;
       const pago=Boolean(r.pagamento_confirmado)||['confirmada','concluida','finalizada'].includes(String(r.status||'').toLowerCase());
       const method=v34FormaPagamentoLabel(r.forma_pagamento);
@@ -4828,8 +4882,7 @@ renderMinhasReservas=async function(){
   await v35RenderMinhasBase();
   try{
     const u=getUser(); if(!u?.id||u.papel!=='anfitriao') return;
-    const {data:reservas,error}=await sb.from('sulbahiago_reservas').select('*').eq('anfitriao_id',u.id).order('created_at',{ascending:false});
-    if(error) throw error;
+    const reservas=await v32ReservasUsuario(u,true);
     const cards=[...document.querySelectorAll('#minhasReservasLista .dash-card')];
     (reservas||[]).forEach((r,i)=>{
       const c=cards[i]; if(!c||c.querySelector('.v35-pay-action'))return;
@@ -4845,6 +4898,863 @@ renderMinhasReservas=async function(){
 };
 </script>
 <!-- ===== FIM V35 ===== -->
+
+<!-- ===== SULBAHIAGO V36: ACABAMENTO PROFISSIONAL E NAVEGAÇÃO MOBILE ===== -->
+<style id="v36ProfessionalStyles">
+  html{scroll-behavior:smooth;scroll-padding-top:88px}
+  body{overflow-x:hidden}
+  button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+    outline:3px solid rgba(230,81,0,.34);outline-offset:3px
+  }
+  button:disabled{opacity:.58;cursor:not-allowed}
+  .btn-main-action,.btn-book,.btn-anunciar-cta,.btn-search-airbnb,.btn-reservar-topo,.btn-login-topo{
+    min-height:44px;transition:transform .18s ease,box-shadow .18s ease,background .18s ease
+  }
+  .btn-main-action:hover,.btn-book:hover,.btn-anunciar-cta:hover,.btn-search-airbnb:hover{
+    transform:translateY(-1px);box-shadow:0 8px 18px rgba(26,95,32,.16)
+  }
+  .trust-strip{background:#fff;border-bottom:1px solid var(--border-color)}
+  .trust-strip-inner{max-width:1180px;margin:auto;padding:14px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .trust-item{display:flex;align-items:center;justify-content:center;gap:9px;color:#35513a;font-size:12px;font-weight:750;text-align:left}
+  .trust-item i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#edf7ee;color:var(--primary-dark);flex:0 0 auto}
+  .cards-grid{align-items:stretch}
+  .property-card{height:100%;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+  .property-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(16,24,40,.12);border-color:#cedbd0}
+  .property-card .card-info{display:flex;flex-direction:column;height:calc(100% - 220px)}
+  .property-card .card-actions-bottom{margin-top:auto}
+  .search-field input,.search-field select,.filter-select-custom{min-height:44px}
+  .search-result-status{max-width:1180px;margin:0 auto;padding:0 24px;font-size:13px;color:#667085}
+  .modal-box{box-shadow:0 24px 80px rgba(11,31,16,.28)}
+  .modal-close{width:42px;height:42px;display:grid;place-items:center;border-radius:50%}
+  .admin-tabs{position:sticky;top:0;z-index:4;background:#fff;padding:5px 0 10px}
+  .admin-tab{min-height:42px}
+  .mobile-nav{display:none}
+  .v36-top-btn{position:fixed;right:18px;bottom:22px;width:44px;height:44px;border:0;border-radius:50%;background:var(--primary-dark);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22);z-index:890;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(10px);transition:.2s}
+  .v36-top-btn.show{opacity:1;visibility:visible;transform:none}
+  .v36-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+  @media(max-width:700px){
+    body{padding-bottom:72px}
+    header{height:64px;padding:0 12px}
+    .logo{font-size:17px;letter-spacing:1px}.logo i{font-size:19px}
+    .btn-login-topo{padding:8px 12px;font-size:12px;max-width:148px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hero-banner-section{padding:42px 14px 30px;min-height:470px}
+    .hero-title-col h1{font-size:30px}.hero-desc-col p{font-size:14px}
+    .search-box-container{padding:10px;border-radius:18px;gap:0}
+    .search-field{padding:7px 10px}.btn-search-airbnb{margin-top:8px}
+    .advanced-filters-bar{overflow-x:auto;display:flex;flex-wrap:nowrap;align-items:center;scrollbar-width:none;padding:12px 14px;gap:10px}
+    .advanced-filters-bar::-webkit-scrollbar{display:none}
+    .filter-group-inline,.filter-dropdown-inline{display:flex;flex-wrap:nowrap;flex:0 0 auto}
+    .filter-pill-btn,.filter-select-custom{white-space:nowrap}
+    .container{padding-left:14px;padding-right:14px}
+    .section-title{font-size:23px;line-height:1.2}
+    .banner-anunciar{padding:22px 17px;border-radius:17px}.banner-anunciar h2{font-size:21px}
+    .trust-strip-inner{padding:12px 14px;display:flex;overflow-x:auto;justify-content:flex-start;scroll-snap-type:x mandatory;scrollbar-width:none}
+    .trust-strip-inner::-webkit-scrollbar{display:none}.trust-item{flex:0 0 78%;justify-content:flex-start;scroll-snap-align:start}
+    .property-card:hover{transform:none}
+    .page-photo-banner{min-height:235px;padding:28px 20px;margin-bottom:34px}.page-photo-banner h1{font-size:34px}
+    .modal-overlay{padding:0;align-items:flex-end}
+    .modal-box{width:100%;max-width:none!important;max-height:92dvh;margin:0;border-radius:22px 22px 0 0;padding:22px 16px calc(22px + env(safe-area-inset-bottom));overflow-y:auto}
+    #adminModal .modal-box{height:96dvh;max-height:96dvh}
+    .admin-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+    .admin-tabs::-webkit-scrollbar{display:none}.admin-tab{white-space:nowrap;flex:0 0 auto}
+    .action-row>*{flex:1 1 100%;width:100%!important;justify-content:center}
+    .chat-compose input{min-width:0}
+    .mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:950;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.97);border-top:1px solid #dfe7df;box-shadow:0 -6px 22px rgba(16,24,40,.09);padding:7px 5px calc(7px + env(safe-area-inset-bottom));backdrop-filter:blur(12px)}
+    .mobile-nav button{border:0;background:transparent;color:#667085;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:750;min-height:47px;justify-content:center;cursor:pointer}
+    .mobile-nav button i{font-size:18px}.mobile-nav button.active{color:var(--primary-dark)}
+    .v36-top-btn{bottom:82px;right:14px}
+  }
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<nav class="mobile-nav" aria-label="Navegação principal no celular">
+  <button type="button" data-section="home" class="active" onclick="v36Navigate('home',this)"><i class="fa-solid fa-house"></i><span>Início</span></button>
+  <button type="button" data-section="hospedagens" onclick="v36Navigate('hospedagens',this)"><i class="fa-solid fa-bed"></i><span>Hospedagens</span></button>
+  <button type="button" data-section="galeria" onclick="v36Navigate('galeria',this)"><i class="fa-solid fa-images"></i><span>Galeria</span></button>
+  <button type="button" data-section="conta" onclick="v36Navigate('conta',this)"><i class="fa-solid fa-circle-user"></i><span>Minha conta</span></button>
+</nav>
+<button class="v36-top-btn" id="v36TopBtn" type="button" aria-label="Voltar ao topo" title="Voltar ao topo" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-arrow-up"></i></button>
+<div id="v36Live" class="v36-live" aria-live="polite"></div>
+
+<script id="v36ProfessionalScript">
+  function v36Navigate(destino,botao){
+    document.querySelectorAll('.mobile-nav button').forEach(b=>b.classList.toggle('active',b===botao));
+    if(destino==='conta'){abrirContaOuLogin();return}
+    if(destino==='hospedagens'){
+      mostrarSecao('home');
+      setTimeout(()=>document.getElementById('hospedagens')?.scrollIntoView({behavior:'smooth'}),80);
+      return;
+    }
+    mostrarSecao(destino);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function v36EnhanceInterface(){
+    const hero=document.querySelector('.hero-banner-section');
+    if(hero&&!document.querySelector('.trust-strip')){
+      hero.insertAdjacentHTML('afterend',`<section class="trust-strip" aria-label="Vantagens da plataforma"><div class="trust-strip-inner"><div class="trust-item"><i class="fa-solid fa-shield-halved"></i><span>Conta e conversas protegidas</span></div><div class="trust-item"><i class="fa-regular fa-calendar-check"></i><span>Disponibilidade organizada</span></div><div class="trust-item"><i class="fa-brands fa-whatsapp"></i><span>Atendimento direto e prático</span></div></div></section>`);
+    }
+    document.querySelectorAll('img:not([loading])').forEach((img,i)=>{if(i>1)img.loading='lazy';img.decoding='async';if(!img.alt)img.alt='Foto de hospedagem no sul da Bahia'});
+    document.querySelectorAll('.modal-overlay').forEach(m=>{m.setAttribute('role','dialog');m.setAttribute('aria-modal','true')});
+    document.querySelectorAll('.modal-close').forEach(b=>{b.setAttribute('aria-label','Fechar janela');b.title='Fechar'});
+    const search=document.getElementById('searchInput');if(search)search.setAttribute('aria-label','Destino ou nome da hospedagem');
+    const checkin=document.getElementById('checkinInput'),checkout=document.getElementById('checkoutInput');
+    const hoje=new Date().toISOString().slice(0,10);if(checkin)checkin.min=hoje;if(checkout)checkout.min=hoje;
+    checkin?.addEventListener('change',()=>{if(checkout){checkout.min=checkin.value||hoje;if(checkout.value&&checkout.value<=checkin.value)checkout.value=''}});
+  }
+
+  window.addEventListener('scroll',()=>document.getElementById('v36TopBtn')?.classList.toggle('show',window.scrollY>650),{passive:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const abertos=[...document.querySelectorAll('.modal-overlay')].filter(m=>getComputedStyle(m).display!=='none');const ultimo=abertos.at(-1);if(ultimo)ultimo.style.display='none'}});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v36EnhanceInterface);else v36EnhanceInterface();
+</script>
+<!-- ===== FIM V36 ===== -->
+
+<!-- ===== SULBAHIAGO V37: PAINEL ADMINISTRATIVO PROFISSIONAL ===== -->
+<style id="v37AdminDashboardStyles">
+  .v37-dashboard{margin:4px 0 18px}
+  .v37-dashboard-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .v37-dashboard-head h3{color:var(--primary-dark);font-size:19px;margin:0}
+  .v37-dashboard-head p{margin-top:3px}
+  .v37-update-time{font-size:10px;color:#667085;white-space:nowrap}
+  .v37-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .v37-kpi{position:relative;overflow:hidden;border:1px solid #e4e7ec;border-radius:15px;padding:13px;background:#fff;min-height:104px;box-shadow:0 4px 14px rgba(16,24,40,.04)}
+  .v37-kpi:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--kpi-color)}
+  .v37-kpi-icon{width:31px;height:31px;border-radius:9px;display:grid;place-items:center;background:var(--kpi-bg);color:var(--kpi-color);margin-bottom:8px}
+  .v37-kpi strong{display:block;font-size:24px;line-height:1;color:#1d2939}
+  .v37-kpi span{display:block;margin-top:6px;color:#667085;font-size:10px;font-weight:800;line-height:1.25;text-transform:uppercase;letter-spacing:.02em}
+  .v37-kpi.orange{--kpi-color:#d85b00;--kpi-bg:#fff2e8}.v37-kpi.red{--kpi-color:#c62828;--kpi-bg:#feecec}
+  .v37-kpi.blue{--kpi-color:#1565c0;--kpi-bg:#eaf3ff}.v37-kpi.yellow{--kpi-color:#9a6700;--kpi-bg:#fff7d6}.v37-kpi.green{--kpi-color:#1A5F20;--kpi-bg:#eaf6eb}
+  .v37-urgent{margin-top:12px;border:1px solid #e4e7ec;border-radius:15px;background:#fff;overflow:hidden}
+  .v37-urgent-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:#f8faf8;border-bottom:1px solid #e4e7ec}
+  .v37-urgent-title strong{color:#344054;font-size:13px}.v37-urgent-title i{color:#d85b00;margin-right:6px}
+  .v37-priority-count{font-size:10px;font-weight:900;background:#fff1e8;color:#b54708;border-radius:999px;padding:5px 8px}
+  .v37-urgent-list{display:grid;grid-template-columns:1fr 1fr}
+  .v37-urgent-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid #f0f2f0;font-size:12px}
+  .v37-urgent-item:nth-child(odd){border-right:1px solid #f0f2f0}
+  .v37-urgent-item strong{display:block;color:#344054;margin-bottom:2px}.v37-urgent-item .mini-note{font-size:10px}
+  .v37-urgent-item button{border:1px solid #d0d5dd;background:#fff;color:var(--primary-dark);border-radius:9px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .v37-all-good{grid-column:1/-1;padding:20px;text-align:center;color:var(--primary-dark);font-size:12px;font-weight:750;background:#f4fbf5}
+  .v37-loading{grid-column:1/-1;padding:18px;text-align:center;color:#667085;font-size:12px}
+  @media(max-width:850px){.v37-kpis{grid-template-columns:repeat(2,1fr)}.v37-kpi:last-child{grid-column:1/-1}.v37-urgent-list{grid-template-columns:1fr}.v37-urgent-item:nth-child(odd){border-right:0}}
+  @media(max-width:430px){.v37-kpi{min-height:96px;padding:12px}.v37-kpi strong{font-size:22px}.v37-urgent-item{align-items:flex-start}}
+</style>
+
+<script id="v37AdminDashboardScript">
+  function v37InstalarDashboard(){
+    const sec=document.getElementById('adminSecReservas');
+    if(!sec||document.getElementById('v37AdminDashboard'))return;
+    const painel=document.createElement('section');
+    painel.id='v37AdminDashboard';painel.className='v37-dashboard';
+    painel.innerHTML=`<div class="v37-dashboard-head"><div><h3><i class="fa-solid fa-chart-pie"></i> Resumo de hoje</h3><p class="mini-note">Acompanhe rapidamente o que precisa da sua atenção.</p></div><span id="v37UpdateTime" class="v37-update-time"></span></div><div class="v37-kpis"><div class="v37-kpi orange"><div class="v37-kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div><strong id="v37Pendentes">—</strong><span>Reservas pendentes</span></div><div class="v37-kpi red"><div class="v37-kpi-icon"><i class="fa-solid fa-house-lock"></i></div><strong id="v37Ocupadas">—</strong><span>Ocupações confirmadas</span></div><div class="v37-kpi blue"><div class="v37-kpi-icon"><i class="fa-solid fa-key"></i></div><strong id="v37Checkins">—</strong><span>Check-ins de hoje</span></div><div class="v37-kpi yellow"><div class="v37-kpi-icon"><i class="fa-solid fa-money-check-dollar"></i></div><strong id="v37Pagamentos">—</strong><span>Pagamentos pendentes</span></div><div class="v37-kpi green"><div class="v37-kpi-icon"><i class="fa-solid fa-house-circle-exclamation"></i></div><strong id="v37Anuncios">—</strong><span>Novos anúncios</span></div></div><div class="v37-urgent"><div class="v37-urgent-title"><strong><i class="fa-solid fa-bell"></i>Ações prioritárias</strong><span id="v37PriorityCount" class="v37-priority-count">Carregando</span></div><div id="v37UrgentList" class="v37-urgent-list"><div class="v37-loading"><i class="fa-solid fa-spinner fa-spin"></i> Atualizando painel...</div></div></div>`;
+    sec.insertBefore(painel,sec.firstChild);
+  }
+
+  function v37IrPara(aba){
+    trocarAdminAba(aba);
+    setTimeout(()=>{
+      const alvo=aba==='anuncios'?document.getElementById('adminSecAnuncios'):document.getElementById('adminListaReservas');
+      alvo?.scrollIntoView({behavior:'smooth',block:'start'});
+    },80);
+  }
+
+  async function v37AtualizarDashboard(){
+    v37InstalarDashboard();
+    const lista=document.getElementById('v37UrgentList');if(!lista)return;
+    try{
+      const [resReservas,resHospedagens]=await Promise.all([
+        sb.from('sulbahiago_reservas').select('*').order('created_at',{ascending:false}),
+        sb.from('hospedagens').select('*').order('created_at',{ascending:false})
+      ]);
+      if(resReservas.error)throw resReservas.error;if(resHospedagens.error)throw resHospedagens.error;
+      const reservas=resReservas.data||[],hospedagens=resHospedagens.data||[];
+      const agora=new Date(),hojeLocal=`${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}-${String(agora.getDate()).padStart(2,'0')}`;
+      const status=r=>String(r.status||'').toLowerCase();
+      const cancelada=r=>['cancelada','recusada'].includes(status(r));
+      const confirmada=r=>!cancelada(r)&&(r.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(status(r)));
+      const pendentes=reservas.filter(r=>status(r)==='solicitada'&&!cancelada(r));
+      const ocupadas=reservas.filter(r=>confirmada(r)&&r.checkin<=hojeLocal&&r.checkout>hojeLocal);
+      const checkins=reservas.filter(r=>confirmada(r)&&r.checkin===hojeLocal&&!r.checkin_em);
+      const pagamentos=reservas.filter(r=>['aprovada','aguardando_pagamento'].includes(status(r))&&!r.pagamento_confirmado);
+      const anuncios=hospedagens.filter(h=>String(h.status||'pendente').toLowerCase()==='pendente');
+      document.getElementById('v37Pendentes').textContent=pendentes.length;
+      document.getElementById('v37Ocupadas').textContent=ocupadas.length;
+      document.getElementById('v37Checkins').textContent=checkins.length;
+      document.getElementById('v37Pagamentos').textContent=pagamentos.length;
+      document.getElementById('v37Anuncios').textContent=anuncios.length;
+      document.getElementById('v37UpdateTime').textContent='Atualizado às '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      const prioridades=[];
+      pendentes.slice(0,3).forEach(r=>prioridades.push({icone:'fa-calendar-plus',titulo:'Nova solicitação de reserva',texto:`${r.imovel||'Hospedagem'} · ${dataBR(r.checkin)} a ${dataBR(r.checkout)}`,aba:'reservas'}));
+      checkins.slice(0,2).forEach(r=>prioridades.push({icone:'fa-key',titulo:'Check-in previsto para hoje',texto:`${r.imovel||'Hospedagem'} · ${r.cliente_nome||'Hóspede'}`,aba:'reservas'}));
+      pagamentos.slice(0,2).forEach(r=>prioridades.push({icone:'fa-money-check-dollar',titulo:'Pagamento aguardando conferência',texto:`${r.imovel||'Hospedagem'} · ${brl(Number(r.total)||0)}`,aba:'reservas'}));
+      anuncios.slice(0,2).forEach(h=>prioridades.push({icone:'fa-house-circle-exclamation',titulo:'Anúncio aguardando análise',texto:h.nome||'Nova hospedagem',aba:'anuncios'}));
+      document.getElementById('v37PriorityCount').textContent=prioridades.length?`${prioridades.length} pendência${prioridades.length>1?'s':''}`:'Tudo em dia';
+      lista.innerHTML=prioridades.length?prioridades.map(p=>`<div class="v37-urgent-item"><div><strong><i class="fa-solid ${p.icone}" style="color:#d85b00;margin-right:6px"></i>${adminEsc(p.titulo)}</strong><div class="mini-note">${adminEsc(p.texto)}</div></div><button type="button" onclick="v37IrPara('${p.aba}')">Ver agora</button></div>`).join(''):'<div class="v37-all-good"><i class="fa-solid fa-circle-check"></i> Nenhuma ação urgente neste momento.</div>';
+    }catch(e){
+      console.warn('V37 painel:',e);lista.innerHTML=`<div class="v37-loading" style="color:#b42318"><i class="fa-solid fa-triangle-exclamation"></i> Não foi possível atualizar o resumo: ${adminEsc(e?.message||e)}</div>`;
+    }
+  }
+
+  const v37AbrirPainelBase=abrirPainelAdmin;
+  abrirPainelAdmin=async function(){await v37AbrirPainelBase();v37InstalarDashboard();await v37AtualizarDashboard()};
+  const v37RenderAdminReservasBase=renderAdminReservas;
+  renderAdminReservas=async function(){await v37RenderAdminReservasBase();if(document.getElementById('v37AdminDashboard'))await v37AtualizarDashboard()};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(v37InstalarDashboard,650));
+</script>
+<!-- ===== FIM V37 ===== -->
+
+<!-- ===== SULBAHIAGO V38: COMPROVANTE PREMIUM ===== -->
+<script id="v38ComprovantePremiumScript">
+  baixarPdfProfissional = function(nome,d){
+    const c=[],esc=pdfEscape;
+    const txt=(x,y,text,size=10,bold=false,cor='0.12 0.16 0.13')=>{c.push('BT',`/${bold?'F2':'F1'} ${size} Tf`,`${cor} rg`,`${x} ${y} Td`,`(${esc(text)}) Tj`,'ET')};
+    const rect=(x,y,w,h,fill,stroke=null,lw=1)=>{c.push('q');if(fill)c.push(`${fill} rg`);if(stroke)c.push(`${stroke} RG`);c.push(`${lw} w`,`${x} ${y} ${w} ${h} re`,fill&&stroke?'B':fill?'f':'S','Q')};
+    const line=(x1,y1,x2,y2,cor='0.87 0.89 0.87',lw=.7)=>c.push('q',`${cor} RG`,`${lw} w`,`${x1} ${y1} m ${x2} ${y2} l S`,'Q');
+    const circle=(x,y,r,fill,stroke=null,lw=1)=>{const k=.5522848*r;c.push('q');if(fill)c.push(`${fill} rg`);if(stroke)c.push(`${stroke} RG`);c.push(`${lw} w`,`${x+r} ${y} m`,`${x+r} ${y+k} ${x+k} ${y+r} ${x} ${y+r} c`,`${x-k} ${y+r} ${x-r} ${y+k} ${x-r} ${y} c`,`${x-r} ${y-k} ${x-k} ${y-r} ${x} ${y-r} c`,`${x+k} ${y-r} ${x+r} ${y-k} ${x+r} ${y} c`,fill&&stroke?'B':fill?'f':'S','Q')};
+    const labelValue=(x,y,label,value,valueSize=10,valueColor='0.12 0.16 0.13')=>{txt(x,y,label,6.7,true,'0.43 0.47 0.44');txt(x,y-18,value,valueSize,true,valueColor)};
+    const confirmado=Boolean(d.confirmada);
+    const titulo=pdfSemAcento(d.statusTitulo||(confirmado?'RESERVA CONFIRMADA':'RESERVA APROVADA'));
+    const cancelada=titulo.includes('CANCELADA');
+    const statusCor=cancelada?'0.68 0.12 0.12':confirmado?'0.06 0.38 0.13':'0.68 0.32 0.00';
+    const statusFundo=cancelada?'1.00 0.92 0.92':confirmado?'0.91 0.97 0.92':'1.00 0.96 0.88';
+    const statusBorda=cancelada?'0.86 0.32 0.32':confirmado?'0.25 0.62 0.33':'0.92 0.55 0.12';
+
+    // Base e identidade institucional.
+    rect(0,0,595,842,'1 1 1');
+    rect(0,0,11,842,'0.07 0.31 0.12');
+    rect(11,756,584,86,'0.04 0.25 0.09');
+    rect(11,750,584,6,'0.90 0.32 0.00');
+    circle(54,799,20,'1 1 1');
+    txt(45,792,'SB',13,true,'0.07 0.31 0.12');
+    txt(86,808,'SULBAHIAGO',22,true,'1 1 1');
+    txt(87,787,'HOSPEDAGENS E EXPERIENCIAS NO SUL DA BAHIA',7.5,false,'0.83 0.91 0.84');
+    txt(432,808,'COMPROVANTE',8,true,'0.82 0.91 0.84');
+    txt(432,790,'DE RESERVA',12,true,'1 1 1');
+    txt(432,774,'Documento digital',7,false,'0.82 0.91 0.84');
+
+    // Título, situação e identificação.
+    txt(42,716,'RESERVA',7,true,'0.43 0.47 0.44');
+    txt(42,690,d.imovel,21,true,'0.06 0.30 0.12');
+    txt(42,671,d.local,9,false,'0.40 0.44 0.41');
+    rect(376,686,175,34,statusFundo,statusBorda,1);
+    txt(389,698,titulo,titulo.length>24?7.5:10,true,statusCor);
+    txt(376,667,'CODIGO DE IDENTIFICACAO',6.5,true,'0.43 0.47 0.44');
+    txt(376,650,d.codigo,12,true,'0.17 0.20 0.18');
+    line(42,632,551,632,'0.80 0.84 0.81',1);
+
+    // Dados do hóspede.
+    txt(42,607,'DADOS DA ESTADIA',8,true,'0.06 0.30 0.12');
+    labelValue(42,582,'HOSPEDE',d.hospede,11);
+    labelValue(343,582,'QUANTIDADE DE HOSPEDES',String(d.hospedes),11);
+    rect(42,491,509,58,'0.97 0.98 0.97','0.87 0.89 0.87',.8);
+    labelValue(58,530,'CHECK-IN',d.checkin,11,'0.06 0.30 0.12');
+    labelValue(223,530,'CHECK-OUT',d.checkout,11,'0.06 0.30 0.12');
+    labelValue(420,530,'NOITES',String(d.noites),11,'0.06 0.30 0.12');
+
+    // Resumo financeiro com leitura rápida.
+    txt(42,461,'RESUMO FINANCEIRO',8,true,'0.06 0.30 0.12');
+    rect(42,373,509,67,'0.98 0.98 0.97','0.84 0.87 0.84',.8);
+    labelValue(58,419,'VALOR DA DIARIA',d.diaria,12);
+    line(276,385,276,428,'0.84 0.87 0.84',.8);
+    txt(302,419,'TOTAL DA RESERVA',6.7,true,'0.43 0.47 0.44');
+    txt(302,391,d.total,22,true,'0.06 0.38 0.13');
+    rect(42,310,509,45,statusFundo,statusBorda,.8);
+    txt(58,336,'SITUACAO DO PAGAMENTO',6.7,true,'0.43 0.47 0.44');
+    txt(58,319,cancelada?'CONSULTE A SITUACAO DO CANCELAMENTO':confirmado?'PAGAMENTO CONFIRMADO':'PAGAMENTO PENDENTE',11,true,statusCor);
+    txt(360,328,confirmado?'SALDO PENDENTE: R$ 0,00':'AGUARDANDO CONFIRMACAO',8,true,statusCor);
+
+    // Linha do tempo documental.
+    txt(42,280,'ETAPAS DA RESERVA',8,true,'0.06 0.30 0.12');
+    const etapas=cancelada?['SOLICITADA','ANALISADA','CANCELADA']:confirmado?['SOLICITADA','APROVADA','PAGAMENTO CONFIRMADO']:['SOLICITADA','APROVADA','PAGAMENTO PENDENTE'];
+    const xs=[72,296,520];line(72,246,520,246,'0.70 0.79 0.71',2);
+    etapas.forEach((e,i)=>{circle(xs[i],246,10,i<2||confirmado?'0.07 0.37 0.13':cancelada?'0.70 0.12 0.12':'0.92 0.50 0.05');txt(xs[i]-3.2,243,String(i+1),7,true,'1 1 1');const off=Math.min(e.length*2.2,48);txt(xs[i]-off,221,e,7,true,i===2?statusCor:'0.23 0.29 0.24')});
+
+    // Autenticidade e orientações.
+    rect(42,112,509,78,'0.96 0.98 0.96','0.78 0.85 0.79',.8);
+    circle(67,151,15,'0.07 0.31 0.12');txt(62,147,'OK',7,true,'1 1 1');
+    txt(93,166,'DOCUMENTO DIGITAL SULBAHIAGO',8.5,true,'0.06 0.30 0.12');
+    txt(93,148,'Identificacao unica: '+d.codigo,8,false,'0.28 0.34 0.29');
+    txt(93,132,'Apresente este comprovante e um documento oficial no check-in.',8,false,'0.28 0.34 0.29');
+    txt(93,117,'A confirmacao esta vinculada ao registro existente na plataforma.',8,false,'0.28 0.34 0.29');
+
+    // Rodapé corporativo.
+    line(42,88,551,88,'0.80 0.84 0.81',.8);
+    txt(42,69,'SULBAHIAGO  |  Prado - Bahia',7.5,true,'0.06 0.30 0.12');
+    txt(42,53,'Gerado em '+d.geradoEm,7,false,'0.43 0.47 0.44');
+    txt(424,69,'DOCUMENTO 01/01',7,true,'0.34 0.38 0.35');
+    txt(424,53,'Codigo '+d.codigo,7,false,'0.43 0.47 0.44');
+
+    const stream=c.join('\n'),objs=[];
+    objs[1]='<< /Type /Catalog /Pages 2 0 R >>';
+    objs[2]='<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
+    objs[3]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>';
+    objs[4]=`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+    objs[5]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';objs[6]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>';
+    let out='%PDF-1.4\n',offsets=[0];for(let i=1;i<=6;i++){offsets[i]=out.length;out+=`${i} 0 obj\n${objs[i]}\nendobj\n`}
+    const xref=out.length;out+='xref\n0 7\n0000000000 65535 f \n';for(let i=1;i<=6;i++)out+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';out+=`trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const blob=new Blob([out],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  };
+
+  // Acrescenta o título correto ao comprovante comum e ao comprovante cancelado.
+  const v38GerarPdfBase=gerarComprovanteReservaPDF;
+  gerarComprovanteReservaPDF=async function(referencia=null){return v38GerarPdfBase(referencia)};
+</script>
+<!-- ===== FIM V38 ===== -->
+
+<!-- ===== SULBAHIAGO V39: EXPERIÊNCIA COMPLETA DE HOSPEDAGEM ===== -->
+<style id="v39MarketplaceStyles">
+.v39-admin-details{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.v39-card-tools{position:absolute;right:10px;top:10px;z-index:10;display:flex;gap:7px}.v39-icon-btn{width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,255,255,.94);color:#344054;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.18)}.v39-icon-btn.favorite{color:#c62828}.v39-icon-btn.favorite i{font-weight:900}
+.v39-detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}.v39-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.v39-detail-stat{border:1px solid #e4e7ec;border-radius:12px;padding:12px;text-align:center;background:#fff}.v39-detail-stat i{color:var(--primary-dark);font-size:18px}.v39-detail-stat strong{display:block;margin-top:5px;font-size:13px}.v39-description{font-size:13px;line-height:1.7;color:#475467;margin:14px 0}.v39-info-panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.v39-info-panel{border:1px solid #e4e7ec;border-radius:14px;padding:14px;background:#fafcf9}.v39-info-panel h4{color:var(--primary-dark);margin-bottom:8px}.v39-info-panel p{font-size:12px;line-height:1.6;color:#475467}.v39-map{border:0;width:100%;height:180px;border-radius:12px;margin-top:9px}.v39-price-breakdown{border:1px solid #e4e7ec;border-radius:14px;padding:14px;margin:12px 0;background:#fff}.v39-price-line{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:6px 0}.v39-price-line.total{border-top:1px solid #e4e7ec;margin-top:5px;padding-top:10px;font-size:15px;font-weight:900;color:var(--primary-dark)}.v39-filter{min-width:150px}.v39-legal-links{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:12px}.v39-legal-links button{border:0;background:none;color:#52606d;text-decoration:underline;font-size:11px;cursor:pointer}.v39-legal h3{color:var(--primary-dark);margin:18px 0 7px}.v39-legal p,.v39-legal li{font-size:13px;line-height:1.65;color:#475467}.v39-legal ul{padding-left:20px}
+.v39-total-discount{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.v39-total-old{color:#7b8790;font-size:13px;font-weight:600;text-decoration:line-through;text-decoration-thickness:1.5px}.v39-total-new{color:#137333;font-size:18px;font-weight:900}.v39-saving{display:block;margin-top:5px;color:#137333;font-size:11px;font-weight:800;text-align:right}
+.promo-card-price{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.promo-card-old{color:#7b8790;font-size:12px;font-weight:600;text-decoration:line-through}.promo-card-new{color:var(--color-icons-prices);font-size:17px;font-weight:900}.promo-card-badge{display:inline-flex;align-items:center;border-radius:999px;padding:3px 7px;background:#e8f5e9;color:#137333;font-size:9px;font-weight:900;text-transform:uppercase}
+@media(max-width:700px){.v39-admin-details,.v39-info-panels{grid-template-columns:1fr}.v39-detail-grid{grid-template-columns:1fr 1fr}.v39-card-tools{top:9px;right:9px}.v39-map{height:155px}}
+</style>
+
+<div class="modal-overlay" id="v39LegalModal" style="display:none;z-index:12000"><div class="modal-box" style="max-width:720px"><button class="modal-close" onclick="fecharModal('v39LegalModal')"><i class="fa-solid fa-xmark"></i></button><div id="v39LegalContent" class="v39-legal"></div></div></div>
+
+<script id="v39MarketplaceScript">
+const v39Politicas={
+ termos:`<h2 style="color:var(--primary-dark)">Termos de Uso</h2><p>O SULBAHIAGO aproxima hóspedes e anfitriões. Ao utilizar a plataforma, o usuário declara que fornecerá informações verdadeiras, respeitará as regras da hospedagem e utilizará os canais internos para tratar da reserva.</p><h3>Reservas</h3><p>A solicitação depende da confirmação de disponibilidade. A reserva somente será considerada confirmada quando o status correspondente aparecer na plataforma.</p><h3>Pagamentos</h3><p>Os pagamentos são combinados diretamente com o anfitrião. O SULBAHIAGO não recebe nem mantém valores do hóspede nesta versão.</p>`,
+ privacidade:`<h2 style="color:var(--primary-dark)">Política de Privacidade</h2><p>Dados de cadastro, reserva, mensagens, localização informada e comprovantes são usados para operar a hospedagem e prestar atendimento.</p><h3>Proteção</h3><p>Cada hóspede acessa suas próprias reservas. Anfitriões acessam apenas as hospedagens e solicitações vinculadas às suas contas. A administração possui acesso operacional autorizado.</p><h3>Direitos</h3><p>O titular poderá solicitar correção ou exclusão dos seus dados, observados os registros que precisem ser mantidos por obrigação legal.</p>`,
+ cancelamento:`<h2 style="color:var(--primary-dark)">Política de Cancelamento</h2><p>A condição aplicável aparece no anúncio antes da reserva.</p><h3>Flexível</h3><p>Permite cancelamento com condições mais favoráveis ao hóspede, conforme o prazo informado pelo anfitrião.</p><h3>Moderada</h3><p>Poderá haver retenção parcial quando o cancelamento ocorrer próximo ao check-in.</p><h3>Rigorosa</h3><p>Poderá existir retenção maior ou tarifa não reembolsável. O valor é informado antes da confirmação.</p>`
+};
+function v39AbrirLegal(tipo){document.getElementById('v39LegalContent').innerHTML=v39Politicas[tipo]||'';document.getElementById('v39LegalModal').style.display='flex'}
+function v39Favoritos(){try{return JSON.parse(localStorage.getItem('sulbahiago_favoritos')||'[]')}catch(e){return[]}}
+function v39ToggleFavorito(id,btn){let a=v39Favoritos();const k=String(id);a=a.includes(k)?a.filter(x=>x!==k):[...a,k];localStorage.setItem('sulbahiago_favoritos',JSON.stringify(a));btn?.classList.toggle('favorite',a.includes(k));if(btn)btn.innerHTML=`<i class="${a.includes(k)?'fa-solid':'fa-regular'} fa-heart"></i>`}
+async function v39Compartilhar(item){
+ const texto=`Conheça ${item.nome||item.imovel||'esta hospedagem'} no SULBAHIAGO - ${item.local||'Sul da Bahia'} - a partir de ${brl(item.preco||0)} por noite.`;
+ const base=(location.protocol==='http:'||location.protocol==='https:')?location.origin+location.pathname:'https://sulbahiago.com.br/';
+ const url=base+(item.id?'#hospedagem='+encodeURIComponent(item.id):'#hospedagens');
+ const celular=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+ try{
+   if(celular&&location.protocol==='https:'&&navigator.share) await navigator.share({title:'SULBAHIAGO',text:texto,url});
+   else window.open('https://wa.me/?text='+encodeURIComponent(texto+'\n\n'+url),'_blank','noopener,noreferrer');
+ }catch(e){if(e?.name!=='AbortError')window.open('https://wa.me/?text='+encodeURIComponent(texto+'\n\n'+url),'_blank','noopener,noreferrer')}
+}
+function v39MelhorarCards(){
+ const fav=v39Favoritos();document.querySelectorAll('.dynamic-property-card').forEach(card=>{if(card.querySelector('.v39-card-tools'))return;const id=card.dataset.hospedagemId||'',nome=card.querySelector('h3')?.textContent||'Hospedagem',item=catalogoSulbahiago[nome]||{};const tools=document.createElement('div');tools.className='v39-card-tools';tools.innerHTML=`<button class="v39-icon-btn ${fav.includes(String(id))?'favorite':''}" title="Favoritar" aria-label="Favoritar"><i class="${fav.includes(String(id))?'fa-solid':'fa-regular'} fa-heart"></i></button><button class="v39-icon-btn" title="Compartilhar" aria-label="Compartilhar"><i class="fa-solid fa-share-nodes"></i></button>`;tools.children[0].onclick=e=>{e.stopPropagation();v39ToggleFavorito(id,tools.children[0])};tools.children[1].onclick=e=>{e.stopPropagation();v39Compartilhar({...item,nome})};card.querySelector('.card-img')?.appendChild(tools)})
+}
+const v39CarregarBase=carregarHospedagensPublicas;carregarHospedagensPublicas=async function(){await v39CarregarBase();v39MelhorarCards()};
+
+function v39InstalarFiltros(){const amen=document.getElementById('amenityFilter');if(!amen||amen.dataset.v39Pronto)return;amen.dataset.v39Pronto='1';['Piscina','Estacionamento','Churrasqueira','Cozinha','Pet friendly','Vista para o mar'].forEach(v=>{if(![...amen.options].some(o=>o.value===v))amen.add(new Option(v,v))})}
+
+function v39PoliticaTexto(p){return p==='rigorosa'?'Rigorosa - poderá haver retenção maior ou tarifa não reembolsável.':p==='moderada'?'Moderada - poderá haver retenção parcial próximo ao check-in.':'Flexível - condições mais favoráveis dentro do prazo informado.'}
+function v39EnriquecerDetalhes(nome){const item=catalogoSulbahiago[nome];if(!item)return;const d=item.detalhes||{},modal=document.querySelector('#detalhesModal .modal-box');let box=document.getElementById('v39DetailContent');if(!box){box=document.createElement('div');box.id='v39DetailContent';const aval=document.getElementById('avaliacoesPublicas');modal.insertBefore(box,aval)}const id=item.id||nome,ehFav=v39Favoritos().includes(String(id));box.innerHTML=`<div class="v39-detail-actions"><button class="btn-secondary ${ehFav?'favorite':''}" onclick="v39ToggleFavorito('${adminEsc(id)}',this);v39EnriquecerDetalhes('${adminEsc(nome)}')"><i class="${ehFav?'fa-solid':'fa-regular'} fa-heart"></i> ${ehFav?'Salvo nos favoritos':'Favoritar'}</button><button class="btn-secondary" onclick="v39Compartilhar(${JSON.stringify({nome,local:item.local,preco:item.preco}).replace(/"/g,'&quot;')})"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button></div><p class="v39-description">${adminEsc(item.descricao||'Hospedagem preparada para receber você com conforto e praticidade no sul da Bahia.')}</p><div class="v39-detail-grid"><div class="v39-detail-stat"><i class="fa-solid fa-user-group"></i><strong>Até ${item.max_hospedes||1} hóspedes</strong></div><div class="v39-detail-stat"><i class="fa-solid fa-door-open"></i><strong>${d.quartos||0} quarto(s)</strong></div><div class="v39-detail-stat"><i class="fa-solid fa-bed"></i><strong>${d.camas||0} cama(s)</strong></div><div class="v39-detail-stat"><i class="fa-solid fa-bath"></i><strong>${d.banheiros||0} banheiro(s)</strong></div></div><div class="v39-info-panels"><div class="v39-info-panel"><h4><i class="fa-regular fa-clock"></i> Horários e estadia</h4><p>Check-in a partir de <b>${adminEsc(d.checkin_hora||'14:00')}</b><br>Check-out até <b>${adminEsc(d.checkout_hora||'11:00')}</b><br>Estadia mínima: <b>${d.min_noites||1} noite(s)</b></p></div><div class="v39-info-panel"><h4><i class="fa-solid fa-rotate-left"></i> Cancelamento</h4><p>${adminEsc(v39PoliticaTexto(d.politica||'flexivel'))}</p></div></div><div class="v39-price-breakdown"><h4 style="color:var(--primary-dark);margin-bottom:5px">Preço transparente</h4><div class="v39-price-line"><span>Diária padrão</span><strong>${brl(item.preco)}</strong></div>${Number(d.preco_alta)>Number(item.preco)?`<div class="v39-price-line"><span>Diária na alta temporada</span><strong>${brl(d.preco_alta)}</strong></div>`:''}<div class="v39-price-line"><span>Taxa de limpeza</span><strong>${brl(d.taxa_limpeza||0)}</strong></div>${d.cupom&&d.desconto?`<div class="v39-price-line"><span>Cupom disponível</span><strong>${adminEsc(d.cupom)} (${d.desconto}% OFF)</strong></div>`:''}</div><div class="v39-info-panel"><h4><i class="fa-solid fa-location-dot"></i> Localização aproximada</h4><p>A localização exata é protegida e liberada conforme o andamento da reserva.</p><iframe class="v39-map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${encodeURIComponent(d.mapa||item.local||'Prado Bahia')}&output=embed" title="Mapa aproximado"></iframe></div>`}
+const v39AbrirDetalhesBase=abrirDetalhesImovel;abrirDetalhesImovel=function(nome){v39AbrirDetalhesBase(nome);v39EnriquecerDetalhes(nome)};
+
+function v39InstalarRodape(){const f=document.querySelector('footer');if(!f||f.querySelector('.v39-legal-links'))return;f.insertAdjacentHTML('beforeend',`<div class="v39-legal-links"><button onclick="v39AbrirLegal('termos')">Termos de Uso</button><button onclick="v39AbrirLegal('privacidade')">Política de Privacidade</button><button onclick="v39AbrirLegal('cancelamento')">Política de Cancelamento</button></div>`)}
+const v39CalculoBase=atualizarCalculoModal;atualizarCalculoModal=function(){
+ const item=catalogoSulbahiago[imovelSelecionado]||catalogoSulbahiago[nomeImovelGlobal];if(!item){return v39CalculoBase()}
+ const d=item.detalhes||{},qtd=Number(document.getElementById('modalHospedes')?.value)||1,cin=document.getElementById('modalCheckin')?.value,cout=document.getElementById('modalCheckout')?.value;
+ const noites=cin&&cout?Math.max(1,Math.round((new Date(cout)-new Date(cin))/86400000)):1,alta=verificarSeEhAltaTemporada(cin),base=alta?(Number(d.preco_alta)||Number(item.alta)||Number(item.preco)):Number(item.preco),diaria=base*qtd,subtotal=diaria*noites,taxa=Number(d.taxa_limpeza)||0,cupom=(document.getElementById('v39CupomReserva')?.value||'').trim().toUpperCase(),desc=cupom&&cupom===String(d.cupom||'').toUpperCase()?Math.min(100,Number(d.desconto)||0):0,diariaOriginal=alta?base:Math.max(Number(d.preco_original)||base,base),totalOriginal=diariaOriginal*qtd*noites+taxa,total=Math.max(0,subtotal-subtotal*desc/100+taxa),economia=Math.max(0,totalOriginal-total);
+ const elD=document.getElementById('reservaValorDiaria'),elT=document.getElementById('reservaValorTotal');if(elD)elD.textContent=`${brl(diaria)} / noite${alta?' · alta temporada':''}`;if(elT){if(economia>0){elT.innerHTML=`<span class="v39-total-discount"><span class="v39-total-old">${brl(totalOriginal)}</span><span class="v39-total-new">${brl(total)}</span></span><span class="v39-saving">${desc?`Cupom de ${desc}% aplicado · `:'Preço promocional · '}você economiza ${brl(economia)}</span>`}else{elT.textContent=brl(total)}}
+};
+function v39InstalarIntegracoes(){const tabs=document.querySelector('#adminModal .admin-tabs');if(!tabs||document.getElementById('tabV39Integracoes'))return;const b=document.createElement('button');b.id='tabV39Integracoes';b.className='admin-tab';b.innerHTML='<i class="fa-solid fa-plug"></i> Integrações';tabs.insertBefore(b,document.getElementById('tabAdminAcessos'));const sec=document.createElement('div');sec.id='v39IntegracoesSec';sec.className='admin-section';sec.innerHTML=`<div class="admin-card"><h3 style="color:var(--primary-dark)">Central de integrações</h3><p class="mini-note" style="margin:5px 0 14px">Recursos preparados para conexão futura com fornecedores externos.</p><div class="v19-grid" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:0"><article class="v19-feature"><i class="fa-solid fa-credit-card"></i><h3>Pagamento online</h3><p>Interface preparada. Exige conta em um intermediador e credenciais seguras no servidor.</p><span class="status-badge orange">Não conectado</span></article><article class="v19-feature"><i class="fa-solid fa-calendar-days"></i><h3>Canais externos de reservas</h3><p>Sincronização de calendários para ajudar a evitar reservas duplicadas em diferentes canais.</p><span class="status-badge orange">Não conectado</span></article><article class="v19-feature"><i class="fa-solid fa-envelope"></i><h3>Comunicação automática</h3><p>Avisos por e-mail ou mensagem exigem um provedor de envio configurado.</p><span class="status-badge orange">Não conectado</span></article></div></div>`;document.getElementById('adminSecAcessos')?.parentNode.insertBefore(sec,document.getElementById('adminSecAcessos'));b.onclick=()=>{document.querySelectorAll('#adminModal .admin-section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#adminModal .admin-tab').forEach(x=>x.classList.remove('active'));sec.classList.add('active');b.classList.add('active')}}
+document.addEventListener('DOMContentLoaded',()=>{v39InstalarFiltros();v39InstalarRodape();v39InstalarIntegracoes();setTimeout(v39MelhorarCards,900)});
+</script>
+<!-- ===== FIM V39 ===== -->
+
+<!-- ===== SULBAHIAGO V40: CONTA PROFISSIONAL + MEUS FAVORITOS ===== -->
+<style id="v40AccountStyles">
+.v40-auth-links{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}.v40-link-btn{border:0;background:none;color:var(--primary-dark);font-size:11px;font-weight:750;cursor:pointer;text-decoration:underline;padding:4px 0}.v40-account-status{display:flex;align-items:center;gap:10px;border:1px solid #dce7dd;background:#f7fbf7;border-radius:13px;padding:12px;margin:12px 0}.v40-account-status i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e6f4e7;color:var(--primary-dark)}.v40-favorites-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}.v40-favorite-card{border:1px solid #e4e7ec;border-radius:15px;overflow:hidden;background:#fff}.v40-favorite-card img{width:100%;height:145px;object-fit:cover;background:#eef2f3}.v40-favorite-info{padding:12px}.v40-favorite-info h3{font-size:15px;color:var(--primary-dark);margin-bottom:4px}.v40-favorite-actions{display:flex;gap:7px;margin-top:10px}.v40-favorite-actions button{flex:1}.v40-password-meter{height:5px;border-radius:999px;background:#e4e7ec;margin-top:7px;overflow:hidden}.v40-password-meter span{display:block;height:100%;width:0;background:#c62828;transition:.2s}.v40-captcha-note{display:none;margin-top:10px;padding:9px;border-radius:10px;background:#fff8ed;color:#92400e;font-size:11px}
+@media(max-width:620px){.v40-favorites-grid{grid-template-columns:1fr}.v40-favorite-card{display:grid;grid-template-columns:110px 1fr}.v40-favorite-card img{height:100%;min-height:145px}}
+</style>
+
+<div class="modal-overlay" id="v40RecoveryModal" style="display:none;z-index:12000"><div class="modal-box" style="max-width:430px"><button class="modal-close" onclick="fecharModal('v40RecoveryModal')"><i class="fa-solid fa-xmark"></i></button><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-key"></i> Recuperar acesso</h2><p class="mini-note" style="margin:6px 0 14px">Enviaremos um link seguro para você criar uma nova senha.</p><label class="form-label">E-MAIL DA CONTA</label><input id="v40RecoveryEmail" type="email" class="form-control" placeholder="voce@email.com"><button id="v40RecoveryBtn" class="btn-main-action" style="margin-top:14px" onclick="v40EnviarRecuperacao()">Enviar link de recuperação</button><button class="v40-link-btn" style="width:100%;margin-top:10px" onclick="v40ReenviarConfirmacao()">Reenviar confirmação do e-mail</button><div id="v40RecoveryMsg" class="mini-note" style="margin-top:10px"></div></div></div>
+
+<div class="modal-overlay" id="v40AccountModal" style="display:none;z-index:12000"><div class="modal-box" style="max-width:500px"><button class="modal-close" onclick="fecharModal('v40AccountModal')"><i class="fa-solid fa-xmark"></i></button><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-user-shield"></i> Segurança da conta</h2><div id="v40AccountStatus" class="v40-account-status"></div><label class="form-label">NOVA SENHA</label><input id="v40NewPassword" type="password" class="form-control" placeholder="No mínimo 8 caracteres" oninput="v40MedirSenha()"><div class="v40-password-meter"><span id="v40PasswordMeter"></span></div><label class="form-label">CONFIRMAR NOVA SENHA</label><input id="v40NewPassword2" type="password" class="form-control" placeholder="Digite novamente"><button class="btn-main-action" style="margin-top:14px" onclick="v40AlterarSenha()"><i class="fa-solid fa-lock"></i> Alterar senha</button><button class="btn-danger-lite" style="width:100%;margin-top:8px" onclick="v40EncerrarTodasSessoes()"><i class="fa-solid fa-right-from-bracket"></i> Encerrar todas as sessões</button></div></div>
+
+<div class="modal-overlay" id="v40FavoritesModal" style="display:none;z-index:11500"><div class="modal-box" style="max-width:820px"><button class="modal-close" onclick="fecharModal('v40FavoritesModal')"><i class="fa-solid fa-xmark"></i></button><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-heart"></i> Meus favoritos</h2><p class="mini-note">Hospedagens que você salvou para consultar depois.</p><div id="v40FavoritesList" class="v40-favorites-grid"></div></div></div>
+
+<script id="v40AccountScript">
+window.SULBAHIAGO_CAPTCHA_SITE_KEY=window.SULBAHIAGO_CAPTCHA_SITE_KEY||'';
+function v40TentativaChave(email){return'sulbahiago_tentativas_'+String(email||'').toLowerCase()}
+function v40LoginPermitido(email){try{const d=JSON.parse(localStorage.getItem(v40TentativaChave(email))||'{}');if(d.bloqueadoAte&&Date.now()<d.bloqueadoAte)return false;if(d.bloqueadoAte)localStorage.removeItem(v40TentativaChave(email));return true}catch(e){return true}}
+function v40RegistrarFalha(email){try{const k=v40TentativaChave(email),d=JSON.parse(localStorage.getItem(k)||'{"total":0}');d.total=(d.total||0)+1;if(d.total>=5)d.bloqueadoAte=Date.now()+15*60*1000;localStorage.setItem(k,JSON.stringify(d))}catch(e){}}
+function v40LimparFalhas(email){try{localStorage.removeItem(v40TentativaChave(email))}catch(e){}}
+function v40Msg(id,msg,ok=false){const el=document.getElementById(id);if(el){el.textContent=msg;el.style.color=ok?'#1A5F20':'#b42318'}}
+function v40AbrirRecuperacao(){const email=document.getElementById('authEmail')?.value||'';fecharAuthModal();document.getElementById('v40RecoveryEmail').value=email;document.getElementById('v40RecoveryModal').style.display='flex'}
+async function v40EnviarRecuperacao(){const email=document.getElementById('v40RecoveryEmail').value.trim(),btn=document.getElementById('v40RecoveryBtn');if(!email){v40Msg('v40RecoveryMsg','Informe seu e-mail.');return}btn.disabled=true;try{const redirect=location.protocol==='file:'?undefined:location.origin+location.pathname+'#redefinir-senha';const {error}=await sb.auth.resetPasswordForEmail(email,redirect?{redirectTo:redirect}:undefined);if(error)throw error;v40Msg('v40RecoveryMsg','Se este e-mail estiver cadastrado, o link de recuperação será enviado.',true)}catch(e){v40Msg('v40RecoveryMsg',e?.message||'Não foi possível enviar o link.')}finally{btn.disabled=false}}
+async function v40ReenviarConfirmacao(){const email=document.getElementById('v40RecoveryEmail').value.trim();if(!email){v40Msg('v40RecoveryMsg','Informe seu e-mail primeiro.');return}try{const {error}=await sb.auth.resend({type:'signup',email});if(error)throw error;v40Msg('v40RecoveryMsg','Confirmação reenviada. Verifique também a caixa de spam.',true)}catch(e){v40Msg('v40RecoveryMsg',e?.message||'Não foi possível reenviar.')}}
+async function v40AbrirConta(){const {data}=await sb.auth.getUser();const u=data?.user;if(!u){abrirAuthModal('login');return}const confirmado=Boolean(u.email_confirmed_at);document.getElementById('v40AccountStatus').innerHTML=`<i class="fa-solid ${confirmado?'fa-circle-check':'fa-envelope-circle-exclamation'}"></i><div><strong>${adminEsc(u.email||'Conta SULBAHIAGO')}</strong><div class="mini-note">${confirmado?'E-mail confirmado':'E-mail aguardando confirmação'}</div></div>`;document.getElementById('v40AccountModal').style.display='flex'}
+function v40MedirSenha(){const s=document.getElementById('v40NewPassword').value,m=document.getElementById('v40PasswordMeter');let n=0;if(s.length>=8)n++;if(/[A-Z]/.test(s)&&/[a-z]/.test(s))n++;if(/\d/.test(s))n++;if(/[^A-Za-z0-9]/.test(s))n++;m.style.width=(n*25)+'%';m.style.background=n<2?'#c62828':n<4?'#e65100':'#1A5F20'}
+async function v40AlterarSenha(){const a=document.getElementById('v40NewPassword').value,b=document.getElementById('v40NewPassword2').value;if(a.length<8){alert('Use uma senha com pelo menos 8 caracteres.');return}if(a!==b){alert('As duas senhas não são iguais.');return}const {error}=await sb.auth.updateUser({password:a});if(error){alert('Não foi possível alterar: '+error.message);return}document.getElementById('v40NewPassword').value='';document.getElementById('v40NewPassword2').value='';v40MedirSenha();alert('Senha alterada com sucesso.')}
+async function v40EncerrarTodasSessoes(){if(!confirm('Encerrar esta sessão e todas as sessões abertas em outros aparelhos?'))return;const {error}=await sb.auth.signOut({scope:'global'});if(error){alert(error.message);return}usuarioSupabaseAtual=null;perfilSupabaseAtual=null;document.querySelectorAll('.modal-overlay').forEach(x=>x.style.display='none');atualizarUsuarioHeader();alert('Todas as sessões foram encerradas.')}
+function v40AbrirFavoritos(){const ids=v39Favoritos(),box=document.getElementById('v40FavoritesList'),itens=Object.entries(catalogoSulbahiago).filter(([,v])=>ids.includes(String(v.id)));box.innerHTML=itens.length?itens.map(([nome,v])=>`<article class="v40-favorite-card"><img src="${adminEsc(v.imagens?.[0]||'')}" alt="${adminEsc(nome)}"><div class="v40-favorite-info"><h3>${adminEsc(nome)}</h3><div class="mini-note">${adminEsc(v.local||'Sul da Bahia')}</div><strong style="display:block;color:var(--primary-dark);margin-top:6px">${brl(v.preco)} / noite</strong><div class="v40-favorite-actions"><button class="btn-secondary" onclick="fecharModal('v40FavoritesModal');abrirDetalhesImovel('${adminEsc(nome)}')">Ver</button><button class="btn-danger-lite" onclick="v39ToggleFavorito('${adminEsc(v.id)}');v40AbrirFavoritos()">Remover</button></div></div></article>`).join(''):'<div class="empty-state" style="grid-column:1/-1"><i class="fa-regular fa-heart"></i><h3>Nenhum favorito salvo</h3><p>Toque no coração de uma hospedagem para encontrá-la aqui.</p></div>';document.getElementById('v40FavoritesModal').style.display='flex'}
+function v40InstalarConta(){const auth=document.querySelector('#authModal .modal-box');if(auth&&!auth.querySelector('.v40-auth-links')){const principal=document.getElementById('btnAuthPrincipal');principal.insertAdjacentHTML('afterend','<div class="v40-auth-links"><button class="v40-link-btn" onclick="v40AbrirRecuperacao()">Esqueci minha senha</button><button class="v40-link-btn" onclick="v40AbrirRecuperacao()">Confirmar meu e-mail</button></div><div id="v40CaptchaNote" class="v40-captcha-note">Proteção CAPTCHA aguardando a chave do domínio.</div>')}const area=document.querySelector('#minhasReservasModal .action-row')||document.querySelector('#minhasReservasModal .modal-box>div');if(area&&!document.getElementById('v40FavoritesBtn')){const wrap=area.querySelector('div:last-child')||area;wrap.insertAdjacentHTML('afterbegin','<button id="v40FavoritesBtn" class="btn-secondary" onclick="v40AbrirFavoritos()"><i class="fa-solid fa-heart"></i> Favoritos</button><button class="btn-secondary" onclick="v40AbrirConta()"><i class="fa-solid fa-shield-halved"></i> Segurança</button>')}if(!window.SULBAHIAGO_CAPTCHA_SITE_KEY){const n=document.getElementById('v40CaptchaNote');if(n)n.style.display='block'}}
+sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY')setTimeout(v40AbrirConta,200)});
+document.addEventListener('DOMContentLoaded',()=>setTimeout(v40InstalarConta,500));
+</script>
+<!-- ===== FIM V40 ===== -->
+
+<!-- EXPERIÊNCIA PROFISSIONAL DA HOSPEDAGEM -->
+<style id="experienciaHospedagemStyles">
+  .market-results-bar{max-width:1200px;margin:0 auto 18px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--text-main)}
+  .market-results-bar strong{color:var(--primary-dark);font-size:15px}.market-clear{border:0;background:transparent;color:var(--primary-dark);font-weight:800;text-decoration:underline;cursor:pointer;padding:8px}
+  #detalhesModal{background:#fff;align-items:flex-start;padding:0;overflow-y:auto}
+  #detalhesModal .modal-box{width:100%;max-width:1180px!important;max-height:none;margin:0 auto;border-radius:0;box-shadow:none;padding:30px 26px 120px;overflow:visible}
+  #detalhesModal .modal-close{position:sticky;top:14px;float:right;z-index:15;background:#fff;border:1px solid #d8e0da;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  #detalhesModal #detalheTitulo{font-size:clamp(26px,4vw,40px);line-height:1.08;padding-right:55px}
+  #detalhesModal #detalheGaleria{clear:both;border-radius:22px;overflow:hidden;margin:22px 0;cursor:zoom-in}
+  #detalhesModal #detalheGaleria img{transition:transform .25s ease}#detalhesModal #detalheGaleria img:hover{transform:scale(1.025)}
+  .market-detail-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+  .market-detail-trust>div{border:1px solid #e1e8e2;border-radius:14px;padding:13px;background:#f9fbf9;display:flex;gap:10px;align-items:center;font-size:12px;font-weight:750}
+  .market-detail-trust i{color:var(--primary-dark);font-size:18px}
+  .market-share-link{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}.market-share-link button{width:auto}
+  .market-mobile-book{display:none}
+  .market-lightbox{position:fixed;inset:0;z-index:20000;background:rgba(8,15,12,.96);display:none;align-items:center;justify-content:center;padding:55px 70px}
+  .market-lightbox.open{display:flex}.market-lightbox img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:12px}
+  .market-lightbox button{position:absolute;border:0;background:rgba(255,255,255,.15);color:#fff;width:46px;height:46px;border-radius:50%;font-size:20px;cursor:pointer}
+  .market-lightbox-close{right:20px;top:18px}.market-lightbox-prev{left:18px}.market-lightbox-next{right:18px}.market-lightbox-count{position:absolute;bottom:18px;color:#fff;background:rgba(0,0,0,.45);padding:7px 12px;border-radius:999px;font-size:12px}
+  @media(max-width:700px){
+    .market-results-bar{padding:0 14px}.market-detail-trust{grid-template-columns:1fr}
+    #detalhesModal .modal-box{height:auto!important;max-height:none!important;border-radius:0!important;padding:18px 14px 105px!important}
+    #detalhesModal #detalheGaleria{border-radius:15px;margin:15px 0}
+    .market-mobile-book{position:fixed;display:flex;left:0;right:0;bottom:0;z-index:20010;background:#fff;border-top:1px solid #dfe6df;box-shadow:0 -7px 25px rgba(16,24,40,.12);padding:10px 13px calc(10px + env(safe-area-inset-bottom));align-items:center;justify-content:space-between;gap:12px}
+    .market-mobile-book strong{color:var(--primary-dark);font-size:14px}.market-mobile-book small{display:block;color:#667085;font-size:10px}.market-mobile-book button{width:auto;min-width:135px}
+    .market-lightbox{padding:60px 8px}.market-lightbox-prev{left:8px}.market-lightbox-next{right:8px}
+  }
+</style>
+
+<div class="market-lightbox" id="marketLightbox" role="dialog" aria-modal="true" aria-label="Galeria ampliada">
+  <button class="market-lightbox-close" type="button" aria-label="Fechar galeria" onclick="fecharGaleriaAmpliada()"><i class="fa-solid fa-xmark"></i></button>
+  <button class="market-lightbox-prev" type="button" aria-label="Foto anterior" onclick="mudarGaleriaAmpliada(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+  <img id="marketLightboxImg" alt="Foto ampliada da hospedagem">
+  <button class="market-lightbox-next" type="button" aria-label="Próxima foto" onclick="mudarGaleriaAmpliada(1)"><i class="fa-solid fa-chevron-right"></i></button>
+  <span class="market-lightbox-count" id="marketLightboxCount"></span>
+</div>
+
+<script id="experienciaHospedagemScript">
+(function(){
+  let fotosAmpliadas=[],fotoAmpliadaAtual=0;
+  function slugSeguro(valor){return String(valor||'hospedagem').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)}
+  function localizarCatalogoPorRota(valor){
+    const decodificado=decodeURIComponent(String(valor||''));
+    return Object.entries(catalogoSulbahiago).find(([nome,item])=>String(item.id)===decodificado||slugSeguro(nome)===decodificado)||null;
+  }
+  function urlDaHospedagem(nome,item){
+    const chave=item?.id||slugSeguro(nome);
+    const base=(location.protocol==='http:'||location.protocol==='https:')
+      ? location.origin+location.pathname
+      : 'https://sulbahiago.com.br/';
+    return base+'#hospedagem='+encodeURIComponent(chave);
+  }
+
+  function instalarBarraResultados(){
+    const destaque=document.querySelector('.secao-hospedagens-destaque');if(!destaque||document.getElementById('marketResultsBar'))return;
+    destaque.insertAdjacentHTML('afterbegin','<div class="market-results-bar" id="marketResultsBar"><strong id="marketResultsCount">Procurando hospedagens...</strong><button class="market-clear" type="button" onclick="limparFiltrosProfissionais()"><i class="fa-solid fa-rotate-left"></i> Limpar filtros</button></div>');
+  }
+  window.atualizarContadorHospedagens=function(){
+    const el=document.getElementById('marketResultsCount');if(!el)return;
+    const cards=[...document.querySelectorAll('#cardsGridContainer .dynamic-property-card')];
+    const visiveis=cards.filter(c=>c.style.display!=='none').length;
+    el.textContent=!cards.length?'Nenhuma hospedagem publicada':visiveis+' '+(visiveis===1?'hospedagem encontrada':'hospedagens encontradas');
+  };
+  window.limparFiltrosProfissionais=function(){
+    const valores={searchInput:'',guestFilter:'1',checkinInput:'',checkoutInput:'',seasonFilter:'',maxPriceFilter:'',amenityFilter:''};
+    Object.entries(valores).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});
+    tipoCasaSelecionado='todos';document.querySelectorAll('.filter-pill-btn').forEach((b,i)=>b.classList.toggle('active',i===0));filterDestinations();
+  };
+  const filtroAnterior=window.filterDestinations;
+  window.filterDestinations=function(){const r=filtroAnterior?.apply(this,arguments);setTimeout(atualizarContadorHospedagens,20);return r};
+
+  function enriquecerTelaHospedagem(nome){
+    const item=catalogoSulbahiago[nome]||{},modal=document.querySelector('#detalhesModal .modal-box');if(!modal)return;
+    let trust=document.getElementById('marketDetailTrust');
+    if(!trust){trust=document.createElement('div');trust.id='marketDetailTrust';trust.className='market-detail-trust';const disp=document.getElementById('detalheDisponibilidade');modal.insertBefore(trust,disp)}
+    trust.innerHTML='<div><i class="fa-solid fa-shield-halved"></i><span>Anúncio analisado pela administração</span></div><div><i class="fa-solid fa-lock"></i><span>Conversa privada vinculada à reserva</span></div><div><i class="fa-solid fa-receipt"></i><span>Preço detalhado antes de solicitar</span></div>';
+    let share=document.getElementById('marketShareLink');
+    if(!share){share=document.createElement('div');share.id='marketShareLink';share.className='market-share-link';document.getElementById('detalheLocal')?.insertAdjacentElement('afterend',share)}
+    share.innerHTML='<button class="btn-secondary" type="button" onclick="compartilharHospedagemAtual()"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button><button class="btn-secondary" type="button" onclick="v39ToggleFavorito(\''+adminEsc(item.id||nome)+'\',this)"><i class="fa-regular fa-heart"></i> Salvar</button>';
+    let mobile=document.getElementById('marketMobileBook');
+    if(!mobile){mobile=document.createElement('div');mobile.id='marketMobileBook';mobile.className='market-mobile-book';modal.appendChild(mobile)}
+    mobile.innerHTML='<div><strong>'+brl(item.preco||0)+' / noite</strong><small>Confira datas e valor total</small></div><button class="btn-main-action" type="button" onclick="continuarParaReserva()">Reservar</button>';
+    document.title=nome+' | SULBAHIAGO';
+  }
+  const abrirAnterior=window.abrirDetalhesImovel;
+  window.abrirDetalhesImovel=function(nome){
+    const retorno=abrirAnterior.apply(this,arguments),item=catalogoSulbahiago[nome]||{};
+    history.replaceState(null,'',location.pathname+'#hospedagem='+encodeURIComponent(item.id||slugSeguro(nome)));
+    enriquecerTelaHospedagem(nome);return retorno;
+  };
+  const fecharAnterior=window.fecharModal;
+  window.fecharModal=function(id){
+    const retorno=fecharAnterior.apply(this,arguments);
+    if(id==='detalhesModal'&&location.hash.startsWith('#hospedagem=')){
+      history.replaceState(null,'',location.pathname+'#hospedagens');
+      document.title='SULBAHIAGO - Hospedagens e Experiências Exclusivas';
+    }
+    return retorno;
+  };
+  window.compartilharHospedagemAtual=async function(){
+    const nome=imovelSelecionado,item=catalogoSulbahiago[nome]||{},url=urlDaHospedagem(nome,item),texto=nome+' — '+(item.local||'Sul da Bahia')+' — a partir de '+brl(item.preco||0)+' por noite.';
+    const celular=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    try{
+      if(celular&&location.protocol==='https:'&&navigator.share){
+        await navigator.share({title:nome,text:texto,url});
+      }else{
+        window.open('https://wa.me/?text='+encodeURIComponent(texto+'\n\n'+url),'_blank','noopener,noreferrer');
+      }
+    }catch(e){
+      if(e?.name!=='AbortError') window.open('https://wa.me/?text='+encodeURIComponent(texto+'\n\n'+url),'_blank','noopener,noreferrer');
+    }
+  };
+  function abrirImagem(indice){
+    const item=catalogoSulbahiago[imovelSelecionado]||{};fotosAmpliadas=(item.imagens||[]).filter(Boolean);if(!fotosAmpliadas.length)return;
+    fotoAmpliadaAtual=Math.max(0,Math.min(indice,fotosAmpliadas.length-1));renderGaleriaAmpliada();document.getElementById('marketLightbox').classList.add('open');
+  }
+  function renderGaleriaAmpliada(){document.getElementById('marketLightboxImg').src=fotosAmpliadas[fotoAmpliadaAtual]||'';document.getElementById('marketLightboxCount').textContent=(fotoAmpliadaAtual+1)+' de '+fotosAmpliadas.length}
+  window.mudarGaleriaAmpliada=function(d){if(!fotosAmpliadas.length)return;fotoAmpliadaAtual=(fotoAmpliadaAtual+d+fotosAmpliadas.length)%fotosAmpliadas.length;renderGaleriaAmpliada()};
+  window.fecharGaleriaAmpliada=function(){document.getElementById('marketLightbox').classList.remove('open')};
+  document.getElementById('detalheGaleria')?.addEventListener('click',e=>{const imgs=[...document.querySelectorAll('#detalheGaleria img')],i=imgs.indexOf(e.target);if(i>=0)abrirImagem(i)});
+  document.addEventListener('keydown',e=>{if(!document.getElementById('marketLightbox')?.classList.contains('open'))return;if(e.key==='Escape')fecharGaleriaAmpliada();if(e.key==='ArrowLeft')mudarGaleriaAmpliada(-1);if(e.key==='ArrowRight')mudarGaleriaAmpliada(1)});
+  async function abrirRotaHospedagem(){
+    if(!location.hash.startsWith('#hospedagem='))return;const chave=location.hash.split('=').slice(1).join('=');
+    for(let i=0;i<20;i++){const achado=localizarCatalogoPorRota(chave);if(achado){const [nome,item]=achado;imovelSelecionadoId=item.id||null;abrirDetalhesImovel(nome);return}await new Promise(r=>setTimeout(r,250))}
+  }
+  const carregarAnterior=window.carregarHospedagensPublicas;
+  window.carregarHospedagensPublicas=async function(){const r=await carregarAnterior.apply(this,arguments);atualizarContadorHospedagens();abrirRotaHospedagem();return r};
+  document.addEventListener('DOMContentLoaded',()=>{instalarBarraResultados();setTimeout(atualizarContadorHospedagens,700);abrirRotaHospedagem()});
+  window.addEventListener('hashchange',abrirRotaHospedagem);
+})();
+</script>
+
+<!-- CENTRAL OPERACIONAL: NOTIFICAÇÕES, VERIFICAÇÃO, LGPD E RELATÓRIOS -->
+<style id="centralOperacionalStyles">
+  .ops-bell{position:relative;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:16px}
+  .ops-badge{position:absolute;right:-3px;top:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#e65100;color:#fff;font-size:10px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid var(--primary-dark)}
+  .ops-list{display:grid;gap:9px;margin-top:14px}.ops-note{width:100%;text-align:left;border:1px solid #e0e7e1;border-radius:13px;padding:12px;display:flex;gap:11px;background:#fff;cursor:pointer;color:inherit}.ops-note:hover{border-color:#91b996;transform:translateY(-1px)}.ops-note.unread{border-left:4px solid #e65100;background:#fffaf5}.ops-note i{color:var(--primary-dark);margin-top:3px}.ops-note main{flex:1}.ops-note time{font-size:10px;color:#667085}.ops-note-arrow{align-self:center;color:#98a2b3!important}.ops-empty{text-align:center;padding:32px 12px;color:#667085}
+  .ops-upload{border:1px dashed #b8c8ba;border-radius:13px;padding:12px;margin-top:9px;background:#f9fbf9}.ops-upload label{font-size:12px;font-weight:850;color:var(--primary-dark);display:block;margin-bottom:6px}.ops-upload input{width:100%}
+  .ops-status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.ops-status{padding:11px;border-radius:12px;background:#f5f7f5;text-align:center;font-size:11px}.ops-status i{display:block;font-size:19px;color:var(--primary-dark);margin-bottom:5px}
+  .ops-admin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.ops-stat{border:1px solid #e1e7e2;border-radius:13px;padding:13px;background:#fff}.ops-stat strong{font-size:23px;color:var(--primary-dark);display:block}.ops-table{width:100%;border-collapse:collapse;font-size:11px}.ops-table th,.ops-table td{padding:9px;border-bottom:1px solid #edf0ed;text-align:left}.ops-table th{color:var(--primary-dark)}
+  @media(max-width:700px){.ops-admin-grid,.ops-status-grid{grid-template-columns:1fr 1fr}.ops-bell{width:39px;height:39px}.header-actions{gap:6px}}
+</style>
+
+<div class="modal-overlay" id="opsNotificationsModal"><div class="modal-box" style="max-width:620px"><button class="modal-close" onclick="fecharModal('opsNotificationsModal')"><i class="fa-solid fa-xmark"></i></button><div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding-right:38px"><div><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-bell"></i> Notificações</h2><p class="mini-note">Reservas, mensagens, pagamentos e check-in.</p></div><button class="btn-secondary" onclick="opsMarcarTodasLidas()">Marcar como lidas</button></div><div class="ops-list" id="opsNotificationsList"></div></div></div>
+
+<div class="modal-overlay" id="opsVerificationModal"><div class="modal-box" style="max-width:650px"><button class="modal-close" onclick="fecharModal('opsVerificationModal')"><i class="fa-solid fa-xmark"></i></button><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-user-check"></i> Verificação do anfitrião</h2><p class="mini-note">Os documentos são privados e analisados somente pela administração autorizada.</p><div class="ops-status-grid"><div class="ops-status"><i class="fa-solid fa-id-card"></i>Identidade</div><div class="ops-status"><i class="fa-solid fa-location-dot"></i>Endereço</div><div class="ops-status"><i class="fa-solid fa-house-circle-check"></i>Vínculo com imóvel</div></div><label class="form-label">HOSPEDAGEM</label><select id="opsVerificationProperty" class="form-control"></select><div class="ops-upload"><label>Documento de identidade com foto</label><input id="opsDocIdentidade" type="file" accept="image/jpeg,image/png,application/pdf"></div><div class="ops-upload"><label>Comprovante de endereço</label><input id="opsDocEndereco" type="file" accept="image/jpeg,image/png,application/pdf"></div><div class="ops-upload"><label>Documento de propriedade, contrato ou autorização</label><input id="opsDocImovel" type="file" accept="image/jpeg,image/png,application/pdf"></div><label style="display:flex;gap:8px;margin-top:12px;font-size:12px"><input id="opsVerificationConsent" type="checkbox"> Autorizo o tratamento destes dados exclusivamente para verificação, segurança e prevenção a fraude.</label><button class="btn-main-action" style="margin-top:14px" onclick="opsEnviarVerificacao()"><i class="fa-solid fa-lock"></i> Enviar documentos com segurança</button><div id="opsVerificationMessage" class="mini-note" style="margin-top:9px"></div></div></div>
+
+<div class="modal-overlay" id="opsPrivacyModal"><div class="modal-box" style="max-width:540px"><button class="modal-close" onclick="fecharModal('opsPrivacyModal')"><i class="fa-solid fa-xmark"></i></button><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-user-shield"></i> Meus dados e privacidade</h2><p>Você pode solicitar correção ou exclusão da sua conta. A solicitação será analisada, preservando apenas registros que precisem ser mantidos por obrigação legal ou prevenção a fraude.</p><label class="form-label">MOTIVO OU OBSERVAÇÃO</label><textarea id="opsPrivacyReason" class="form-control" rows="4" maxlength="500" placeholder="Opcional"></textarea><button class="btn-danger-lite" style="width:100%;margin-top:12px" onclick="opsSolicitarExclusaoConta()"><i class="fa-solid fa-user-xmark"></i> Solicitar exclusão da conta</button><div id="opsPrivacyMessage" class="mini-note" style="margin-top:9px"></div></div></div>
+
+<script id="centralOperacionalScript">
+(function(){
+ let opsChannel=null;
+ const opsEsc=v=>typeof adminEsc==='function'?adminEsc(v):String(v||'');
+ if(typeof v39Politicas!=='undefined'){
+   v39Politicas.termos+=`<h3>Responsabilidades</h3><p>O anfitrião responde pela veracidade do anúncio, condições do imóvel, disponibilidade e recebimentos combinados diretamente. O hóspede responde pelas informações fornecidas, conservação do imóvel e cumprimento das regras aceitas.</p><h3>Papel da plataforma</h3><p>O SULBAHIAGO organiza anúncios, solicitações, mensagens e registros. Nesta modalidade, não recebe, guarda nem repassa valores entre hóspede e anfitrião.</p>`;
+   v39Politicas.privacidade+=`<h3>Consentimento e finalidade</h3><p>Documentos de verificação são tratados de forma privada para confirmar identidade, vínculo com o imóvel, segurança e prevenção a fraude. O usuário pode solicitar acesso, correção ou exclusão pela área “Meus dados e privacidade”.</p><h3>Retenção</h3><p>Dados serão mantidos somente pelo período necessário à operação, segurança, exercício de direitos e cumprimento de obrigações legais.</p>`;
+   v39Politicas.cancelamento+=`<h3>Pagamento direto e reembolso</h3><p>Quando houver valor a devolver, o reembolso é realizado diretamente pelo anfitrião e registrado na reserva. O SULBAHIAGO acompanha o processo, mas não movimenta o dinheiro.</p>`;
+ }
+ function opsIcon(tipo){return {mensagem:'fa-comment-dots',pagamento:'fa-money-check-dollar',reserva:'fa-calendar-check',cancelamento:'fa-rotate-left',checkin:'fa-key',checkout:'fa-door-open',documento:'fa-file-shield'}[tipo]||'fa-bell'}
+ function opsInstalarCabecalho(){const area=document.querySelector('.header-actions');if(!area||document.getElementById('opsBell'))return;area.insertAdjacentHTML('afterbegin','<button id="opsBell" class="ops-bell" type="button" aria-label="Notificações" title="Notificações" onclick="opsAbrirNotificacoes()" style="display:none"><i class="fa-solid fa-bell"></i><span id="opsBadge" class="ops-badge">0</span></button>')}
+ function opsAtualizarVisibilidadeSino(logado=!!getUser?.()?.id){const sino=document.getElementById('opsBell'),badge=document.getElementById('opsBadge');if(sino)sino.style.display=logado?'inline-flex':'none';if(!logado&&badge){badge.textContent='0';badge.style.display='none'}if(!logado){const lista=document.getElementById('opsNotificationsList');if(lista)lista.innerHTML=''}}
+ window.opsCarregarNotificacoes=async function(abrir=false){
+   const u=getUser?.(),lista=document.getElementById('opsNotificationsList'),badge=document.getElementById('opsBadge');
+   if(!u?.id){opsAtualizarVisibilidadeSino(false);if(abrir)abrirAuthModal('login');return}
+   opsAtualizarVisibilidadeSino(true);
+   const [{data,error},{data:leituras}]=await Promise.all([sb.from('sulbahiago_notificacoes').select('*').order('created_at',{ascending:false}).limit(60),sb.from('sulbahiago_notificacoes_leituras').select('notificacao_id').eq('user_id',u.id)]);
+   if(error){if(lista)lista.innerHTML='<div class="ops-empty">Execute primeiro o arquivo SQL do pacote no Supabase.</div>';return}
+   const geraisLidas=new Set((leituras||[]).map(x=>x.notificacao_id));
+   const itens=(data||[]).map(n=>({...n,opsLida:n.destinatario_id?n.lida_em:geraisLidas.has(n.id)})),naoLidas=itens.filter(n=>!n.opsLida).length;
+   if(badge){badge.textContent=naoLidas>99?'99+':naoLidas;badge.style.display=naoLidas?'flex':'none'}
+   if(lista)lista.innerHTML=itens.length?itens.map(n=>`<button type="button" class="ops-note ${n.opsLida?'':'unread'}" onclick="opsAbrirAviso('${n.id}','${n.reserva_id||''}',${n.destinatario_id?'false':'true'})"><i class="fa-solid ${opsIcon(n.tipo)}"></i><main><strong>${opsEsc(n.titulo)}</strong><div class="mini-note">${opsEsc(n.mensagem||'')}</div><time>${new Date(n.created_at).toLocaleString('pt-BR')}</time></main>${n.reserva_id?'<i class="fa-solid fa-chevron-right ops-note-arrow"></i>':''}</button>`).join(''):'<div class="ops-empty"><i class="fa-regular fa-bell-slash" style="font-size:30px"></i><p>Nenhuma notificação até agora.</p></div>';
+   if(abrir)document.getElementById('opsNotificationsModal').style.display='flex';
+ };
+ window.opsAbrirNotificacoes=()=>opsCarregarNotificacoes(true);
+ async function opsMarcarLida(id,geral=false){const u=getUser?.();if(!u?.id)return;if(geral){const {error}=await sb.from('sulbahiago_notificacoes_leituras').upsert({notificacao_id:id,user_id:u.id,lida_em:new Date().toISOString()},{onConflict:'notificacao_id,user_id'});if(error)throw error}else{const {error}=await sb.from('sulbahiago_notificacoes').update({lida_em:new Date().toISOString()}).eq('id',id).eq('destinatario_id',u.id);if(error)throw error}}
+ window.opsAbrirAviso=async function(id,reservaId,geral=false){try{await opsMarcarLida(id,geral);await opsCarregarNotificacoes();if(!reservaId)return;fecharModal('opsNotificationsModal');const admin=await usuarioEhAdmin();if(admin){await abrirPainelAdmin();await trocarAdminAba('reservas')}else abrirChat(reservaId,getUser()?.papel==='anfitriao'?'anfitriao':'hospede')}catch(e){alert('Não foi possível abrir a notificação: '+(e?.message||e))}};
+ window.opsMarcarTodasLidas=async function(){const u=getUser?.();if(!u?.id)return;try{const {data,error}=await sb.from('sulbahiago_notificacoes').select('id,destinatario_id').is('lida_em',null);if(error)throw error;const pessoais=(data||[]).filter(n=>n.destinatario_id===u.id),gerais=(data||[]).filter(n=>!n.destinatario_id);if(pessoais.length){const {error:e}=await sb.from('sulbahiago_notificacoes').update({lida_em:new Date().toISOString()}).in('id',pessoais.map(n=>n.id)).eq('destinatario_id',u.id);if(e)throw e}if(gerais.length){const {error:e}=await sb.from('sulbahiago_notificacoes_leituras').upsert(gerais.map(n=>({notificacao_id:n.id,user_id:u.id,lida_em:new Date().toISOString()})),{onConflict:'notificacao_id,user_id'});if(e)throw e}opsCarregarNotificacoes()}catch(e){alert('Não foi possível marcar as notificações: '+(e?.message||e))}};
+ async function opsIniciarRealtime(){const u=getUser?.();if(!u?.id)return;if(opsChannel){try{await sb.removeChannel(opsChannel)}catch(e){}}opsChannel=sb.channel('notificacoes-'+u.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'sulbahiago_notificacoes',filter:'destinatario_id=eq.'+u.id},()=>opsCarregarNotificacoes()).subscribe();opsCarregarNotificacoes()}
+
+ window.opsAbrirVerificacao=async function(){
+   const u=getUser?.();if(!u?.id){abrirAuthModal('login');return}if(u.papel!=='anfitriao'){alert('Esta área é destinada aos anfitriões.');return}
+   const sel=document.getElementById('opsVerificationProperty');const {data,error}=await sb.from('hospedagens').select('id,nome').eq('anfitriao_id',u.id).order('nome');
+   sel.innerHTML=error?'<option>Não foi possível carregar</option>':(data||[]).map(h=>`<option value="${opsEsc(h.id)}">${opsEsc(h.nome)}</option>`).join('');document.getElementById('opsVerificationModal').style.display='flex';
+ };
+ async function opsUploadDocumento(file,tipo,u,imovel){if(!file)return null;if(file.size>8*1024*1024)throw new Error('Cada documento deve ter no máximo 8 MB.');const ext=(file.name.split('.').pop()||'bin').toLowerCase();const path=`${u.id}/${imovel}/${tipo}-${Date.now()}.${ext}`;const {error}=await sb.storage.from('documentos-verificacao').upload(path,file,{upsert:false});if(error)throw error;return path}
+ window.opsEnviarVerificacao=async function(){
+   const u=getUser?.(),imovel=document.getElementById('opsVerificationProperty').value,msg=document.getElementById('opsVerificationMessage');if(!u?.id||!imovel)return;if(!document.getElementById('opsVerificationConsent').checked){msg.textContent='Marque a autorização para continuar.';return}
+   const arquivos=[document.getElementById('opsDocIdentidade').files[0],document.getElementById('opsDocEndereco').files[0],document.getElementById('opsDocImovel').files[0]];if(arquivos.some(x=>!x)){msg.textContent='Envie os três documentos solicitados.';return}
+   msg.textContent='Enviando documentos...';try{const paths=[];for(const [i,t] of ['identidade','endereco','imovel'].entries())paths.push(await opsUploadDocumento(arquivos[i],t,u,imovel));const {error}=await sb.from('sulbahiago_verificacoes').upsert({user_id:u.id,hospedagem_id:imovel,documento_identidade_path:paths[0],comprovante_endereco_path:paths[1],documento_imovel_path:paths[2],consentimento_em:new Date().toISOString(),status:'em_analise',updated_at:new Date().toISOString()},{onConflict:'user_id,hospedagem_id'});if(error)throw error;msg.style.color='#1a5f20';msg.textContent='Documentos enviados. A situação agora está em análise.'}catch(e){msg.style.color='#b42318';msg.textContent=e?.message||'Não foi possível enviar.'}
+ };
+
+ window.opsSolicitarExclusaoConta=async function(){const u=getUser?.(),msg=document.getElementById('opsPrivacyMessage');if(!u?.id){abrirAuthModal('login');return}if(!confirm('Deseja realmente enviar a solicitação de exclusão da conta?'))return;const motivo=document.getElementById('opsPrivacyReason').value.trim();const {error}=await sb.from('sulbahiago_solicitacoes_privacidade').insert({user_id:u.id,tipo:'exclusao',motivo});msg.textContent=error?error.message:'Solicitação registrada. A administração acompanhará o pedido.';msg.style.color=error?'#b42318':'#1a5f20'};
+ window.opsAbrirPrivacidade=()=>{if(!getUser?.()){abrirAuthModal('login');return}document.getElementById('opsPrivacyModal').style.display='flex'};
+
+ function opsInstalarConta(){const modal=document.querySelector('#v40AccountModal .modal-box');if(!modal||document.getElementById('opsPrivacyButton'))return;modal.insertAdjacentHTML('beforeend','<button id="opsVerificationButton" class="btn-secondary" style="width:100%;margin-top:8px" onclick="opsAbrirVerificacao()"><i class="fa-solid fa-file-shield"></i> Verificar anfitrião e imóvel</button><button id="opsPrivacyButton" class="btn-secondary" style="width:100%;margin-top:8px" onclick="opsAbrirPrivacidade()"><i class="fa-solid fa-user-shield"></i> Meus dados e privacidade</button>')}
+ function opsInstalarAdmin(){
+   const tabs=document.querySelector('#adminModal .admin-tabs'),ref=document.getElementById('adminSecAcessos');if(!tabs||!ref||document.getElementById('opsAdminTab'))return;
+   tabs.insertAdjacentHTML('beforeend','<button id="opsAdminTab" class="admin-tab" onclick="opsAbrirAdminOperacao()"><i class="fa-solid fa-chart-line"></i> Operação</button>');
+   ref.insertAdjacentHTML('afterend','<div id="opsAdminSection" class="admin-section"><div class="admin-card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><h3 style="color:var(--primary-dark)">Resumo operacional</h3><p class="mini-note">Reservas, valores, verificações e auditoria.</p></div><div class="action-row"><button class="btn-secondary" onclick="opsExportarRelatorioPDF()"><i class="fa-solid fa-file-pdf"></i> Relatório PDF</button><button class="btn-secondary" onclick="opsExportarRelatorio()"><i class="fa-solid fa-file-csv"></i> CSV</button></div></div><div class="ops-admin-grid" id="opsAdminStats"></div><h3 style="color:var(--primary-dark);margin:18px 0 8px">Verificações pendentes</h3><div id="opsAdminVerifications"></div><h3 style="color:var(--primary-dark);margin:18px 0 8px">Últimas ações administrativas</h3><div style="overflow:auto"><table class="ops-table"><thead><tr><th>Data</th><th>Ação</th><th>Registro</th></tr></thead><tbody id="opsAdminAudit"></tbody></table></div></div></div>')
+ }
+ window.opsAbrirAdminOperacao=async function(){document.querySelectorAll('#adminModal .admin-section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#adminModal .admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById('opsAdminSection').classList.add('active');document.getElementById('opsAdminTab').classList.add('active');await opsCarregarAdminOperacao()};
+ window.opsCarregarAdminOperacao=async function(){
+   try{const [rr,rv,ra]=await Promise.all([sb.from('sulbahiago_reservas').select('id,imovel,total,status,pagamento_confirmado,created_at'),sb.from('sulbahiago_verificacoes').select('*').order('created_at',{ascending:false}),sb.from('sulbahiago_auditoria').select('*').order('created_at',{ascending:false}).limit(40)]);if(rr.error)throw rr.error;const r=rr.data||[],confirmadas=r.filter(x=>x.pagamento_confirmado||['confirmada','concluida','finalizada'].includes(String(x.status))),canceladas=r.filter(x=>['cancelada','recusada'].includes(String(x.status))),total=confirmadas.reduce((s,x)=>s+Number(x.total||0),0);document.getElementById('opsAdminStats').innerHTML=`<div class="ops-stat"><span>Total de reservas</span><strong>${r.length}</strong></div><div class="ops-stat"><span>Confirmadas</span><strong>${confirmadas.length}</strong></div><div class="ops-stat"><span>Canceladas</span><strong>${canceladas.length}</strong></div><div class="ops-stat"><span>Valor negociado</span><strong style="font-size:17px">${brl(total)}</strong></div>`;const vs=rv.data||[];document.getElementById('opsAdminVerifications').innerHTML=vs.length?vs.map(v=>`<div class="admin-res-item"><strong>${opsEsc(v.status)}</strong><div class="mini-note">Imóvel: ${opsEsc(v.hospedagem_id)} · Enviado em ${new Date(v.created_at).toLocaleDateString('pt-BR')}</div><div class="action-row"><button class="btn-secondary" onclick="opsVerDocumento('${opsEsc(v.documento_identidade_path)}')">Identidade</button><button class="btn-secondary" onclick="opsVerDocumento('${opsEsc(v.comprovante_endereco_path)}')">Endereço</button><button class="btn-secondary" onclick="opsVerDocumento('${opsEsc(v.documento_imovel_path)}')">Imóvel</button></div>${v.status==='em_analise'?`<div class="action-row"><button class="btn-main-action" style="width:auto" onclick="opsDecidirVerificacao('${v.id}','aprovado')">Aprovar</button><button class="btn-danger-lite" onclick="opsDecidirVerificacao('${v.id}','recusado')">Recusar</button></div>`:''}</div>`).join(''):'<div class="mini-note">Nenhuma verificação enviada.</div>';document.getElementById('opsAdminAudit').innerHTML=(ra.data||[]).map(a=>`<tr><td>${new Date(a.created_at).toLocaleString('pt-BR')}</td><td>${opsEsc(a.acao)}</td><td>${opsEsc(a.entidade)} ${opsEsc(a.entidade_id||'')}</td></tr>`).join('')||'<tr><td colspan="3">Nenhuma ação registrada.</td></tr>';window.opsRelatorioReservas=r}catch(e){alert('Execute o SQL do pacote para ativar esta área: '+(e?.message||e))}
+ };
+ window.opsVerDocumento=async function(path){const {data,error}=await sb.storage.from('documentos-verificacao').createSignedUrl(path,300);if(error)alert(error.message);else window.open(data.signedUrl,'_blank','noopener,noreferrer')};
+ window.opsDecidirVerificacao=async function(id,status){const {error}=await sb.from('sulbahiago_verificacoes').update({status,analisado_em:new Date().toISOString(),analisado_por:getUser().id,updated_at:new Date().toISOString()}).eq('id',id);if(error)alert(error.message);else opsCarregarAdminOperacao()};
+ window.opsExportarRelatorio=function(){const arr=window.opsRelatorioReservas||[],linhas=[['ID','Hospedagem','Status','Valor','Criada em'],...arr.map(r=>[r.id,r.imovel,r.status,Number(r.total||0).toFixed(2),r.created_at])];const csv='\ufeff'+linhas.map(l=>l.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='relatorio-sulbahiago-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+ window.opsExportarRelatorioPDF=function(){const arr=window.opsRelatorioReservas||[],total=arr.filter(r=>r.pagamento_confirmado).reduce((s,r)=>s+Number(r.total||0),0),w=window.open('','_blank');if(!w){alert('Permita a abertura da janela para gerar o PDF.');return}w.document.write(`<html><head><title>Relatório SULBAHIAGO</title><style>body{font-family:Arial;padding:34px;color:#26352b}h1{color:#1a5f20}table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}.top{border-left:6px solid #e65100;padding-left:14px;margin-bottom:24px}@media print{button{display:none}}</style></head><body><div class="top"><h1>SULBAHIAGO</h1><p>Relatório operacional · ${new Date().toLocaleString('pt-BR')}</p></div><p><b>${arr.length}</b> reservas · Valor confirmado: <b>${brl(total)}</b></p><table><thead><tr><th>Hospedagem</th><th>Status</th><th>Valor</th><th>Data</th></tr></thead><tbody>${arr.map(r=>`<tr><td>${opsEsc(r.imovel)}</td><td>${opsEsc(r.status)}</td><td>${brl(r.total)}</td><td>${new Date(r.created_at).toLocaleDateString('pt-BR')}</td></tr>`).join('')}</tbody></table><script>setTimeout(()=>print(),400)<\/script></body></html>`);w.document.close()};
+
+ const syncAnterior=window.sincronizarSessaoHospede;window.sincronizarSessaoHospede=async function(){const r=await syncAnterior.apply(this,arguments);opsAtualizarVisibilidadeSino(!!getUser?.()?.id);await opsIniciarRealtime();return r};
+ sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'||!session){if(opsChannel){try{await sb.removeChannel(opsChannel)}catch(e){}opsChannel=null}opsAtualizarVisibilidadeSino(false)}else{opsAtualizarVisibilidadeSino(true);setTimeout(opsCarregarNotificacoes,250)}});
+ document.addEventListener('DOMContentLoaded',()=>{opsInstalarCabecalho();opsAtualizarVisibilidadeSino(false);opsInstalarConta();opsInstalarAdmin();setTimeout(()=>{if(getUser?.()?.id){opsAtualizarVisibilidadeSino(true);opsIniciarRealtime()}},1200)});
+})();
+</script>
+
+<!-- IMAGENS INSTITUCIONAIS EDITÁVEIS PELO ADMINISTRADOR -->
+<style id="adminSiteImagesStyles">
+  .site-images-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.site-image-card{border:1px solid #dfe7e1;border-radius:15px;overflow:hidden;background:#fff}.site-image-preview{height:155px;background:#edf2ee;display:flex;align-items:center;justify-content:center;overflow:hidden}.site-image-preview img{width:100%;height:100%;object-fit:cover}.site-image-info{padding:12px}.site-image-info h4{color:var(--primary-dark);margin:0 0 4px}.site-image-info input{margin:9px 0;width:100%;font-size:11px}.site-image-status{font-size:10px;color:#667085;min-height:16px;margin-top:6px}
+  @media(max-width:650px){.site-images-grid{grid-template-columns:1fr}.site-image-preview{height:180px}}
+</style>
+
+<script id="adminSiteImagesScript">
+(function(){
+ const slots=[
+  {id:'banner_principal',nome:'Banner principal',ajuda:'Imagem grande da página inicial',seletor:'.hero-banner-section'},
+  {id:'capa_sobre',nome:'Capa Sobre',ajuda:'Imagem superior da seção Sobre',seletor:'.page-photo-banner.sobre'},
+  {id:'capa_galeria',nome:'Capa Galeria',ajuda:'Imagem superior da seção Galeria',seletor:'.page-photo-banner.galeria'},
+  {id:'capa_contato',nome:'Capa Contato',ajuda:'Imagem superior da seção Contato',seletor:'.page-photo-banner.contato'},
+  {id:'compartilhamento',nome:'Compartilhamento',ajuda:'Capa exibida no WhatsApp e redes sociais',seletor:null}
+ ];
+ let imagensSiteCache={};
+ function escImg(v){return typeof adminEsc==='function'?adminEsc(v):String(v||'')}
+ function aplicarImagem(slot,url){const cfg=slots.find(s=>s.id===slot);if(!cfg?.seletor||!url)return;document.querySelectorAll(cfg.seletor).forEach(el=>{el.style.backgroundImage=`linear-gradient(rgba(7,31,15,.38),rgba(7,31,15,.50)),url("${String(url).replace(/"/g,'%22')}")`;el.style.backgroundPosition='center';el.style.backgroundSize='cover'})}
+ window.carregarImagensInstitucionais=async function(){
+  try{const {data,error}=await sb.from('site_imagens').select('slot,url,updated_at');if(error)throw error;imagensSiteCache={};(data||[]).forEach(x=>{imagensSiteCache[x.slot]=x;aplicarImagem(x.slot,x.url)});renderAdminImagensSite()}catch(e){console.warn('Imagens institucionais:',e?.message||e)}
+ };
+ function instalarAbaImagens(){
+  const tabs=document.querySelector('#adminModal .admin-tabs'),base=document.getElementById('opsAdminSection')||document.getElementById('adminSecAcessos');if(!tabs||!base||document.getElementById('tabAdminSiteImages'))return;
+  tabs.insertAdjacentHTML('beforeend','<button id="tabAdminSiteImages" class="admin-tab" onclick="abrirAdminImagensSite()"><i class="fa-solid fa-images"></i> Imagens do site</button>');
+  base.insertAdjacentHTML('afterend','<div id="adminSecSiteImages" class="admin-section"><div class="admin-card"><h3 style="color:var(--primary-dark)"><i class="fa-solid fa-wand-magic-sparkles"></i> Imagens institucionais</h3><p class="mini-note">Troque as capas fixas sem editar o HTML. Formatos aceitos: JPG, PNG e WebP, até 8 MB.</p><div id="siteImagesGrid" class="site-images-grid"></div></div></div>');renderAdminImagensSite()
+ }
+ window.renderAdminImagensSite=function(){const grid=document.getElementById('siteImagesGrid');if(!grid)return;grid.innerHTML=slots.map(s=>{const atual=imagensSiteCache[s.id];return `<article class="site-image-card"><div class="site-image-preview">${atual?.url?`<img src="${escImg(atual.url)}" alt="${escImg(s.nome)}">`:'<i class="fa-regular fa-image" style="font-size:38px;color:#8aa08d"></i>'}</div><div class="site-image-info"><h4>${escImg(s.nome)}</h4><p class="mini-note">${escImg(s.ajuda)}</p><input id="siteImageFile_${s.id}" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewAdminImagemSite('${s.id}',this)"><button class="btn-main-action" onclick="salvarAdminImagemSite('${s.id}')"><i class="fa-solid fa-cloud-arrow-up"></i> Atualizar imagem</button><div class="site-image-status" id="siteImageStatus_${s.id}">${atual?'Atualizada em '+new Date(atual.updated_at).toLocaleString('pt-BR'):'Usando a imagem original do site'}</div></div></article>`}).join('')};
+ window.previewAdminImagemSite=function(slot,input){const file=input.files?.[0];if(!file)return;const card=input.closest('.site-image-card'),img=card.querySelector('.site-image-preview');const url=URL.createObjectURL(file);img.innerHTML=`<img src="${url}" alt="Pré-visualização">`};
+ window.salvarAdminImagemSite=async function(slot){
+  const input=document.getElementById('siteImageFile_'+slot),file=input?.files?.[0],status=document.getElementById('siteImageStatus_'+slot);if(!file){status.textContent='Escolha uma imagem primeiro.';return}if(file.size>8*1024*1024){status.textContent='A imagem deve ter no máximo 8 MB.';return}
+  status.textContent='Enviando...';try{const {error:upErr}=await sb.storage.from('site-imagens').upload(slot,file,{upsert:true,contentType:file.type,cacheControl:'60'});if(upErr)throw upErr;const {data:pub}=sb.storage.from('site-imagens').getPublicUrl(slot);const url=pub.publicUrl+'?v='+Date.now();const {error:dbErr}=await sb.from('site_imagens').upsert({slot,url,updated_at:new Date().toISOString(),updated_by:getUser()?.id},{onConflict:'slot'});if(dbErr)throw dbErr;status.style.color='#1a5f20';status.textContent='Imagem atualizada com sucesso.';await carregarImagensInstitucionais()}catch(e){status.style.color='#b42318';status.textContent=e?.message||'Não foi possível atualizar.'}
+ };
+ window.abrirAdminImagensSite=async function(){document.querySelectorAll('#adminModal .admin-section').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#adminModal .admin-tab').forEach(x=>x.classList.remove('active'));document.getElementById('adminSecSiteImages').classList.add('active');document.getElementById('tabAdminSiteImages').classList.add('active');await carregarImagensInstitucionais()};
+ const abrirPainelAnterior=window.abrirPainelAdmin;window.abrirPainelAdmin=async function(){const r=await abrirPainelAnterior.apply(this,arguments);instalarAbaImagens();return r};
+ document.addEventListener('DOMContentLoaded',()=>{instalarAbaImagens();setTimeout(carregarImagensInstitucionais,900)});
+})();
+</script>
+
+<!-- SULBAHIAGO V42: CENTRAL ORGANIZADA DE RESERVAS -->
+<style id="v42ReservasStyles">
+  .v42-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.v42-summary-card{border:1px solid #e2e9e3;border-radius:13px;padding:11px;background:#f9fbf9}.v42-summary-card span{display:block;color:#667085;font-size:10px;font-weight:800;text-transform:uppercase}.v42-summary-card strong{display:block;color:#1A5F20;font-size:22px;margin-top:4px}.v42-reservation-tools{position:sticky;top:-1px;z-index:4;background:#fff;padding:10px 0 12px;border-bottom:1px solid #edf0ed;margin-bottom:12px}.v42-category-tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:7px}.v42-category{border:1px solid #d8e0d9;background:#fff;color:#405247;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.v42-category.active{background:#1A5F20;border-color:#1A5F20;color:#fff}.v42-tools-row{display:flex;align-items:center;justify-content:space-between;gap:9px}.v42-status-filter{border:1px solid #d8e0d9;border-radius:10px;padding:8px 10px;color:#344054;background:#fff;font-size:11px;max-width:210px}.v42-results{font-size:10px;color:#667085;font-weight:700}.v42-more{margin-top:8px;border-top:1px dashed #dfe6e0;padding-top:8px}.v42-more summary{cursor:pointer;color:#1A5F20;font-size:11px;font-weight:800;list-style:none;display:inline-flex;align-items:center;gap:6px;padding:7px 0}.v42-more summary::-webkit-details-marker{display:none}.v42-more-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}.v42-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin:15px 0 4px}.v42-pagination button{border:1px solid #d8e0d9;background:#fff;color:#1A5F20;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}.v42-pagination span{font-size:11px;color:#667085}.v42-qr-content{text-align:center}.v42-qr-box{width:220px;min-height:220px;margin:16px auto;display:grid;place-items:center;padding:10px;border:1px solid #dce5dd;border-radius:15px;background:#fff}.v42-qr-box img,.v42-qr-box canvas{margin:auto}.v42-code{font-size:20px;font-weight:900;letter-spacing:.08em;color:#1A5F20}.v42-empty-filter{padding:28px;text-align:center;color:#667085}.dash-card.v42-hidden{display:none!important}
+  @media(max-width:700px){.v42-summary{grid-template-columns:1fr 1fr}.v42-reservation-tools{position:static}.v42-tools-row{align-items:stretch;flex-direction:column}.v42-status-filter{max-width:none;width:100%}.v42-more-actions{display:grid;grid-template-columns:1fr}.v42-more-actions>*{width:100%!important;justify-content:center}}
+</style>
+<div class="modal-overlay" id="v42QrModal" style="display:none;z-index:13000"><div class="modal-box" style="max-width:410px"><button class="modal-close" onclick="fecharModal('v42QrModal')"><i class="fa-solid fa-xmark"></i></button><div class="v42-qr-content"><h2 style="color:var(--primary-dark)"><i class="fa-solid fa-qrcode"></i> Código da reserva</h2><p class="mini-note" style="margin-top:5px">Apresente este código ao anfitrião na chegada.</p><div id="v42QrBox" class="v42-qr-box"></div><div id="v42QrCode" class="v42-code"></div><p class="mini-note" style="margin-top:8px">O QR Code identifica a reserva, mas somente o anfitrião pode confirmar o check-in.</p></div></div></div>
+<script id="v42ReservasScript">
+(function(){
+  let categoria='atuais',statusFiltro='todos',pagina=1;
+  const porPagina=10;
+  const finalizados=new Set(['concluida','finalizada','cancelada','recusada']);
+
+  function categoriaCard(c){
+    const st=c.dataset.reservaStatus||'solicitada',hoje=new Date().toISOString().slice(0,10);
+    if(finalizados.has(st)||c.dataset.reservaCheckoutEm)return 'historico';
+    if((c.dataset.reservaPagamento==='1'||st==='confirmada')&&c.dataset.reservaCheckin>hoje)return 'proximas';
+    return 'atuais';
+  }
+  function grupoStatus(c){
+    const st=c.dataset.reservaStatus||'solicitada';
+    if(['cancelada','recusada'].includes(st))return 'canceladas';
+    if(['concluida','finalizada'].includes(st)||c.dataset.reservaCheckoutEm)return 'finalizadas';
+    if(c.dataset.reservaCheckinEm&&!c.dataset.reservaCheckoutEm)return 'andamento';
+    if(c.dataset.reservaPagamento==='1'||st==='confirmada')return 'confirmadas';
+    if(['aprovada','aguardando_pagamento'].includes(st))return 'pagamento';
+    return 'pendentes';
+  }
+  function rotularBotoes(c){
+    const ar=c.querySelector('.action-row');if(!ar||ar.querySelector('.v42-more'))return;
+    const secundarios=[...ar.querySelectorAll('button')].filter(b=>/documentos|comprovante|cancelamento/i.test(b.textContent||''));
+    if(!secundarios.length)return;
+    const d=document.createElement('details');d.className='v42-more';d.innerHTML='<summary><i class="fa-solid fa-ellipsis"></i> Mais opções</summary><div class="v42-more-actions"></div>';
+    const box=d.querySelector('.v42-more-actions');secundarios.forEach(b=>box.appendChild(b));ar.appendChild(d);
+  }
+  function adicionarQr(c){
+    const st=grupoStatus(c),ar=c.querySelector('.action-row');if(!ar||ar.querySelector('.v42-qr-btn')||!['confirmadas','andamento'].includes(st))return;
+    const b=document.createElement('button');b.type='button';b.className='btn-secondary v42-qr-btn';b.innerHTML='<i class="fa-solid fa-qrcode"></i> Código de entrada';b.onclick=()=>v42AbrirQr(c.dataset.reservaCodigo||c.dataset.reservaId);ar.appendChild(b);
+  }
+  function montarResumo(cards){
+    const u=getUser?.(),box=document.getElementById('minhasReservasLista');if(!u||u.papel!=='anfitriao'||!box)return;
+    const dados={pendentes:0,confirmadas:0,andamento:0,saidas:0};cards.forEach(c=>{const g=grupoStatus(c);if(g==='pendentes')dados.pendentes++;if(g==='confirmadas')dados.confirmadas++;if(g==='andamento')dados.andamento++;if(g==='andamento'&&c.dataset.reservaCheckout===new Date().toISOString().slice(0,10))dados.saidas++});
+    const s=document.createElement('div');s.className='v42-summary';s.innerHTML=`<div class="v42-summary-card"><span>Novas solicitações</span><strong>${dados.pendentes}</strong></div><div class="v42-summary-card"><span>Próximas entradas</span><strong>${dados.confirmadas}</strong></div><div class="v42-summary-card"><span>Em hospedagem</span><strong>${dados.andamento}</strong></div><div class="v42-summary-card"><span>Saídas de hoje</span><strong>${dados.saidas}</strong></div>`;box.prepend(s);
+  }
+  function aplicarFiltro(){
+    const box=document.getElementById('minhasReservasLista');if(!box)return;const cards=[...box.querySelectorAll(':scope>.dash-card')];
+    const aptos=cards.filter(c=>(categoria==='todas'||categoriaCard(c)===categoria)&&(statusFiltro==='todos'||grupoStatus(c)===statusFiltro));
+    const paginas=Math.max(1,Math.ceil(aptos.length/porPagina));pagina=Math.min(pagina,paginas);
+    cards.forEach(c=>c.classList.add('v42-hidden'));aptos.slice((pagina-1)*porPagina,pagina*porPagina).forEach(c=>c.classList.remove('v42-hidden'));
+    const res=document.getElementById('v42Results');if(res)res.textContent=`${aptos.length} reserva(s)`;
+    let pag=document.getElementById('v42Pagination');if(pag)pag.remove();
+    if(paginas>1){pag=document.createElement('div');pag.id='v42Pagination';pag.className='v42-pagination';pag.innerHTML=`<button onclick="v42Pagina(-1)" ${pagina===1?'disabled':''}><i class="fa-solid fa-chevron-left"></i></button><span>Página ${pagina} de ${paginas}</span><button onclick="v42Pagina(1)" ${pagina===paginas?'disabled':''}><i class="fa-solid fa-chevron-right"></i></button>`;box.appendChild(pag)}
+  }
+  function instalarFerramentas(){
+    const box=document.getElementById('minhasReservasLista');if(!box)return;const cards=[...box.querySelectorAll(':scope>.dash-card')];if(!cards.length)return;
+    cards.forEach(c=>{rotularBotoes(c);adicionarQr(c)});montarResumo(cards);
+    const t=document.createElement('div');t.className='v42-reservation-tools';t.innerHTML='<div class="v42-category-tabs"><button class="v42-category active" data-cat="atuais">Atuais</button><button class="v42-category" data-cat="proximas">Próximas</button><button class="v42-category" data-cat="historico">Histórico</button><button class="v42-category" data-cat="todas">Todas</button></div><div class="v42-tools-row"><select id="v42StatusFilter" class="v42-status-filter"><option value="todos">Todos os status</option><option value="pendentes">Pendentes</option><option value="pagamento">Aguardando pagamento</option><option value="confirmadas">Confirmadas</option><option value="andamento">Em hospedagem</option><option value="finalizadas">Finalizadas</option><option value="canceladas">Canceladas</option></select><span id="v42Results" class="v42-results"></span></div>';
+    const resumo=box.querySelector('.v42-summary');resumo?resumo.insertAdjacentElement('afterend',t):box.prepend(t);
+    t.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{categoria=b.dataset.cat;pagina=1;t.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x===b));aplicarFiltro()});
+    t.querySelector('select').onchange=e=>{statusFiltro=e.target.value;pagina=1;aplicarFiltro()};aplicarFiltro();
+  }
+  window.v42Pagina=d=>{pagina=Math.max(1,pagina+d);aplicarFiltro()};
+  window.v42AbrirQr=code=>{
+    const valor='SULBAHIAGO|RESERVA|'+String(code||'');document.getElementById('v42QrCode').textContent=String(code||'');const box=document.getElementById('v42QrBox');box.innerHTML='';
+    if(window.QRCode)new QRCode(box,{text:valor,width:200,height:200,colorDark:'#1A5F20',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});else box.innerHTML='<div class="mini-note">Código visual indisponível. Utilize o número abaixo.</div>';
+    document.getElementById('v42QrModal').style.display='flex';
+  };
+  const base=window.renderMinhasReservas;window.renderMinhasReservas=async function(){await base.apply(this,arguments);instalarFerramentas()};
+})();
+</script>
+
+<!-- SULBAHIAGO V44: promoções por período, estadia e acomodações -->
+<style id="v44CommercialStyles">
+  .v44-admin-box{margin:14px 0;padding:14px;border:1px solid #dce8dd;border-radius:14px;background:#f8fbf8}.v44-admin-box h4{color:var(--primary-dark);margin-bottom:10px}.v44-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px}.v44-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#edf7ee;color:#1a5f20;font-size:10px;font-weight:800}.v44-chip.urgent{background:#fff0e8;color:#b54100}.v44-accommodation{margin:10px 0;padding:12px;border:1px solid #dfe7e0;border-radius:13px;background:#fff}.v44-accommodation label{display:block;font-size:11px;font-weight:850;color:var(--primary-dark);margin-bottom:6px}.v44-summary{margin:12px 0;border:1px solid #dfe7e0;border-radius:14px;background:#fff;overflow:hidden}.v44-summary-head{padding:11px 13px;background:#f5f9f5;font-weight:850;color:var(--primary-dark)}.v44-summary-row{display:flex;justify-content:space-between;gap:12px;padding:7px 13px;font-size:12px}.v44-summary-row.discount{color:#137333}.v44-summary-row.total{border-top:1px solid #dfe7e0;padding:11px 13px;font-size:15px;font-weight:900}.v44-calendar-price{display:block;font-size:8px;font-weight:800;color:#1a5f20;margin-top:2px}.detail-cal-day.booked .v44-calendar-price,.detail-cal-day.unavailable .v44-calendar-price{display:none}@media(max-width:620px){.v44-admin-box .v39-admin-details{grid-template-columns:1fr}.v44-summary-row{font-size:11px}}
+</style>
+<script id="v44CommercialScript">
+(function(){
+  'use strict';
+  window.v44ParseAcomodacoes=function(d){return String(d?.acomodacoes||'').split(/\n+/).map(l=>{const p=l.split('|').map(x=>x.trim());return {nome:p[0],preco:Number(String(p[1]||'').replace(',','.'))||0,capacidade:Number(p[2])||1,unidades:Number(p[3])||1}}).filter(x=>x.nome&&x.preco>0)};
+  window.v44PromocaoAtiva=function(d,data){if(!d)return false;const hoje=data||new Date().toISOString().slice(0,10);if(d.promo_inicio&&hoje<d.promo_inicio)return false;if(d.promo_fim&&hoje>d.promo_fim)return false;return Number(d.preco_original)>0};
+  window.v44AcomodacaoSelecionada=function(d){const arr=v44ParseAcomodacoes(d),sel=document.getElementById('v44AcomodacaoReserva');return arr.find((_,i)=>String(i)===String(sel?.value))||arr[0]||null};
+  function itemAtual(){const selecionado=typeof imovelSelecionado!=='undefined'?imovelSelecionado:null,nome=typeof nomeImovelGlobal!=='undefined'?nomeImovelGlobal:null;return catalogoSulbahiago[selecionado]||catalogoSulbahiago[nome]||null}
+  function instalarAcomodacoes(){const item=itemAtual(),d=item?.detalhes||{},arr=v44ParseAcomodacoes(d),form=document.getElementById('etapaReservaForm');if(!form)return;let box=document.getElementById('v44AccommodationBox');if(!box){box=document.createElement('div');box.id='v44AccommodationBox';box.className='v44-accommodation';const pay=form.querySelector('.v34-payment-box');form.insertBefore(box,pay||form.querySelector('.rules-box'))}if(!arr.length){box.style.display='none';return}box.style.display='block';box.innerHTML=`<label><i class="fa-solid fa-bed"></i> TIPO DE ACOMODAÇÃO</label><select id="v44AcomodacaoReserva" class="form-control">${arr.map((a,i)=>`<option value="${i}">${adminEsc(a.nome)} · ${brl(a.preco)} · até ${a.capacidade} hóspede(s) · ${a.unidades} unidade(s)</option>`).join('')}</select>`;box.querySelector('select').onchange=()=>atualizarCalculoModal()}
+  function valores(){const item=itemAtual();if(!item)return null;const d=item.detalhes||{},acom=v44AcomodacaoSelecionada(d),cin=document.getElementById('modalCheckin')?.value,cout=document.getElementById('modalCheckout')?.value,qtd=Number(document.getElementById('modalHospedes')?.value)||1,noites=cin&&cout?Math.max(1,Math.round((new Date(cout)-new Date(cin))/86400000)):1,alta=verificarSeEhAltaTemporada(cin),promo=v44PromocaoAtiva(d,cin),promocional=Number(acom?.preco)||Number(item.preco)||0,original=Math.max(Number(d.preco_original)||promocional,promocional),base=alta?(Number(d.preco_alta)||promocional):(promo?promocional:original),diaria=base*qtd,subtotal=diaria*noites,taxa=Number(d.taxa_limpeza)||0,cupom=(document.getElementById('v39CupomReserva')?.value||'').trim().toUpperCase(),cupomDesc=cupom&&cupom===String(d.cupom||'').toUpperCase()?Number(d.desconto)||0:0,estadiaDesc=noites>=7?Number(d.desconto_7_noites)||0:noites>=3?Number(d.desconto_3_noites)||0:0,desc=Math.max(cupomDesc,estadiaDesc),descontoValor=subtotal*desc/100,total=subtotal-descontoValor+taxa,totalOriginal=(!alta&&promo?original*qtd*noites:subtotal)+taxa,economia=Math.max(0,totalOriginal-total);return {item,d,acom,cin,cout,qtd,noites,diaria,subtotal,taxa,desc,descontoValor,total,totalOriginal,economia,promo,alta}}
+  function resumo(){const v=valores(),form=document.getElementById('etapaReservaForm');if(!v||!form)return;let box=document.getElementById('v44PriceSummary');if(!box){box=document.createElement('div');box.id='v44PriceSummary';box.className='v44-summary';const rules=form.querySelector('.rules-box');form.insertBefore(box,rules)}box.innerHTML=`<div class="v44-summary-head"><i class="fa-solid fa-receipt"></i> Resumo do valor</div><div class="v44-summary-row"><span>${v.noites} noite(s) × ${brl(v.diaria)}</span><strong>${brl(v.subtotal)}</strong></div>${v.taxa?`<div class="v44-summary-row"><span>Taxa de limpeza</span><strong>${brl(v.taxa)}</strong></div>`:''}${v.desc?`<div class="v44-summary-row discount"><span>Desconto de ${v.desc}%</span><strong>− ${brl(v.descontoValor)}</strong></div>`:''}${v.economia?`<div class="v44-summary-row discount"><span>Economia total</span><strong>${brl(v.economia)}</strong></div>`:''}<div class="v44-summary-row total"><span>Total</span><strong>${v.economia?`<span class="v39-total-old">${brl(v.totalOriginal)}</span> `:''}${brl(v.total)}</strong></div>`}
+  const calculoAnterior=window.atualizarCalculoModal;window.atualizarCalculoModal=function(){if(typeof calculoAnterior==='function')calculoAnterior();const v=valores();if(!v)return;const d=document.getElementById('reservaValorDiaria'),t=document.getElementById('reservaValorTotal');if(d)d.textContent=`${brl(v.diaria)} / noite${v.alta?' · alta temporada':''}`;if(t)t.innerHTML=v.economia?`<span class="v39-total-old">${brl(v.totalOriginal)}</span> <span class="v39-total-new">${brl(v.total)}</span>`:brl(v.total);resumo()};
+  const abreAnterior=window.abrirReservaModal;window.abrirReservaModal=function(){const r=abreAnterior?.apply(this,arguments);setTimeout(()=>{instalarAcomodacoes();atualizarCalculoModal()},30);return r};
+  function melhorarCards(){document.querySelectorAll('.dynamic-property-card').forEach(c=>{if(c.querySelector('.v44-card-meta'))return;const nome=c.querySelector('h3')?.textContent,item=catalogoSulbahiago[nome],d=item?.detalhes||{};if(!item||!v44PromocaoAtiva(d))return;const meta=document.createElement('div');meta.className='v44-card-meta';const fim=d.promo_fim?new Date(d.promo_fim+'T12:00:00').toLocaleDateString('pt-BR'):'';meta.innerHTML=`<span class="v44-chip urgent"><i class="fa-solid fa-bolt"></i> ${fim?'Oferta até '+fim:'Oferta especial'}</span>`;c.querySelector('.property-details-tag')?.after(meta)})}
+  const obs=new MutationObserver(melhorarCards);document.addEventListener('DOMContentLoaded',()=>{melhorarCards();const g=document.getElementById('cardsGridContainer');if(g)obs.observe(g,{childList:true,subtree:true})});
+  if(typeof window.renderCalendarioDetalhe==='function'){const calAnterior=window.renderCalendarioDetalhe;window.renderCalendarioDetalhe=function(){calAnterior();const item=itemAtual(),d=item?.detalhes||{};document.querySelectorAll('#detalheCalendarioGrid .detail-cal-day.available').forEach(el=>{const dia=Number(el.firstChild?.textContent||el.textContent),ano=detalheCalendarioData.getFullYear(),mes=detalheCalendarioData.getMonth(),iso=`${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`,alta=verificarSeEhAltaTemporada(iso),promo=v44PromocaoAtiva(d,iso),p=alta?(Number(d.preco_alta)||Number(item.preco)):(promo?Number(item.preco):Math.max(Number(d.preco_original)||Number(item.preco),Number(item.preco)));el.insertAdjacentHTML('beforeend',`<span class="v44-calendar-price">${brl(p)}</span>`)})}}
+})();
+</script>
+
+<!-- ESTABILIDADE FINAL: mantém as camadas anteriores compatíveis e melhora a experiência sem alterar as regras do Supabase -->
+<style id="sulbahiagoStabilityStyles">
+  body.modal-open{overflow:hidden;touch-action:none}
+  button:disabled{cursor:not-allowed;opacity:.62}
+  .btn-checkout-highlight,button[onclick*="'checkout'"]{background:#fff3e0!important;border:1px solid #e65100!important;color:#a33a00!important;font-weight:800!important;box-shadow:0 4px 12px rgba(230,81,0,.12)}
+  .btn-checkout-highlight:hover,button[onclick*="'checkout'"]:hover{background:#ffe0b2!important}
+  .form-control:focus,.form-floating-input:focus,button:focus-visible,a:focus-visible{outline:3px solid rgba(230,81,0,.28);outline-offset:2px}
+  @media(max-width:767px){
+    header{gap:8px}.header-actions{gap:7px;min-width:0}.btn-login-topo,.btn-reservar-topo{padding:9px 11px;font-size:12px;white-space:nowrap}
+    .btn-reservar-topo{display:none}.logo{font-size:17px;letter-spacing:.8px}.ops-bell{flex:0 0 auto}
+    .modal-box{max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+    .action-row>button,.action-row>a{min-height:44px}
+  }
+</style>
+
+<script id="sulbahiagoStabilityScript">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+
+  function hojeLocal(){
+    const d=new Date(),off=d.getTimezoneOffset();
+    return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+  }
+
+  function sincronizarDatas(){
+    const hoje=hojeLocal();
+    [['checkinInput','checkoutInput'],['modalCheckin','modalCheckout'],['adminCheckin','adminCheckout']].forEach(([entradaId,saidaId])=>{
+      const entrada=$(entradaId),saida=$(saidaId);if(!entrada||!saida)return;
+      entrada.min=hoje;saida.min=entrada.value||hoje;
+      if(entrada.dataset.datasSincronizadas)return;
+      entrada.dataset.datasSincronizadas='1';
+      entrada.addEventListener('change',()=>{
+        saida.min=entrada.value||hoje;
+        if(saida.value&&entrada.value&&saida.value<=entrada.value)saida.value='';
+      });
+      saida.addEventListener('change',()=>{
+        if(entrada.value&&saida.value<=entrada.value){
+          saida.value='';
+          alert('O check-out precisa ser depois do check-in.');
+        }
+      });
+    });
+  }
+
+  function protegerUploads(){
+    document.querySelectorAll('input[type="file"]').forEach(input=>{
+      if(input.dataset.uploadProtegido)return;input.dataset.uploadProtegido='1';
+      input.addEventListener('change',()=>{
+        const file=input.files?.[0];if(!file)return;
+        const aceitos=String(input.accept||'').split(',').map(x=>x.trim()).filter(Boolean);
+        const tipoValido=!aceitos.length||aceitos.some(a=>a==='image/*'&&file.type.startsWith('image/')||a===file.type||a.startsWith('.')&&file.name.toLowerCase().endsWith(a.toLowerCase()));
+        const max=input.id.startsWith('opsDoc')||input.id.startsWith('siteImageFile_')?8:4;
+        if(!tipoValido||file.size>max*1024*1024){
+          input.value='';
+          alert(!tipoValido?'Formato de arquivo não permitido.':`O arquivo deve ter no máximo ${max} MB.`);
+        }
+      });
+    });
+  }
+
+  function melhorarBotoes(){
+    document.querySelectorAll('button:not([type])').forEach(b=>b.type='button');
+    document.querySelectorAll('button').forEach(b=>{
+      const texto=(b.textContent||'').trim().toLowerCase();
+      if(texto.includes('check-out'))b.classList.add('btn-checkout-highlight');
+    });
+  }
+
+  function atualizarEstadoModal(){
+    const aberto=[...document.querySelectorAll('.modal-overlay')].some(m=>getComputedStyle(m).display!=='none');
+    document.body.classList.toggle('modal-open',aberto);
+  }
+
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    const modais=[...document.querySelectorAll('.modal-overlay')].filter(m=>getComputedStyle(m).display!=='none');
+    const atual=modais.at(-1);if(atual&&typeof window.fecharModal==='function')window.fecharModal(atual.id);
+  });
+
+  // Atualiza apenas depois de uma ação humana. Não monitora a página inteira,
+  // evitando ciclos de processamento em listas grandes de reservas.
+  document.addEventListener('click',()=>setTimeout(atualizarEstadoModal,0),{passive:true});
+  document.addEventListener('DOMContentLoaded',()=>{
+    sincronizarDatas();protegerUploads();melhorarBotoes();atualizarEstadoModal();
+  });
+})();
+</script>
+
+<script id="rotasSulbahiago">
+// Abre a seção correta quando o visitante chega por um atalho do buscador.
+(function () {
+  const rotas = {
+    '#inicio': 'home',
+    '#reserva': 'home',
+    '#hospedagens': 'home',
+    '#servicos': 'home',
+    '#galeria': 'galeria',
+    '#sobre': 'sobre',
+    '#contato': 'contato'
+  };
+
+  function abrirRotaDoEndereco() {
+    const hash = (window.location.hash || '').toLowerCase();
+    const secao = rotas[hash];
+    if (!secao || typeof window.mostrarSecao !== 'function') return;
+
+    window.mostrarSecao(secao);
+    if (hash === '#reserva' || hash === '#hospedagens' || hash === '#servicos') {
+      setTimeout(function () {
+        document.getElementById('hospedagens')?.scrollIntoView({ behavior: 'smooth' });
+      }, 120);
+    }
+  }
+
+  window.addEventListener('hashchange', abrirRotaDoEndereco);
+  window.addEventListener('DOMContentLoaded', function () {
+    setTimeout(abrirRotaDoEndereco, 150);
+  });
+})();
+</script>
 
 </body>
 </html>

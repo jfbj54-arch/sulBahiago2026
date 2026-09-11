@@ -17,6 +17,7 @@
   <meta property="og:image" content="https://eloxmouxuwxvkiiuhrxs.supabase.co/storage/v1/object/public/site-imagens/compartilhamento">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>SULBAHIAGO - Hospedagens e Experiências Exclusivas</title>
   
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1106,7 +1107,7 @@
           <h1>Explore as joias escondidas do sul da Bahia</h1>
         </div>
         <div class="hero-desc-col">
-          <p>Conectamos você às melhores opções de hospedagem com total segurança, conforto e exclusividade em Prado.</p>
+          <p>Encontre hospedagens, consulte as condições e converse diretamente com o anfitrião antes da confirmação.</p>
         </div>
       </div>
 
@@ -2013,7 +2014,7 @@
       const u=getUser(); if(!u){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-user-lock"></i><h3>Entre para ver suas reservas</h3><p>Seu histórico aparece aqui após o login.</p><button class="btn-main-action" style="max-width:220px;margin-top:14px;" onclick="abrirAuthModal(\'login\',\'reservas\')">Entrar</button></div>'; return; }
       const arr=getReservas().filter(r=>r.contato===u.email || r.cliente===u.nome);
       if(!arr.length){ box.innerHTML='<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><h3>Nenhuma reserva ainda</h3><p>Escolha uma hospedagem e faça sua primeira solicitação.</p></div>'; return; }
-      box.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r); return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><h3>${r.imovel}</h3><div class="location">${r.local}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${r.id}</b></div><div class="action-row">${r.status==='aprovada'&&!r.pago?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${r.pago&&!r.checkinFeito?`<button class="btn-secondary" onclick="fazerCheckin('${r.id}')"><i class="fa-solid fa-key"></i> Fazer check-in</button>`:''}${r.checkinFeito&&!r.avaliada?`<button class="btn-secondary" onclick="abrirAvaliacao('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar</button>`:''}</div></div>`}).join('');
+      box.innerHTML=arr.map(r=>{const [lab,cls]=statusLabel(r); return `<div class="dash-card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start;"><div><h3>${r.imovel}</h3><div class="location">${r.local}</div></div><span class="status-badge ${cls}">${lab}</span></div><div class="reservation-meta"><span><b>Entrada</b><br>${dataBR(r.checkin)}</span><span><b>Saída</b><br>${dataBR(r.checkout)}</span><span><b>Hóspedes</b><br>${r.hospedes}</span><span><b>Total</b><br>${brl(r.total)}</span></div><div class="mini-note">Código: <b>${r.id}</b></div><div class="action-row">${r.status==='aprovada'&&!r.pago?`<span class="status-badge orange"><i class="fa-solid fa-handshake"></i> Combine o pagamento na conversa</span>`:''}<button class="btn-secondary" onclick="abrirChat('${r.id}','hospede')"><i class="fa-solid fa-comments"></i> Abrir reserva e conversa</button><button class="btn-docs-visible" onclick="abrirCentralDocumentos('${r.id}')"><i class="fa-solid fa-folder-open"></i> Documentos da reserva</button>${r.pago&&!r.checkinFeito?`<span class="status-badge blue"><i class="fa-solid fa-shield-halved"></i> Check-in será confirmado pelo anfitrião</span>`:''}${r.checkinFeito&&!r.avaliada?`<button class="btn-secondary" onclick="abrirAvaliacao('${r.id}')"><i class="fa-solid fa-star"></i> Avaliar</button>`:''}</div></div>`}).join('');
     }
     function renderAnfitriao(){
       const arr=getReservas(); const resumo=document.getElementById('painelAnfitriaoResumo'); const lista=document.getElementById('painelAnfitriaoReservas'); if(!resumo||!lista)return;
@@ -5882,6 +5883,12 @@ document.addEventListener('DOMContentLoaded',()=>{instalarFiltros();instalarManu
   .price,.card-price-display,.promo-card-new,.rating,.location i,.v39-price-line strong,.v44-calendar-price{color:#006064!important}
   a:not(.logo):not(.btn-reservar-topo):not(.btn-main-action),.v39-legal-links button{color:#006064}
   .property-details-tag i,.v39-detail-stat i,.v34-payment-icon{color:#006064!important}
+  header .nav-menu a{color:#fff!important;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.2)}
+  header .nav-menu a:hover,header .nav-menu a.active{color:#fff!important}
+  header .ops-bell,header .ops-bell i{color:#fff!important}
+  .price,.card-price-display,.promo-card-new,.v39-price-line strong{font-weight:900!important}
+  .property-details-tag i,.v39-detail-stat i,.v34-payment-icon{filter:drop-shadow(0 2px 4px rgba(0,96,100,.18))}
+  .property-details-tag{border-left:3px solid rgba(0,96,100,.5)!important}
   .btn-main-action,.btn-book,.btn-anunciar-cta,.btn-search-airbnb,.btn-login-topo,.btn-reservar-topo{background:linear-gradient(135deg,#E65100,#f36b22)!important;color:#fff!important}
   .filter-pill-btn.active,.v42-category.active{background:linear-gradient(135deg,#E65100,#f36b22)!important;border-color:#E65100!important;color:#fff!important}
   .admin-tab.active,.auth-tabs button.active{background:#fff1e8!important;border-color:#E65100!important;color:#b53f00!important;box-shadow:inset 0 -2px 0 #E65100!important}
@@ -5890,6 +5897,109 @@ document.addEventListener('DOMContentLoaded',()=>{instalarFiltros();instalarManu
   .section-title:before{background:#E65100!important;box-shadow:0 0 0 5px rgba(230,81,0,.1)!important}
   .hero-title-col h1:after{background:linear-gradient(90deg,#E65100,#006064)!important}
   footer{background:linear-gradient(135deg,#144D19,#123f17)!important}
+
 </style>
+
+<!-- SULBAHIAGO V50: melhorias internas de reserva, favoritos, conversa e moderação -->
+<style id="v50InternalUpgrade">
+  .v50-confirm-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.v50-confirm-item{padding:11px;border:1px solid #e3e8e4;border-radius:12px;background:#f9fbf9}.v50-confirm-item span{display:block;font-size:10px;font-weight:800;color:#68716a;text-transform:uppercase}.v50-confirm-item strong{display:block;color:#1A5F20;margin-top:4px}.v50-confirm-total{display:flex;justify-content:space-between;gap:15px;align-items:center;padding:15px;border-radius:13px;background:#fff3e9;color:#9f3900}.v50-confirm-actions{display:flex;gap:9px;margin-top:14px}.v50-confirm-actions>*{flex:1}
+  .v50-fav-specs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.v50-fav-specs span{font-size:10px;padding:5px 7px;border-radius:999px;background:#edf6f6;color:#006064;font-weight:750}.v50-compare{grid-column:1/-1;padding:13px;border-radius:14px;background:#f7f5f0;border:1px solid #e2e0da}.v50-compare strong{color:#1A5F20}.v50-compare-row{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:8px;padding:7px 0;border-bottom:1px solid #e5e3dc;font-size:11px}.v50-compare-row:last-child{border:0}
+  .v50-quick{display:flex;gap:6px;overflow-x:auto;padding:7px 0 10px}.v50-quick button{white-space:nowrap;border:1px solid #d9e4da;background:#fff;color:#1A5F20;border-radius:999px;padding:7px 10px;font-size:11px;font-weight:750;cursor:pointer}.v50-quick button:hover{border-color:#E65100;color:#b23e00}
+  .v50-report-btn{color:#b42318!important;border-color:#efc5c1!important}.v50-report-success{padding:12px;border-radius:12px;background:#eef8f0;color:#1A5F20;display:none;margin-top:10px}
+  .v50-host-tools{margin:13px 0;padding:13px;border:1px solid #dce5dd;border-radius:14px;background:#f8faf8}.v50-host-tools h4{color:#1A5F20;margin:0 0 8px}.v50-host-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px}.v50-host-row input,.v50-host-row select{min-width:0}
+  @media(max-width:620px){.v50-confirm-grid{grid-template-columns:1fr}.v50-confirm-actions{flex-direction:column}.v50-compare-row{grid-template-columns:1.2fr repeat(3,.8fr);font-size:9px}.v50-host-row{grid-template-columns:1fr 1fr}.v50-host-row button{grid-column:1/-1}}
+</style>
+
+<div class="modal-overlay" id="v50ConfirmModal" style="display:none;z-index:14000">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close" onclick="fecharModal('v50ConfirmModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 style="color:var(--primary-dark)"><i class="fa-solid fa-clipboard-check"></i> Revise antes de solicitar</h2>
+    <p class="mini-note" style="margin-top:5px">Confira os dados. O envio cria uma solicitação, não uma reserva instantânea.</p>
+    <div id="v50ConfirmBody"></div>
+    <div class="v50-confirm-actions"><button class="btn-secondary" onclick="fecharModal('v50ConfirmModal')">Voltar e corrigir</button><button class="btn-main-action" onclick="v50ConfirmarEnvio()"><i class="fa-solid fa-paper-plane"></i> Enviar solicitação</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="v50ReportModal" style="display:none;z-index:14000">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="fecharModal('v50ReportModal')"><i class="fa-solid fa-xmark"></i></button>
+    <h2 style="color:var(--primary-dark)"><i class="fa-solid fa-flag"></i> Informar um problema</h2>
+    <p class="mini-note">A administração poderá analisar informações incorretas, anúncio suspeito ou outro problema.</p>
+    <label class="form-label">MOTIVO</label><select id="v50ReportReason" class="form-control"><option>Informação incorreta</option><option>Preço ou condição divergente</option><option>Imóvel ou anúncio suspeito</option><option>Conteúdo inadequado</option><option>Outro problema</option></select>
+    <label class="form-label" style="margin-top:10px">DETALHES</label><textarea id="v50ReportText" class="form-control" rows="4" maxlength="500" placeholder="Explique o que aconteceu"></textarea>
+    <div id="v50ReportSuccess" class="v50-report-success"><i class="fa-solid fa-circle-check"></i> Informação enviada para análise.</div>
+    <button class="btn-main-action" style="margin-top:12px" onclick="v50EnviarDenuncia()">Enviar para análise</button>
+  </div>
+</div>
+
+<script id="v50InternalScript">
+(function(){
+  let envioLiberado=false,imovelDenunciado='';
+  const originalPolitica=window.enviarPedidoReservaComPolitica;
+  window.enviarPedidoReservaComPolitica=function(){
+    if(envioLiberado){envioLiberado=false;return originalPolitica.apply(this,arguments)}
+    const aceite=document.getElementById('aceitePoliticaCancelamento');if(!aceite?.checked){alert('Para continuar, leia e marque que está ciente da política de cancelamento.');return}
+    const nome=document.getElementById('clienteNome')?.value.trim(),contato=document.getElementById('clienteContato')?.value.trim(),cin=document.getElementById('modalCheckin')?.value,cout=document.getElementById('modalCheckout')?.value;
+    if(!nome||!contato||!cin||!cout){alert('Preencha seu nome, contato, check-in e check-out.');return}
+    const hosp=document.getElementById('modalHospedes')?.selectedOptions?.[0]?.textContent||'',forma=document.querySelector('input[name="formaPagamentoReserva"]:checked')?.closest('label')?.querySelector('strong')?.textContent||'',diaria=document.getElementById('reservaValorDiaria')?.textContent||'',total=document.getElementById('reservaValorTotal')?.textContent||'';
+    document.getElementById('v50ConfirmBody').innerHTML=`<div class="v50-confirm-grid"><div class="v50-confirm-item"><span>Hospedagem</span><strong>${adminEsc(nomeImovelGlobal||'Hospedagem')}</strong></div><div class="v50-confirm-item"><span>Hóspede</span><strong>${adminEsc(nome)}</strong></div><div class="v50-confirm-item"><span>Entrada</span><strong>${dataBR(cin)}</strong></div><div class="v50-confirm-item"><span>Saída</span><strong>${dataBR(cout)}</strong></div><div class="v50-confirm-item"><span>Quantidade</span><strong>${adminEsc(hosp)}</strong></div><div class="v50-confirm-item"><span>Pagamento escolhido</span><strong>${adminEsc(forma)}</strong></div></div><div class="v50-confirm-total"><span>${adminEsc(diaria)}</span><strong>${adminEsc(total)}</strong></div>`;
+    document.getElementById('v50ConfirmModal').style.display='flex';
+  };
+  window.v50ConfirmarEnvio=function(){fecharModal('v50ConfirmModal');envioLiberado=true;window.enviarPedidoReservaComPolitica()};
+
+  window.v40AbrirFavoritos=function(){const ids=v39Favoritos(),box=document.getElementById('v40FavoritesList'),itens=Object.entries(catalogoSulbahiago).filter(([,v])=>ids.includes(String(v.id)));const resumo=itens.length>1?`<div class="v50-compare"><strong>Comparação rápida</strong>${itens.slice(0,3).map(([n,v])=>`<div class="v50-compare-row"><b>${adminEsc(n)}</b><span>${brl(v.preco)}</span><span>${Number(v.max_hospedes)||1} hósp.</span><span>${Number(v.detalhes?.quartos)||0} quarto(s)</span></div>`).join('')}</div>`:'';box.innerHTML=resumo+(itens.length?itens.map(([nome,v])=>`<article class="v40-favorite-card"><img src="${adminEsc(v.imagens?.[0]||'')}" alt="${adminEsc(nome)}"><div class="v40-favorite-info"><h3>${adminEsc(nome)}</h3><div class="mini-note">${adminEsc(v.local||'Sul da Bahia')}</div><strong style="display:block;color:#006064;margin-top:6px">${brl(v.preco)} / noite</strong><div class="v50-fav-specs"><span>${Number(v.max_hospedes)||1} hóspedes</span><span>${Number(v.detalhes?.quartos)||0} quartos</span><span>${Number(v.detalhes?.camas)||0} camas</span><span>${Number(v.detalhes?.banheiros)||0} banheiros</span></div><div class="v40-favorite-actions"><button class="btn-secondary" onclick="fecharModal('v40FavoritesModal');abrirDetalhesImovel('${adminEsc(nome)}')">Ver</button><button class="btn-danger-lite" onclick="v39ToggleFavorito('${adminEsc(v.id)}');v40AbrirFavoritos()">Remover</button></div></div></article>`).join(''):'<div class="empty-state" style="grid-column:1/-1"><i class="fa-regular fa-heart"></i><h3>Nenhum favorito salvo</h3><p>Toque no coração de uma hospedagem para encontrá-la aqui.</p></div>');document.getElementById('v40FavoritesModal').style.display='flex'};
+
+  const detalhesBase=window.v39EnriquecerDetalhes;window.v39EnriquecerDetalhes=function(nome){detalhesBase(nome);const actions=document.querySelector('#v39DetailContent .v39-detail-actions');if(actions&&!actions.querySelector('.v50-report-btn')){const b=document.createElement('button');b.className='btn-secondary v50-report-btn';b.innerHTML='<i class="fa-solid fa-flag"></i> Informar problema';b.onclick=()=>{imovelDenunciado=nome;document.getElementById('v50ReportText').value='';document.getElementById('v50ReportSuccess').style.display='none';document.getElementById('v50ReportModal').style.display='flex'};actions.appendChild(b)}};
+  window.v50EnviarDenuncia=function(){const texto=document.getElementById('v50ReportText').value.trim();if(texto.length<10){alert('Explique o problema com pelo menos 10 caracteres.');return}const arr=JSON.parse(localStorage.getItem('sulbahiago_denuncias')||'[]');arr.unshift({id:'DEN-'+Date.now(),imovel:imovelDenunciado,motivo:document.getElementById('v50ReportReason').value,detalhes:texto,status:'em_analise',data:new Date().toISOString()});localStorage.setItem('sulbahiago_denuncias',JSON.stringify(arr));document.getElementById('v50ReportSuccess').style.display='block'};
+
+  function instalarRapidas(){const input=document.getElementById('chatInput'),box=input?.closest('.chat-compose')||input?.parentElement;if(!input||!box||box.parentElement?.querySelector('.v50-quick'))return;const q=document.createElement('div');q.className='v50-quick';['Olá! Gostaria de confirmar os detalhes.','Qual é o horário de entrada?','Enviei o comprovante para conferência.','Obrigado pelas informações!'].forEach(t=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{input.value=t;input.focus()};q.appendChild(b)});box.parentElement.insertBefore(q,box)}
+  const chatBase=window.renderChat;window.renderChat=async function(){await chatBase.apply(this,arguments);instalarRapidas()};
+  window.v50RenderDenuncias=function(){const box=document.getElementById('v50AdminReports');if(!box)return;const arr=JSON.parse(localStorage.getItem('sulbahiago_denuncias')||'[]');box.innerHTML=arr.length?arr.map(x=>`<div class="admin-res-item"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${adminEsc(x.imovel)}</strong><span class="status-badge orange">${adminEsc(x.status)}</span></div><div class="mini-note">${adminEsc(x.motivo)} · ${new Date(x.data).toLocaleString('pt-BR')}</div><p style="font-size:12px;margin:8px 0">${adminEsc(x.detalhes)}</p><button class="btn-secondary" onclick="v50ArquivarDenuncia('${x.id}')"><i class="fa-solid fa-box-archive"></i> Arquivar análise</button></div>`).join(''):'<div class="empty-state"><i class="fa-regular fa-flag"></i><h3>Nenhuma informação pendente</h3><p>Os problemas informados pelos usuários aparecerão aqui.</p></div>'};
+  window.v50ArquivarDenuncia=function(id){const arr=JSON.parse(localStorage.getItem('sulbahiago_denuncias')||'[]').map(x=>x.id===id?{...x,status:'arquivada'}:x);localStorage.setItem('sulbahiago_denuncias',JSON.stringify(arr));v50RenderDenuncias()};
+  function instalarModeracao(){const ref=document.querySelector('#opsAdminSection .admin-card');if(!ref||document.getElementById('v50AdminModeration'))return;const sec=document.createElement('div');sec.id='v50AdminModeration';sec.innerHTML='<h3 style="color:var(--primary-dark);margin:20px 0 8px"><i class="fa-solid fa-shield-halved"></i> Moderação de anúncios</h3><p class="mini-note" style="margin-bottom:9px">Informações enviadas pelos usuários para conferência administrativa.</p><div id="v50AdminReports"></div>';ref.appendChild(sec);v50RenderDenuncias()}
+  const adminBase=window.abrirAdmin;window.abrirAdmin=function(){const r=adminBase.apply(this,arguments);setTimeout(instalarModeracao,500);return r};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{instalarRapidas();instalarModeracao()},700));
+})();
+</script>
+
+<!-- SULBAHIAGO V51: qualidade, acessibilidade, desempenho e PWA -->
+<style id="v51QualityStyles">
+  .v51-skip{position:fixed;left:12px;top:-60px;z-index:30000;background:#E65100;color:#fff!important;padding:11px 15px;border-radius:0 0 10px 10px;font-weight:800;text-decoration:none;transition:.2s}.v51-skip:focus{top:0}
+  .v51-network{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:25000;display:none;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:#7a271a;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.2);font-size:12px;font-weight:800}.v51-network.show{display:flex}.v51-network.online{background:#1A5F20}
+  .v51-field-error{border-color:#b42318!important;box-shadow:0 0 0 3px rgba(180,35,24,.09)!important}.v51-help-error{display:block;color:#b42318;font-size:11px;font-weight:700;margin:5px 8px}
+  .v51-install{display:none;margin:10px auto 0;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:8px 13px;cursor:pointer;font-weight:750}.v51-install.show{display:inline-flex;align-items:center;gap:7px}
+  .v51-error-card{text-align:center;padding:10px}.v51-error-card>i{font-size:40px;color:#E65100;margin-bottom:11px}.v51-error-card h2{color:#1A5F20}.v51-error-card p{color:#647067;line-height:1.55;margin:8px 0 15px}
+  :focus-visible{outline:3px solid rgba(230,81,0,.48)!important;outline-offset:3px}.modal-overlay[aria-hidden="true"]{display:none!important}
+  @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+<a class="v51-skip" href="#hospedagens">Pular para as hospedagens</a>
+<div id="v51Network" class="v51-network" role="status" aria-live="polite"></div>
+<div id="v51Live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div class="modal-overlay" id="v51ErrorModal" style="display:none;z-index:15000" aria-labelledby="v51ErrorTitle">
+  <div class="modal-box" style="max-width:430px"><button class="modal-close" onclick="fecharModal('v51ErrorModal')" aria-label="Fechar aviso"><i class="fa-solid fa-xmark"></i></button><div class="v51-error-card"><i class="fa-solid fa-cloud-arrow-down"></i><h2 id="v51ErrorTitle">Não foi possível concluir</h2><p id="v51ErrorText">Confira sua conexão e tente novamente.</p><button class="btn-main-action" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Tentar novamente</button></div></div>
+</div>
+<script id="v51QualityScript">
+(function(){
+  const draftIds=['modalCheckin','modalCheckout','modalHospedes','clienteNome','clienteContato','v45OrigemHospede','v39CupomReserva'];let installEvent=null;
+  function log(tipo,mensagem,extra){try{const a=JSON.parse(localStorage.getItem('sulbahiago_logs_tecnicos')||'[]');a.unshift({tipo,mensagem:String(mensagem||'Erro desconhecido').slice(0,500),extra:String(extra||'').slice(0,500),data:new Date().toISOString(),pagina:location.pathname});localStorage.setItem('sulbahiago_logs_tecnicos',JSON.stringify(a.slice(0,80)))}catch(e){}}
+  function live(t){const e=document.getElementById('v51Live');if(e)e.textContent=t}
+  function rede(){const e=document.getElementById('v51Network');if(!e)return;e.className='v51-network show'+(navigator.onLine?' online':'');e.innerHTML=navigator.onLine?'<i class="fa-solid fa-wifi"></i> Conexão restabelecida':'<i class="fa-solid fa-triangle-exclamation"></i> Você está sem internet';live(e.textContent);if(navigator.onLine)setTimeout(()=>e.classList.remove('show'),2500)}
+  function hoje(){return new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)}
+  function datas(){const h=hoje();['checkinInput','checkoutInput','modalCheckin','modalCheckout'].forEach(id=>{const e=document.getElementById(id);if(e)e.min=h});const a=document.getElementById('modalCheckin'),b=document.getElementById('modalCheckout');if(a&&b)a.addEventListener('change',()=>{b.min=a.value||h;if(b.value&&b.value<=a.value)b.value=''})}
+  function lazy(){document.querySelectorAll('img:not([loading])').forEach((img,i)=>{img.loading=i<3?'eager':'lazy';img.decoding='async';if(!img.alt)img.alt='Imagem da hospedagem SULBAHIAGO'});document.querySelectorAll('iframe:not([loading])').forEach(x=>x.loading='lazy')}
+  function salvarRascunho(){const d={};draftIds.forEach(id=>{const e=document.getElementById(id);if(e)d[id]=e.value});localStorage.setItem('sulbahiago_rascunho_reserva',JSON.stringify(d))}
+  function restaurarRascunho(){try{const d=JSON.parse(localStorage.getItem('sulbahiago_rascunho_reserva')||'{}');draftIds.forEach(id=>{const e=document.getElementById(id);if(e&&!e.value&&d[id])e.value=d[id]})}catch(e){}}
+  function erroCampo(e,msg){e.classList.add('v51-field-error');let h=e.parentElement?.querySelector('.v51-help-error');if(!h){h=document.createElement('span');h.className='v51-help-error';e.insertAdjacentElement('afterend',h)}h.textContent=msg;e.focus()}
+  function limparErros(){document.querySelectorAll('.v51-field-error').forEach(x=>x.classList.remove('v51-field-error'));document.querySelectorAll('.v51-help-error').forEach(x=>x.remove())}
+  const v50=window.enviarPedidoReservaComPolitica;window.enviarPedidoReservaComPolitica=function(){limparErros();const nome=document.getElementById('clienteNome'),contato=document.getElementById('clienteContato'),cin=document.getElementById('modalCheckin'),cout=document.getElementById('modalCheckout');if(nome&&nome.value.trim().length<3){erroCampo(nome,'Informe seu nome completo.');return}const c=contato?.value.trim()||'',email=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c),fone=c.replace(/\D/g,'').length>=10;if(contato&&!email&&!fone){erroCampo(contato,'Informe um e-mail válido ou WhatsApp com DDD.');return}if(cin&&cin.value<hoje()){erroCampo(cin,'A entrada não pode ser uma data passada.');return}if(cin&&cout&&cout.value<=cin.value){erroCampo(cout,'A saída precisa ser depois da entrada.');return}salvarRascunho();return v50.apply(this,arguments)};
+  const abrirReserva=window.abrirModalReserva; if(typeof abrirReserva==='function')window.abrirModalReserva=function(){const r=abrirReserva.apply(this,arguments);setTimeout(()=>{restaurarRascunho();datas()},50);return r};
+  document.addEventListener('input',e=>{if(draftIds.includes(e.target.id))salvarRascunho()});document.addEventListener('change',e=>{if(draftIds.includes(e.target.id))salvarRascunho()});
+  window.addEventListener('online',rede);window.addEventListener('offline',rede);window.addEventListener('error',e=>log('javascript',e.message,e.filename+':'+e.lineno));window.addEventListener('unhandledrejection',e=>log('promessa',e.reason?.message||e.reason));
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;document.getElementById('v51InstallBtn')?.classList.add('show')});window.v51Instalar=async function(){if(!installEvent){alert('A instalação ficará disponível quando o site estiver publicado em HTTPS.');return}installEvent.prompt();await installEvent.userChoice;installEvent=null;document.getElementById('v51InstallBtn')?.classList.remove('show')};
+  async function pwa(){if('serviceWorker'in navigator&&location.protocol.startsWith('http'))try{await navigator.serviceWorker.register('./sw.js')}catch(e){log('service_worker',e.message)}}
+  function instalar(){datas();lazy();restaurarRascunho();const f=document.querySelector('footer');if(f&&!document.getElementById('v51InstallBtn'))f.insertAdjacentHTML('beforeend','<br><button id="v51InstallBtn" class="v51-install" onclick="v51Instalar()"><i class="fa-solid fa-mobile-screen-button"></i> Instalar aplicativo</button>');document.querySelectorAll('.modal-overlay').forEach(m=>{m.setAttribute('role','dialog');m.setAttribute('aria-modal','true')});new MutationObserver(lazy).observe(document.body,{childList:true,subtree:true});pwa()}
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(instalar,350));
+})();
+</script>
 </body>
 </html>
